@@ -9,7 +9,7 @@
 /* Communication Low Level ****************************************************/
 #define SEND_STRING_LENGTH 40
 #define RECEIVE_STRING_LENGTH 41
-#define RECEIVE_PARAM_LENGTH 20
+#define RECEIVE_PARAM_LENGTH 50
 
 void commFunctions(void);
 void newString(unsigned char word);
