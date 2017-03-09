@@ -614,13 +614,13 @@ void setRemoteTime(void) {
 
 void setRemotePower(void) {
 
-    char newPowerAllocated[5];
+    char newPowerAllocated[7];
     utoa(newPowerAllocated, (unsigned int) powerAllocated, 10);
 
-    char newPowerUsed[5];
+    char newPowerUsed[7];
     utoa(newPowerUsed, (unsigned int) powerUsed, 10);
 
-    char newCurrentLoad[5];
+    char newCurrentLoad[7];
     utoa(newCurrentLoad, (unsigned int) currentLoad, 10);
 
     commandBuilder3("Set", "Power", newPowerAllocated,
