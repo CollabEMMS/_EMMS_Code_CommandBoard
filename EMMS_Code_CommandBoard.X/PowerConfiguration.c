@@ -64,7 +64,7 @@
                                   //disabled,MCLR pin enabled)
 
 // FICD
-#pragma config ICS = PGx2         // ICD Pin Placement Select bits (EMUC/EMUD
+#pragma config ICS = PGx1         // ICD Pin Placement Select bits (EMUC/EMUD
                                   // share PGC2/PGD2)
 
 // FDS

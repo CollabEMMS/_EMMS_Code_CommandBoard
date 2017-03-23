@@ -3,7 +3,7 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>BFPowerPIC-Test</name>
+            <name>EMMS_Code_CommandBoard</name>
             <creation-uuid>3d64e32b-6d34-4b87-8e41-f1aed2fe2dbb</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>

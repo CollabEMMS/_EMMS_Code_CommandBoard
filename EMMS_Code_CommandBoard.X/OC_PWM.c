@@ -26,10 +26,10 @@ void initOC_PWM(void) {
     OC2CON1bits.OCM     = 0b110;   // Edge-aligned mode
 
 
-    LED1_DIR = 0;
-    LED2_DIR = 0;
-    LED3_DIR = 0;
-    LED4_DIR = 0;
+//    LED1_DIR = 0;
+//    LED2_DIR = 0;
+//    LED3_DIR = 0;
+//    LED4_DIR = 0;
 
 }
 // Set OC2R to any percent value 0 to 100
@@ -38,7 +38,8 @@ void updateLEDs(void) {
     OC2R = (100 * (powerAllocated - powerUsed)) / powerAllocated;
 
 #ifndef LEDS_FOR_DEBUG
-
+    return;
+    
     // Update the 4 LEDs to show power remaining
     if (OC2R > 75) {
         LED1 = 1;

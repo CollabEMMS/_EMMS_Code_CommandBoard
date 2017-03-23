@@ -8,10 +8,11 @@
 /* Includes *******************************************************************/
 
 #include <xc.h>
+#include <p24FV32KA302.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <p24FV32KA302.h>
 
+#include "Communications.h"
 #include "PowerDefinitions.h"
 #include "PowerPinDefinitions.h"
 #include "SharedDefinitions.h"
@@ -32,6 +33,9 @@
 #define LED3 LATBbits.LATB4
 #define LED4 LATAbits.LATA4
 
+#define LED2_READ PORTAbits.RA3
+
+
 #define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
 // uncomment for using the LEDS for debugging
 
@@ -43,35 +47,16 @@
  */
 int main(void) {
 
-    LED1_DIR = 0;
-    LED2_DIR = 0;
-    LED3_DIR = 0;
-    LED4_DIR = 0;
-
-    int inx;
-    for( inx = 0; inx < 5; inx++)
-    {
-        LED1 = 1;
-        LED2 = 1;
-        LED3 = 1;
-        LED4 = 1;
-        delayMS(100);
-        LED1 = 0;
-        LED2 = 0;
-        LED3 = 0;
-        LED4 = 0;
-        delayMS(100);
-    }
-    delayMS(1000);
-
     init();
+     
+    SPIMasterInit( );
     
     LED1_DIR = 0;
     LED2_DIR = 0;
     LED3_DIR = 0;
     LED4_DIR = 0;
 
-    for( inx = 0; inx < 5; inx++)
+    for( int inx = 0; inx < 5; inx++)
     {
         LED1 = 1;
         LED2 = 1;
@@ -84,36 +69,30 @@ int main(void) {
         LED4 = 0;
         delayMS(100);
     }
-    delayMS(1000);
+//    delayMS(1000);
     
     
-    //int hb = 0;
-
-
     static unsigned char lowPriorityCounter = 0;
 
-    for (;;) {
+    while(1) {
     // Only do these tasks every 100 - 150 ms
-        if (!lowPriorityCounter++) {
-            readTime();
-            updateLEDs();
-            dailyReset();
-            zeroPower();
-            relayControl();
+        //if (!lowPriorityCounter++) {
+//            readTime();
+//            updateLEDs();
+//            dailyReset();
+//            zeroPower();
+//            relayControl();
+//        }
 
-//            if (hb == 0) {
-//                hb = 1;
-//                LED1 = 1;
-//            } else {
-//                hb = 0;
-//                LED1 = 0;
-//            }
-        }
+	communications( );
 
-        commFunctions();
+	
+	// test timer here
+	
+//        commFunctions();
 
-        readButton();
-        storeToEE();
+//        readButton();
+//        storeToEE();
     }
 
 }
@@ -128,19 +107,17 @@ void init(void) {
 
 
     initI2C();
-    //            LED1 = 1;
-    //            LED2 = 1;
 
     startClock();
     setClock();
-    LED3 = 1;
+
     initPorts();
-    //            LED4 = 1;
+
     initVars();
     readI2CPowerTimes();
     initPWMeasurement();
     initUART();
-    initOC_PWM();
+//    initOC_PWM();
     enableInterrupts();
     commandBuilder1("Reboot", "Now", "0");
     commandBuilder1("Reboot", "Now", "0");

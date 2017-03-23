@@ -4,15 +4,13 @@
 #include "Communications.h"
 #include <stdbool.h>
 #include <xc.h>
-//#include <p24FV32KA302.h>
+#include <p24FV32KA302.h>
 
 #define BUFFER_LENGTH 40  // max size is positive signed character size
 #define PORT_COUNT 3 // one based count of the number of ports
 
-// adjust this parameter as needed - there is no science to it
-// if the delay is too short, then things don't work right
-// a larger min program could make it that the number of skips is much less
-#define DELAY_RUN_SKIPS 500 // don't run the cmm every loop - skip some  going too fast causes problems
+#define RUN_INTERVAL 8000 // run periodically, going too fast causes problems - this is based off a timer, not loops through the program
+
 
 #define PARAMETER_MAX_COUNT 5
 #define PARAMETER_MAX_LENGTH 10
@@ -34,6 +32,30 @@
 #define SPI_PORT_1 LATBbits.LATB14
 #define SPI_PORT_2 LATBbits.LATB12
 
+/* TEST */
+//#define LEDGreenSET LATBbits.LATB4 
+//#define LEDYellowSET LATAbits.LATA4 
+
+//#define LEDGreenREAD PORTBbits.RB4
+//#define LEDYellowREAD PORTAbits.RA4
+
+
+#define LED1SET LATAbits.LATA2
+#define LED1READ PORTAbits.RA2
+#define LED1DIR TRISAbits.TRISA2
+
+#define LED2SET LATAbits.LATA3
+#define LED2READ PORTAbits.RA3
+#define LED2DIR TRISAbits.TRISA3
+
+#define LED3SET LATBbits.LATB4
+#define LED3READ PORTBbits.RB4
+#define LED3DIR TRISBbits.TRISB4
+
+#define LED4SET LATAbits.LATA4
+#define LED4READ PORTAbits.RA4
+#define LED4DIR TRISAbits.TRISA4
+
 enum receive_status
 {
     receive_waiting,
@@ -52,7 +74,9 @@ extern void delayMS( int );
 
 bool SPI_receive_data( char * );
 void set_current_port( unsigned char * );
-enum receive_status receive_data( struct buffer * );
+//enum receive_status receive_data( struct buffer * );
+enum receive_status receive_data( struct buffer *, bool *data_received );
+
 bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer );
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *buffer_to_parameterize );
 bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *send_buffer );
@@ -89,21 +113,24 @@ void communications( )
     bool no_more_to_send; // here to make this more readable
 
     static enum receive_status receive_current_state;
-    static unsigned char receive_wait_count;
-    static unsigned char receive_in_command_count;
+    static unsigned int receive_wait_count;
+    static unsigned int receive_in_command_count;
 
-    static unsigned int delayRunCount = 0;
 
-    // a delay was needed to make things run right
-    // but a delay blocks the entire program
-    // we just skip over comm a number of time the rest of the program can run
-    // see notes with macro #define
-    delayRunCount++;
-    if ( delayRunCount >= DELAY_RUN_SKIPS )
+    if( TMR1 > RUN_INTERVAL )
     {
-	delayRunCount = 0;
+	TMR1 = 0;
+	if( LED2READ == 0b1 )
+	{
+	    LED2SET = 0;
+	}
+	else
+	{
+	    LED2SET = 1;
+	}
 
-	if ( current_port_done == true )
+
+	if( current_port_done == true )
 	{
 	    set_current_port( &current_port );
 
@@ -122,26 +149,33 @@ void communications( )
 	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	}
 
-	// this delay is replaced with the skips at the start of this function
-	//	delayMS( 5 );
-	receive_current_state = receive_data( &receive_buffer );
-	switch ( receive_current_state )
+	bool data_received;
+	
+	receive_current_state = receive_data( &receive_buffer, &data_received );
+	switch( receive_current_state )
 	{
 	case receive_waiting:
 	    // count # of times we are waiting for COMMAND_START_CHAR !
-	    receive_wait_count++;
+	    if ( data_received == true)
+	    {
+		receive_wait_count++;
+	    }
 
 	    break;
 	case receive_in_command:
 	    // count # of times we are in a command
 	    // need to check if we somehow missed the COMMAND_END_CHAR *
 	    // must be more than max length a command can be
-	    receive_wait_count = 0;
-	    receive_in_command_count++;
+	    if ( data_received == true)
+	    {
+		receive_wait_count = 0;
+		receive_in_command_count++;
+	    }
 
 	    break;
 	case receive_end_command:
-	    if ( process_data( &receive_buffer, &send_buffer ) == true )
+
+	    if( process_data( &receive_buffer, &send_buffer ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
@@ -153,25 +187,26 @@ void communications( )
 
 	no_more_to_send = send_data( &send_buffer );
 
-	if ( no_more_to_send == true )
+	if( no_more_to_send == true )
 	{
-	    if ( end_of_transmission_received == true )
+	    if( end_of_transmission_received == true )
 	    {
 		// make sure trans buffer is empty
 		// the following test is for standard buffer mode only
 		// a different check must be performed if the enhanced buffer is used
-		if ( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
+		if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
 		{
 		    current_port_done = true;
 		}
 	    }
-	    else if ( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
+	    else if( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
 	    {
 		// not receiving anything valid from slave
 		// just move to the next port - things should clear up on their own eventually
+
 		current_port_done = true;
 	    }
-	    else if ( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
+	    else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
 	    {
 		// received too many characters before the command was ended
 		// likely a garbled COMMAND_END_CHAR or something
@@ -188,11 +223,6 @@ void communications( )
     return;
 }
 
-
-// set the port
-// for right now just make this SPI compatible
-// we can change how this works later if we need to
-
 void set_current_port( unsigned char *current_port )
 {
     // will it work without disabling the master port?
@@ -202,16 +232,15 @@ void set_current_port( unsigned char *current_port )
     SPI_PORT_1 = 1; //disable slave select (1 is disabled)
     SPI_PORT_2 = 1; //disable slave select (1 is disabled)
 
-    // this delay is likely not necessary and has been removed for now
-    //    delayMS( 10 );
+    //    delayMS(1000);
 
     ( *current_port )++;
-    if ( *current_port >= PORT_COUNT )
+    if( *current_port >= PORT_COUNT )
     {
 	*current_port = 0;
     }
 
-    switch ( *current_port )
+    switch( *current_port )
     {
     case 0:
 	// set correct DO chip select here
@@ -228,43 +257,74 @@ void set_current_port( unsigned char *current_port )
 	break;
     }
 
+    //    delayMS(1000);
+
     SPI1STATbits.SPIEN = 1; //enable master SPI
+    
+    // heartbeat each time we switch ports
+    if( LED4READ == 1 )
+    {
+	LED4SET = 0;
+    }
+    else
+    {
+	LED4SET = 1;
+    }
 
     return;
 }
 
-enum receive_status receive_data( struct buffer *receive_buffer )
+enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received )
 {
     char data;
 
     static enum receive_status my_status = receive_waiting;
 
-    if ( my_status == receive_end_command )
+    if( my_status == receive_end_command )
     {
 	my_status = receive_waiting;
     }
 
-    if ( SPI_receive_data( &data ) == true )
+    *data_received = false;
+    
+    if( SPI_receive_data( &data ) == true )
     {
-	if ( ( data == COMMAND_START_CHAR ) && ( my_status != receive_in_command ) )
+        *data_received = true;
+
+	if( data == COMMAND_START_CHAR )
 	{
+
+	    if( LED3READ == 1 )
+	    {
+		LED3SET = 0;
+	    }
+	    else
+	    {
+		LED3SET = 1;
+	    }
+	}
+
+
+	if( ( data == COMMAND_START_CHAR ) && ( my_status != receive_in_command ) )
+	{
+
 	    my_status = receive_in_command;
 	    receive_buffer->read_position = 0;
 	    receive_buffer->write_position = 0;
 	}
 
-	if ( my_status == receive_in_command )
+	if( my_status == receive_in_command )
 	{
 	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
 
 	    receive_buffer->write_position++;
-	    if ( receive_buffer->write_position >= BUFFER_LENGTH )
+	    if( receive_buffer->write_position >= BUFFER_LENGTH )
 	    {
 		receive_buffer->write_position = ( BUFFER_LENGTH - 1 );
 	    }
 	}
 
-	if ( ( my_status == receive_in_command ) && ( data == COMMAND_END_CHAR ) )
+	if( ( my_status == receive_in_command ) && ( data == COMMAND_END_CHAR ) )
 	{
 	    my_status = receive_end_command;
 	}
@@ -301,14 +361,14 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
     // if we do not we risk passing junk into some functions that assume strings and check for NULL
     // without NULL a string function could run forever until we die from old age
     // even then it would keep running
-    for ( int inx = 0; inx < PARAMETER_MAX_COUNT; inx++ )
+    for( int inx = 0; inx < PARAMETER_MAX_COUNT; inx++ )
     {
 	parameters[inx][0] = CHAR_NULL;
     }
 
-    while ( ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR ) && ( buffer_to_parameterize->read_position < BUFFER_LENGTH ) && ( buffer_to_parameterize->read_position != buffer_to_parameterize->write_position ) )
+    while( ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR ) && ( buffer_to_parameterize->read_position < BUFFER_LENGTH ) && ( buffer_to_parameterize->read_position != buffer_to_parameterize->write_position ) )
     {
-	switch ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
+	switch( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
 	{
 	case COMMAND_START_CHAR:
 	    // this character should never appear
@@ -318,7 +378,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 	    parameter_position = 0;
 	    parameter_index++;
 
-	    if ( parameter_index >= PARAMETER_MAX_COUNT )
+	    if( parameter_index >= PARAMETER_MAX_COUNT )
 	    {
 		// if we run out of parameters just overwrite the last one
 		// we should never have this case, but this keeps us from crashing and burning
@@ -330,7 +390,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 	    // add the character to the current parameter
 	    parameters[parameter_index][parameter_position] = buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position];
 	    parameter_position++;
-	    if ( parameter_position >= PARAMETER_MAX_LENGTH )
+	    if( parameter_position >= PARAMETER_MAX_LENGTH )
 	    {
 		// if our parameter is too long, just overwrite the last character
 		// we should never have this case, but this keeps us from crashing and burning
@@ -344,7 +404,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 
     buffer_to_parameterize->read_position = 0;
     buffer_to_parameterize->write_position = 0;
-    
+
     return;
 }
 
@@ -359,67 +419,106 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     // it's not very clean to call the command builder functions from here
     // especially if there is some processing to do, like setting a clock or something
 
-    if ( strmatch( parameters[0], "END" ) == true )
+    if( strmatch( parameters[0], "END" ) == true )
     {
+
+	//	if( LED2READ == 1)
+	//	{
+	//	    LED2SET = 0;
+	//	}
+	//	else
+	//	{
+	//	    LED2SET = 1;
+	//	}
+
+
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
     }
-    else if ( strmatch( parameters[0], "Set" ) == true )
+    else if( strmatch( parameters[0], "Set" ) == true )
     {
-	if ( strmatch( parameters[1], "Power" ) == true )
+	if( strmatch( parameters[1], "Power" ) == true )
 	{
 	    //set_power( parameters[3]);
 	    // send reply?
 	}
-	else if ( strmatch( parameters[1], "Volts" ) == true )
+	else if( strmatch( parameters[1], "Volts" ) == true )
 	{
 	    //set_volts( parameters[2]);
 	    // send reply?
 	}
-	else if ( strmatch( parameters[1], "Current" ) == true )
+	else if( strmatch( parameters[1], "Current" ) == true )
 	{
 
 	    //set_current( parameters[3]);
 	    // send reply?
 	}
-	else if ( strmatch( parameters[1], "LED" ) == true )
+	else if( strmatch( parameters[1], "LED" ) == true )
 	{
-	    if ( strmatch( parameters[2], "On" ) == true )
+	    if( strmatch( parameters[2], "On" ) == true )
 	    {
-		LATBbits.LATB4 = 1;
+		LED2SET = 1;
 		command_builder3( send_buffer, "Conf", "LED", "On" );
 
 	    }
-	    else if ( strmatch( parameters[2], "Off" ) == true )
+	    else if( strmatch( parameters[2], "Off" ) == true )
 	    {
-		LATBbits.LATB4 = 0;
+		LED2SET = 0;
 		command_builder3( send_buffer, "Conf", "LED", "Off" );
 	    }
 	}
+	else if( strmatch( parameters[1], "LEDB" ) == true )
+	{
+	    if( strmatch( parameters[2], "On" ) == true )
+	    {
+		LED1SET = 1;
+		command_builder3( send_buffer, "Conf", "LEDB", "On" );
+
+	    }
+	    else if( strmatch( parameters[2], "Off" ) == true )
+	    {
+		LED1SET = 0;
+		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
+	    }
+	}
+
+
     }
-    else if ( strmatch( parameters[0], "Read" ) == true )
+    else if( strmatch( parameters[0], "Read" ) == true )
     {
-	if ( strmatch( parameters[1], "Power" ) == true )
+	if( strmatch( parameters[1], "Power" ) == true )
 	{
 	    // send command power
 	}
-	else if ( strmatch( parameters[1], "Volts" ) == true )
+	else if( strmatch( parameters[1], "Volts" ) == true )
 	{
 	    // send command volts
 	}
-	else if ( strmatch( parameters[1], "Current" ) == true )
+	else if( strmatch( parameters[1], "Current" ) == true )
 	{
 	    // send command current
 	}
-	else if ( strmatch( parameters[1], "LED" ) == true )
+	else if( strmatch( parameters[1], "LED" ) == true )
 	{
-	    if ( PORTBbits.RB4 == 0b1 )
+	    if( LED2READ == 0b1 )
 	    {
 		command_builder3( send_buffer, "Data", "LED", "On" );
 	    }
 	    else
 	    {
 		command_builder3( send_buffer, "Data", "LED", "Off" );
+	    }
+	}
+	else if( strmatch( parameters[1], "LEDB" ) == true )
+	{
+
+	    if( LED1READ == 0b1 )
+	    {
+		command_builder3( send_buffer, "Data", "LEDB", "On" );
+	    }
+	    else
+	    {
+		command_builder3( send_buffer, "Data", "LEDB", "Off" );
 	    }
 	}
     }
@@ -436,7 +535,7 @@ void command_builder1( struct buffer *send_buffer, char* data1 )
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
     command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-    
+
     return;
 }
 
@@ -447,7 +546,7 @@ void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     command_builder_add_string( send_buffer, data2 );
     command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-    
+
     return;
 }
 
@@ -460,7 +559,7 @@ void command_builder3( struct buffer *send_buffer, char* data1, char* data2, cha
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     command_builder_add_string( send_buffer, data3 );
     command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-    
+
     return;
 }
 
@@ -475,7 +574,7 @@ void command_builder4( struct buffer *send_buffer, char* data1, char* data2, cha
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     command_builder_add_string( send_buffer, data4 );
     command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-    
+
     return;
 }
 
@@ -484,21 +583,21 @@ void command_builder_add_char( struct buffer *send_buffer, char data )
     send_buffer->data_buffer[send_buffer->write_position] = data;
 
     send_buffer->write_position++;
-    if ( send_buffer->write_position >= BUFFER_LENGTH )
+    if( send_buffer->write_position >= BUFFER_LENGTH )
     {
 	send_buffer->write_position = 0;
     }
-    
+
     return;
 }
 
 void command_builder_add_string( struct buffer *send_buffer, char *data_string )
 {
-    for ( int inx = 0; data_string[inx] != CHAR_NULL; inx++ )
+    for( int inx = 0; data_string[inx] != CHAR_NULL; inx++ )
     {
 	command_builder_add_char( send_buffer, data_string[inx] );
     }
-    
+
     return;
 }
 
@@ -506,17 +605,17 @@ bool send_data( struct buffer *send_buffer )
 {
     bool send_end;
 
-    if ( send_buffer->read_position == send_buffer->write_position )
+    if( send_buffer->read_position == send_buffer->write_position )
     {
 	send_end = true;
     }
     else
     {
 	send_end = false;
-	if ( SPI_send_data( send_buffer->data_buffer[send_buffer->read_position] ) == true )
+	if( SPI_send_data( send_buffer->data_buffer[send_buffer->read_position] ) == true )
 	{
 	    send_buffer->read_position++;
-	    if ( send_buffer->read_position >= BUFFER_LENGTH )
+	    if( send_buffer->read_position >= BUFFER_LENGTH )
 	    {
 		send_buffer->read_position = 0;
 	    }
@@ -531,20 +630,14 @@ bool strmatch( char* a, char* b )
     int result;
     bool match;
 
-    if ( ( a[0] != CHAR_NULL ) || ( b[0] != CHAR_NULL ) )
+    static int co = 0;
+    co++;
+
+    result = strcmp2( a, b );
+
+    if( result == 0 )
     {
-	result = strcmp2( a, b );
-
-	if ( result == 0 )
-	{
-	    match = true;
-	}
-	else
-	{
-	    match = false;
-	}
-
-	//match = (result == 0) ? true : false;
+	match = true;
     }
     else
     {
@@ -559,39 +652,48 @@ int strcmp2( char* a, char* b )
     int inx = 0;
     int match = 0;
 
-    while ( ( a[inx] != CHAR_NULL ) && ( b[inx] != CHAR_NULL ) && ( match == 0 ) )
+    while( ( a[inx] != CHAR_NULL ) && ( b[inx] != CHAR_NULL ) && ( match == 0 ) )
     {
-	if ( a[inx] > b[inx] )
+	if( a[inx] > b[inx] )
 	{
 	    match = 1;
 	}
-	else if ( a[inx] < b[inx] )
+	else if( a[inx] < b[inx] )
 	{
 	    match = -1;
 	}
-	else if ( a[inx] == b[inx] )
+	else if( a[inx] == b[inx] )
 	{
-	    //do nothing = never reset to zero
+	    //do nothing
 	}
 
 	inx++;
     }
 
+    if( ( a[inx] == CHAR_NULL ) && ( b[inx] != CHAR_NULL ) )
+    {
+	match = -1;
+    }
+    else if( ( a[inx] != CHAR_NULL ) && ( b[inx] == CHAR_NULL ) )
+    {
+	match = 1;
+    }
+
+
     return match;
 }
-
-/****************
- These functions will need to be replaced
- they are place holders for now
- */
 
 bool SPI_receive_data( char *data )
 {
     bool recvGood = false;
 
-    if ( SPI1STATbits.SPIRBF == 0b1 )
+    if( SPI1STATbits.SPIRBF == 0b1 )
     {
 	*data = SPI1BUF;
+	//        if (*data == 'L') {
+	//            recvGood = true;
+	//            char gregory = *data;
+	//        }
 	recvGood = true;
     }
 
@@ -602,7 +704,7 @@ bool SPI_send_data( char data )
 {
     bool sendGood = false;
 
-    if ( SPI1STATbits.SPITBF == 0b0 ) //if in enhance mode use SPI1STATbits.SR1MPT
+    if( SPI1STATbits.SPITBF == 0b0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
 	SPI1BUF = data;
 	sendGood = true;
@@ -617,16 +719,19 @@ bool SPI_send_data( char data )
 void send_end_of_transmission( struct buffer *send_buffer )
 {
     command_builder1( send_buffer, "END" );
-    
+
     return;
 }
 
 void SPIMasterInit( void )
 {
-
     // make sure analog is turned off - it messes with the pins
     ANSA = 0;
     ANSB = 0;
+
+    TRISBbits.TRISB10 = 0b1; // SDI1
+    TRISBbits.TRISB11 = 0b1; // SCK1 (seems this should be set output, but 0b0 does not work)
+    TRISBbits.TRISB13 = 0b0; // SDO1
 
     SPI_PORT_0_DIR = 0;
     SPI_PORT_1_DIR = 0;
@@ -647,6 +752,8 @@ void SPIMasterInit( void )
     SPI1CON1bits.SSEN = 0b0; // not a slave
     SPI1CON1bits.CKP = 0b1; // clock idle is high
     SPI1CON1bits.SPRE = 0b000; // secondary prescale 8:1
+    SPI1CON1bits.PPRE = 0b11; // primary prescale 1:1
+    //    SPI1CON1bits.PPRE = 0b00; // primary prescale 1:1
 
     SPI1CON2bits.FRMEN = 0b0; // frame mode, unused
     SPI1CON2bits.SPIFSD = 0b0; // frame mode, unused
@@ -657,8 +764,20 @@ void SPIMasterInit( void )
 
     SPI1STATbits.SPIROV = 0; //clear flag for overflow data
 
-    SPI1BUF = SPI1BUF;
-    SPI1STATbits.SPIEN = 1; //enable SPI
-    
+    //SPI1BUF = SPI1BUF;
+    //    SPI1STATbits.SPIEN = 1; //enable SPI
+
+    // set timer up here
+    T1CONbits.TSIDL = 0b1; //Discontinue module operation when device enters idle mode
+    T1CONbits.T1ECS = 0b00; // Timer1 uses Secondary Oscillator (SOSC) as the clock soource)
+    T1CONbits.TGATE = 0b0; // Gated time accumulation is disabled
+    T1CONbits.TSYNC = 0b0; // Do not synchronize external clock input (asynchronous)
+    T1CONbits.TCS = 0b0; //use internal clock
+
+    T1CONbits.TCKPS = 0b00; // Timer 1 Input Clock Prescale (11-256)(10-64) (01-8) (00-1)
+    TMR1 = 0x0000; // start timer at 0
+
+    T1CONbits.TON = 0b1; //turn on timer
+
     return;
 }
