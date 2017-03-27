@@ -11,6 +11,7 @@
 #include <p24FV32KA302.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "Communications.h"
 #include "PowerDefinitions.h"
@@ -29,11 +30,12 @@
 #define LED4_DIR TRISAbits.TRISA4
 
 #define LED1 LATAbits.LATA2
-#define LED2 LATAbits.LATA3
-#define LED3 LATBbits.LATB4
+#define LED2SET LATAbits.LATA3
+#define LED3SET LATBbits.LATB4
 #define LED4 LATAbits.LATA4
 
-#define LED2_READ PORTAbits.RA3
+#define LED2READ PORTAbits.RA3
+#define LED3READ PORTBbits.RB4
 
 
 #define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
@@ -45,54 +47,113 @@
 /* main
  * Initializes and runs through the main code that is repetitively called
  */
-int main(void) {
 
-    init();
-     
+
+void initRTCCDisplay( void );
+
+int main( void )
+{
+    init( );
+    initRTCCDisplay( );
+
     SPIMasterInit( );
-    
+
     LED1_DIR = 0;
     LED2_DIR = 0;
     LED3_DIR = 0;
     LED4_DIR = 0;
 
-    for( int inx = 0; inx < 5; inx++)
+    for( int inx = 0; inx < 5; inx++ )
     {
-        LED1 = 1;
-        LED2 = 1;
-        LED3 = 1;
-        LED4 = 1;
-        delayMS(100);
-        LED1 = 0;
-        LED2 = 0;
-        LED3 = 0;
-        LED4 = 0;
-        delayMS(100);
+	LED1 = 1;
+	LED2SET = 1;
+	LED3SET = 1;
+	LED4 = 1;
+	delayMS( 100 );
+	LED1 = 0;
+	LED2SET = 0;
+	LED3SET = 0;
+	LED4 = 0;
+	delayMS( 100 );
     }
-//    delayMS(1000);
-    
-    
-    static unsigned char lowPriorityCounter = 0;
 
-    while(1) {
-    // Only do these tasks every 100 - 150 ms
-        //if (!lowPriorityCounter++) {
-//            readTime();
-//            updateLEDs();
-//            dailyReset();
-//            zeroPower();
-//            relayControl();
-//        }
+    unsigned int timerCounterCommunications = 0;
+    unsigned int timerCounterLowPriority = 0;
+    unsigned int timerCounterReadI2CRTCC = 0;
+    unsigned int timerCounterReadIntRTCC = 0;
 
-	communications( );
+#define TIMER_MS_COUNT		    2000    // timer count for one ms to pass 
+#define TIMER_DELAY_COMMUNICATIONS  5	    // time in ms to run function
+#define TIMER_DELAY_LOW_PRIORITY    1000	    // time in ms to run function
+#define TIMER_DELAY_READ_I2C_RTCC   60000   // time in ms to run function
+#define TIMER_DELAY_READ_INT_RTCC   500	    // time in ms to run function
 
-	
-	// test timer here
-	
-//        commFunctions();
 
-//        readButton();
-//        storeToEE();
+
+    readTimeI2C( );
+    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+
+    while( 1 )
+    {
+
+	commFunctions( );
+
+	readButton( );
+	storeToEE( );
+
+	if( TMR1 > TIMER_MS_COUNT )
+	{
+	    TMR1 = 0;
+	    timerCounterCommunications++;
+	    timerCounterLowPriority++;
+	    timerCounterReadI2CRTCC++;
+	    timerCounterReadIntRTCC++;
+	}
+
+	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
+	{
+	    timerCounterCommunications = 0;
+
+	    communications( );
+	    if( LED2READ == 0b1 )
+	    {
+		LED2SET = 0;
+	    }
+	    else
+	    {
+		LED2SET = 1;
+	    }
+	}
+
+	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
+	{
+	    timerCounterLowPriority = 0;
+	    //            updateLEDs();
+	    dailyReset( );
+	    zeroPower( );
+	    relayControl( );
+	}
+
+	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
+	{
+	    timerCounterReadI2CRTCC = 0;
+	    if( LED3READ == 0b1 )
+	    {
+		LED3SET = 0;
+	    }
+	    else
+	    {
+		LED3SET = 1;
+	    }
+	    readTimeI2C( );
+	    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+	}
+
+	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
+	{
+	    timerCounterReadIntRTCC = 0;
+	    readTime();
+	}
     }
 
 }
@@ -103,53 +164,57 @@ int main(void) {
 /* init
  * Calls each individual initialization method
  */
-void init(void) {
+void init( void )
+{
 
 
-    initI2C();
+    initI2C( );
 
-    startClock();
-    setClock();
+    startClock( );
+    setClock( );
 
-    initPorts();
+    initPorts( );
 
-    initVars();
-    readI2CPowerTimes();
-    initPWMeasurement();
-    initUART();
-//    initOC_PWM();
-    enableInterrupts();
-    commandBuilder1("Reboot", "Now", "0");
-    commandBuilder1("Reboot", "Now", "0");
+    initVars( );
+    readI2CPowerTimes( );
+    initPWMeasurement( );
+    initUART( );
+    //    initOC_PWM();
+    enableInterrupts( );
+    commandBuilder1( "Reboot", "Now", "0" );
+    commandBuilder1( "Reboot", "Now", "0" );
 }
 
 /* initVars
  * Initializes variables to their starting values (usually 0)
  */
-void initVars(void) {
-    resetTime = 59;
+void initVars( void )
+{
+    resetTimeI2C = 59;
     currentLoad = 0;
     powerUsedMW = 0;
     powerUsed = 0;
 
-    EEreadAll();
+    EEreadAll( );
 
     // set up highAlloc and lowAlloc
-    if ((highAlloc == lowAlloc) && (powerAllocated != 0)) {
-        highAlloc = powerAllocated;
-        lowAlloc = (powerAllocated * 3) / 4;
+    if( ( highAlloc == lowAlloc ) && ( powerAllocated != 0 ) )
+    {
+	highAlloc = powerAllocated;
+	lowAlloc = ( powerAllocated * 3 ) / 4;
     }
 
-    setHighLow();
+    setHighLow( );
 }
 
 /* setClocks()
  * At boot time, check which RTCC has the most recent time and synchronize them.
  * If this is a new build of the code, use the build time to set both RTCCs.
  */
-void setClock(void) {
+void setClock( void )
+{
     unsigned char year, month, day, hour, minute, second;
-    readI2CTime(&year, &month, &day, &hour, &minute, &second);
+    readI2CTime( &year, &month, &day, &hour, &minute, &second );
 
     // Minute  6 bits // << 0
     // Hour    5 bits // << 6
@@ -158,45 +223,51 @@ void setClock(void) {
     // Year    7 bits // << 20
     // The entire date and time fits in a 32-bit long for comparison
     unsigned long
-    buildDate = ((unsigned long) BUILD_YEAR << 20) +
-            ((unsigned long) BUILD_MONTH << 16) +
-            ((unsigned long) BUILD_DAY << 11) +
-            ((unsigned long) BUILD_HOUR << 6) + BUILD_MINUTE,
+    buildDate = ( ( unsigned long ) BUILD_YEAR << 20 ) +
+	    ( ( unsigned long ) BUILD_MONTH << 16 ) +
+	    ( ( unsigned long ) BUILD_DAY << 11 ) +
+	    ( ( unsigned long ) BUILD_HOUR << 6 ) + BUILD_MINUTE,
 
-            I2CDate = ((unsigned long) year << 20) +
-            ((unsigned long) month << 16) +
-            ((unsigned long) day << 11) +
-            ((unsigned long) hour << 6) + minute;
+	    I2CDate = ( ( unsigned long ) year << 20 ) +
+	    ( ( unsigned long ) month << 16 ) +
+	    ( ( unsigned long ) day << 11 ) +
+	    ( ( unsigned long ) hour << 6 ) + minute;
 
     // Find most recent date/time
-    if (buildDate > I2CDate) {
-        // Correct for the 17 seconds it takes to program the PIC
-        second = BUILD_SECOND + 17;
-        minute = BUILD_MINUTE;
-        hour = BUILD_HOUR;
-        if (second > 59) {
-            minute++;
-            if (minute > 59)
-                hour++;
-        }
+    if( buildDate > I2CDate )
+    {
+	// Correct for the 17 seconds it takes to program the PIC
+	second = BUILD_SECOND + 17;
+	minute = BUILD_MINUTE;
+	hour = BUILD_HOUR;
+	if( second > 59 )
+	{
+	    minute++;
+	    if( minute > 59 )
+		hour++;
+	}
 
-        setI2CTime(BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60);
+	setI2CTime( BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60 );
     }
 }
 
-void dailyReset(void) {
-    if (((timeHour == resetHour) && (timeMinute == resetMinute) && (timeSecond == 0) && resetFlag)) {
-        resetFlag = 0;
-        reset = 0;
-        totalUsed += powerUsed + extraPower;
-        previousDayUsed = powerUsed + extraPower;
-        powerUsedMW = 0;
-        powerUsed = 0;
-        extraPower = 0;
-        setRemoteStats();
-        EEwriteTotals();
-    } else if (!resetFlag && timeSecond) {
-        resetFlag = 0xFF;
+void dailyReset( void )
+{
+    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
+    {
+	resetFlag = 0;
+	reset = 0;
+	totalUsed += powerUsed + extraPower;
+	previousDayUsed = powerUsed + extraPower;
+	powerUsedMW = 0;
+	powerUsed = 0;
+	extraPower = 0;
+	setRemoteStats( );
+	EEwriteTotals( );
+    }
+    else if( !resetFlag && timeSecond )
+    {
+	resetFlag = 0xFF;
     }
 }
 
@@ -204,7 +275,8 @@ void dailyReset(void) {
  * initializes ports for I/O
  * disables Int0 interrupt
  */
-void initPorts(void) {
+void initPorts( void )
+{
 
     // Pin 1:  RA5
     // Pin 2:  RA0
@@ -273,58 +345,89 @@ void initPorts(void) {
     _INT0IE = 0;
 }
 
-void enablePullDownResistors(void) {
+void enablePullDownResistors( void )
+{
 
     _CN2PDE = 1; // pin 2 for emergency button
 
 }
 
-void enableInterrupts(void) {
+void enableInterrupts( void )
+{
     INTCON1 |= 0b1000000000000000;
 }
 
-void disableInterrupts(void) {
+void disableInterrupts( void )
+{
     INTCON1 &= 0b0111111111111111;
 }
 
-void readButton(void) {
+void readButton( void )
+{
     static unsigned char lastSecond = 0;
 
-    if (BTN_EMER && emerButtonEnable && (lastSecond != timeSecond)) {
+    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
+    {
 
-        if ((powerUsedMW / 1000) > emerButtonAlloc) {
-            powerUsedMW = powerUsedMW - (((long) emerButtonAlloc) * 1000);
+	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
+	{
+	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
 
 
-        } else {
-            powerUsedMW = 0;
-            powerUsed = 0;
-        }
-        lastSecond = timeSecond;
+	}
+	else
+	{
+	    powerUsedMW = 0;
+	    powerUsed = 0;
+	}
+	lastSecond = timeSecond;
     }
 
 }
 
-void storeToEE(void) {
-    if ((timeSecond == 30) && EEflag) {
-        //        if ((timeHour == 0) && (timeMinute == 0)) {
-        //            EEwriteDate();
-        //            EEflag = 0;
-        //        }
-        //
-        if ((timeMinute % 15) == 1 || (powerUsed >= powerAllocated)) {
-            EEwritePowerUsed();
-            EEflag = 0;
-        }
-    } else {
-        EEflag = 1;
+void storeToEE( void )
+{
+    if( ( timeSecond == 30 ) && EEflag )
+    {
+	//        if ((timeHour == 0) && (timeMinute == 0)) {
+	//            EEwriteDate();
+	//            EEflag = 0;
+	//        }
+	//
+	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
+	{
+	    EEwritePowerUsed( );
+	    EEflag = 0;
+	}
+    }
+    else
+    {
+	EEflag = 1;
     }
 }
 
-void setHighLow() {
-    if (isHigh) {
-        powerAllocated = highAlloc;
-    } else {
-        powerAllocated = lowAlloc;
+void setHighLow( )
+{
+    if( isHigh )
+    {
+	powerAllocated = highAlloc;
     }
+    else
+    {
+	powerAllocated = lowAlloc;
+    }
+}
+
+void initRTCCDisplay( void )
+{
+
+    //does unlock sequence to enable write to RTCC, sets RTCWEN
+    __builtin_write_RTCWEN( );
+
+    RCFGCAL = 0b0010001100000000;
+    RTCPWC = 0b0000010100000000; // LPRC is clock source
+
+    _RTCEN = 1;
+
+    _RTCWREN = 0; // Disable Writing
 }

@@ -119,19 +119,24 @@ void sendUpdate(void);
 
 /* RTCC.c *********************************************************************/
 
-void readTime(void);
+void readTimeI2C(void);
 void writeClockStrings(void);
 void writeTempClockStrings(void);
-char writeTime(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
+char writeTimeI2C(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
 
+unsigned char resetTimeI2C;
 unsigned char resetTime;
-char clockStr[6], calendarStr[9];
+char clockStrI2C[6], calendarStrI2C[9];
+unsigned char timeYearI2C, timeMonthI2C, timeDayI2C, timeWeekdayI2C,
+        timeHourI2C, timeMinuteI2C, timeSecondI2C;
+
 unsigned char timeYear, timeMonth, timeDay, timeWeekday,
         timeHour, timeMinute, timeSecond;
 
-char timeSetPos;
+char timeSetPosI2C;
+char tempHourI2C, tempMinI2C, tempMonthI2C, tempDayI2C, tempYearI2C;
 char tempHour, tempMin, tempMonth, tempDay, tempYear;
-char tempClockStr[10], tempCalStr[15];
+char tempClockStrI2C[10], tempCalStrI2C[15];
 
 /* Delays.c *******************************************************************/
 

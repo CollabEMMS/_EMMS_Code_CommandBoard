@@ -21,7 +21,7 @@
 #define RTCC_PWRUPDATE 0x1E
 #define RTCC_PWRUPMTH  0x1F
 
-void readTime(void);
+void readTimeI2C(void);
 void BeginSequentialReadI2C(char address);
 char SequentialReadI2C(void);
 void IdleI2C(void);
@@ -35,7 +35,7 @@ unsigned int ReadI2C (void);
 char ReadI2CRegister(char address);
 
 // Set global time variables from RTCC registers
-void readTime(void) {
+void readTimeI2C(void) {
     readI2CTime(&timeYear, &timeMonth, &timeDay, &timeHour, &timeMinute, &timeSecond);
 }
 
@@ -55,12 +55,12 @@ void readI2CTime(unsigned char* year, unsigned char* month, unsigned char* day,
 
     StopI2C();
 
-    *year   = BcdToDec(BCDYear);
-    *month  = BcdToDec(BCDMonth);
-    *day    = BcdToDec(BCDDay);
-    *hour   = BcdToDec(BCDHour);
-    *minute = BcdToDec(BCDMinute);
-    *second = BcdToDec(BCDSecond);
+    *year   = BcdToDecI2C(BCDYear);
+    *month  = BcdToDecI2C(BCDMonth);
+    *day    = BcdToDecI2C(BCDDay);
+    *hour   = BcdToDecI2C(BCDHour);
+    *minute = BcdToDecI2C(BCDMinute);
+    *second = BcdToDecI2C(BCDSecond);
 
 }
 
@@ -68,12 +68,12 @@ void readI2CTime(unsigned char* year, unsigned char* month, unsigned char* day,
 void setI2CTime(unsigned char year, unsigned char month, unsigned char day,
         unsigned char hour, unsigned char minute, unsigned char second) {
 
-    char BCDSecond = DecToBcd(second),
-         BCDMinute = DecToBcd(minute),
-         BCDHour   = DecToBcd(hour) & 0x3F, // 24-hour time
-         BCDDay    = DecToBcd(day),
-         BCDMonth  = DecToBcd(month),
-         BCDYear   = DecToBcd(year);
+    char BCDSecond = DecToBcdI2C(second),
+         BCDMinute = DecToBcdI2C(minute),
+         BCDHour   = DecToBcdI2C(hour) & 0x3F, // 24-hour time
+         BCDDay    = DecToBcdI2C(day),
+         BCDMonth  = DecToBcdI2C(month),
+         BCDYear   = DecToBcdI2C(year);
 
     if (year % 4)
         BCDMonth &= 0x1F;     // Is not leap year
@@ -286,10 +286,10 @@ unsigned int ReadI2C (void) {
     return I2C1RCV;              // Returns data
 }
 
-char BcdToDec(char val) {
+char BcdToDecI2C(char val) {
     return (val / 16 * 10) + (val % 16);
 }
 
-char DecToBcd(char val) {
+char DecToBcdI2C(char val) {
     return (val / 10 * 16) + (val % 10);
 }

@@ -51,17 +51,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=PowerMain.c PowerConfiguration.c EEPROM.c Power.c PowerUART.c PowerSurvive.c I2C_RTCC.c OC_PWM.c Delays.c MasterComm.c
+SOURCEFILES_QUOTED_IF_SPACED=PowerMain.c PowerConfiguration.c EEPROM.c Power.c PowerUART.c PowerSurvive.c I2C_RTCC.c OC_PWM.c Delays.c MasterComm.c DisplayRTCC.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/PowerMain.o ${OBJECTDIR}/PowerConfiguration.o ${OBJECTDIR}/EEPROM.o ${OBJECTDIR}/Power.o ${OBJECTDIR}/PowerUART.o ${OBJECTDIR}/PowerSurvive.o ${OBJECTDIR}/I2C_RTCC.o ${OBJECTDIR}/OC_PWM.o ${OBJECTDIR}/Delays.o ${OBJECTDIR}/MasterComm.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/PowerMain.o.d ${OBJECTDIR}/PowerConfiguration.o.d ${OBJECTDIR}/EEPROM.o.d ${OBJECTDIR}/Power.o.d ${OBJECTDIR}/PowerUART.o.d ${OBJECTDIR}/PowerSurvive.o.d ${OBJECTDIR}/I2C_RTCC.o.d ${OBJECTDIR}/OC_PWM.o.d ${OBJECTDIR}/Delays.o.d ${OBJECTDIR}/MasterComm.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/PowerMain.o ${OBJECTDIR}/PowerConfiguration.o ${OBJECTDIR}/EEPROM.o ${OBJECTDIR}/Power.o ${OBJECTDIR}/PowerUART.o ${OBJECTDIR}/PowerSurvive.o ${OBJECTDIR}/I2C_RTCC.o ${OBJECTDIR}/OC_PWM.o ${OBJECTDIR}/Delays.o ${OBJECTDIR}/MasterComm.o ${OBJECTDIR}/DisplayRTCC.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/PowerMain.o.d ${OBJECTDIR}/PowerConfiguration.o.d ${OBJECTDIR}/EEPROM.o.d ${OBJECTDIR}/Power.o.d ${OBJECTDIR}/PowerUART.o.d ${OBJECTDIR}/PowerSurvive.o.d ${OBJECTDIR}/I2C_RTCC.o.d ${OBJECTDIR}/OC_PWM.o.d ${OBJECTDIR}/Delays.o.d ${OBJECTDIR}/MasterComm.o.d ${OBJECTDIR}/DisplayRTCC.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/PowerMain.o ${OBJECTDIR}/PowerConfiguration.o ${OBJECTDIR}/EEPROM.o ${OBJECTDIR}/Power.o ${OBJECTDIR}/PowerUART.o ${OBJECTDIR}/PowerSurvive.o ${OBJECTDIR}/I2C_RTCC.o ${OBJECTDIR}/OC_PWM.o ${OBJECTDIR}/Delays.o ${OBJECTDIR}/MasterComm.o
+OBJECTFILES=${OBJECTDIR}/PowerMain.o ${OBJECTDIR}/PowerConfiguration.o ${OBJECTDIR}/EEPROM.o ${OBJECTDIR}/Power.o ${OBJECTDIR}/PowerUART.o ${OBJECTDIR}/PowerSurvive.o ${OBJECTDIR}/I2C_RTCC.o ${OBJECTDIR}/OC_PWM.o ${OBJECTDIR}/Delays.o ${OBJECTDIR}/MasterComm.o ${OBJECTDIR}/DisplayRTCC.o
 
 # Source Files
-SOURCEFILES=PowerMain.c PowerConfiguration.c EEPROM.c Power.c PowerUART.c PowerSurvive.c I2C_RTCC.c OC_PWM.c Delays.c MasterComm.c
+SOURCEFILES=PowerMain.c PowerConfiguration.c EEPROM.c Power.c PowerUART.c PowerSurvive.c I2C_RTCC.c OC_PWM.c Delays.c MasterComm.c DisplayRTCC.c
 
 
 CFLAGS=
@@ -158,6 +158,13 @@ ${OBJECTDIR}/MasterComm.o: MasterComm.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  MasterComm.c  -o ${OBJECTDIR}/MasterComm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/MasterComm.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -std=gnu99 -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/MasterComm.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/DisplayRTCC.o: DisplayRTCC.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/DisplayRTCC.o.d 
+	@${RM} ${OBJECTDIR}/DisplayRTCC.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  DisplayRTCC.c  -o ${OBJECTDIR}/DisplayRTCC.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/DisplayRTCC.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -std=gnu99 -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/DisplayRTCC.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/PowerMain.o: PowerMain.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -228,6 +235,13 @@ ${OBJECTDIR}/MasterComm.o: MasterComm.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/MasterComm.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  MasterComm.c  -o ${OBJECTDIR}/MasterComm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/MasterComm.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -std=gnu99 -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/MasterComm.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/DisplayRTCC.o: DisplayRTCC.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/DisplayRTCC.o.d 
+	@${RM} ${OBJECTDIR}/DisplayRTCC.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  DisplayRTCC.c  -o ${OBJECTDIR}/DisplayRTCC.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/DisplayRTCC.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -std=gnu99 -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/DisplayRTCC.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

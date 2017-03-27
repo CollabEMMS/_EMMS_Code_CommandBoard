@@ -15,10 +15,11 @@
 #define _XTAL_FREQ 32000000
 
 extern unsigned char barGraphFlag, powerTest;
+extern unsigned char resetTimeI2C;
 extern unsigned char resetTime;
 extern unsigned char resetHour;
 extern unsigned char resetMinute;
-extern unsigned char timeSecond;
+extern unsigned char timeSecondI2C;
 extern unsigned long highAlloc, lowAlloc;
 extern char isHigh;
 extern char relayActive;
@@ -55,6 +56,8 @@ void readI2CPowerTimes(void);
 char BcdToDec(char val);
 char DecToBcd(char val);
 
+char BcdToDecI2C(char val);
+char DecToBcdI2C(char val);
 
 /* EEPROM.c *******************************************************************/
 extern int __attribute__ ((space(eedata))) EEpassword0;
@@ -95,7 +98,7 @@ extern int __attribute__ ((space(eedata))) EEpowerUsed8L;
 extern int __attribute__ ((space(eedata))) EEhighLow;
 extern int __attribute__ ((space(eedata))) EErelay;
 extern char passwordSet[6];
-extern unsigned char timeYear, timeMonth, timeDay;
+extern unsigned char timeYearI2C, timeMonthI2C, timeDayI2C;
 extern char emerButtonEnable;
 extern int emerButtonAlloc;
 extern unsigned char resetHour, resetMinute;

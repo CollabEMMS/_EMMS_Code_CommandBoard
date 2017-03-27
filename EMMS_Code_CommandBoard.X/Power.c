@@ -92,16 +92,16 @@ void relayControl(void) {
     static unsigned char lastSecond;
 
     // turn it off
-    if ((timeSecond != lastSecond) && (powerAllocated <= powerUsed) && (relayActive)) {
+    if ((timeSecondI2C != lastSecond) && (powerAllocated <= powerUsed) && (relayActive)) {
         RELAY = 0;
         // no reason to wait for zeroing if relay is off
         currentLoad = 0;
-        lastSecond = timeSecond;
+        lastSecond = timeSecondI2C;
     }
         // turn it on
-    else if ((timeSecond != lastSecond) && (powerAllocated > powerUsed)) {
+    else if ((timeSecondI2C != lastSecond) && (powerAllocated > powerUsed)) {
         RELAY = 1;
-        lastSecond = timeSecond;
+        lastSecond = timeSecondI2C;
     }
 }
 

@@ -9,8 +9,7 @@
 #define BUFFER_LENGTH 40  // max size is positive signed character size
 #define PORT_COUNT 3 // one based count of the number of ports
 
-#define RUN_INTERVAL 8000 // run periodically, going too fast causes problems - this is based off a timer, not loops through the program
-
+//#define RUN_INTERVAL 8000 // run periodically, going too fast causes problems - this is based off a timer, not loops through the program
 
 #define PARAMETER_MAX_COUNT 5
 #define PARAMETER_MAX_LENGTH 10
@@ -31,13 +30,6 @@
 #define SPI_PORT_0 LATBbits.LATB15
 #define SPI_PORT_1 LATBbits.LATB14
 #define SPI_PORT_2 LATBbits.LATB12
-
-/* TEST */
-//#define LEDGreenSET LATBbits.LATB4 
-//#define LEDYellowSET LATAbits.LATA4 
-
-//#define LEDGreenREAD PORTBbits.RB4
-//#define LEDYellowREAD PORTAbits.RA4
 
 
 #define LED1SET LATAbits.LATA2
@@ -74,7 +66,7 @@ extern void delayMS( int );
 
 bool SPI_receive_data( char * );
 void set_current_port( unsigned char * );
-//enum receive_status receive_data( struct buffer * );
+
 enum receive_status receive_data( struct buffer *, bool *data_received );
 
 bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer );
@@ -103,6 +95,7 @@ void send_end_of_transmission( struct buffer *send_buffer );
 
 void communications( )
 {
+
     static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
     static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
 
@@ -116,107 +109,92 @@ void communications( )
     static unsigned int receive_wait_count;
     static unsigned int receive_in_command_count;
 
-
-    if( TMR1 > RUN_INTERVAL )
+    if( current_port_done == true )
     {
-	TMR1 = 0;
-	if( LED2READ == 0b1 )
+	set_current_port( &current_port );
+
+	current_port_done = false;
+	end_of_transmission_received = false;
+
+	receive_wait_count = 0;
+	receive_in_command_count = 0;
+
+	// put something in the send buffer to run the clock
+	send_buffer.write_position = 0;
+	send_buffer.read_position = 0;
+	receive_buffer.write_position = 0;
+	receive_buffer.read_position = 0;
+
+	command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+    }
+
+    bool data_received;
+
+    receive_current_state = receive_data( &receive_buffer, &data_received );
+    switch( receive_current_state )
+    {
+    case receive_waiting:
+	// count # of times we are waiting for COMMAND_START_CHAR !
+	if( data_received == true )
 	{
-	    LED2SET = 0;
+	    receive_wait_count++;
+	}
+
+	break;
+    case receive_in_command:
+	// count # of times we are in a command
+	// need to check if we somehow missed the COMMAND_END_CHAR *
+	// must be more than max length a command can be
+	if( data_received == true )
+	{
+	    receive_wait_count = 0;
+	    receive_in_command_count++;
+	}
+
+	break;
+    case receive_end_command:
+
+	if( process_data( &receive_buffer, &send_buffer ) == true )
+	{
+	    end_of_transmission_received = true;
+	}
+	receive_wait_count = 0;
+	receive_in_command_count = 0;
+
+	break;
+    }
+
+    no_more_to_send = send_data( &send_buffer );
+
+    if( no_more_to_send == true )
+    {
+	if( end_of_transmission_received == true )
+	{
+	    // make sure trans buffer is empty
+	    // the following test is for standard buffer mode only
+	    // a different check must be performed if the enhanced buffer is used
+	    if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
+	    {
+		current_port_done = true;
+	    }
+	}
+	else if( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
+	{
+	    // not receiving anything valid from slave
+	    // just move to the next port - things should clear up on their own eventually
+
+	    current_port_done = true;
+	}
+	else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
+	{
+	    // received too many characters before the command was ended
+	    // likely a garbled COMMAND_END_CHAR or something
+	    // just move to the next port - things should clear up on their own eventually
+	    current_port_done = true;
 	}
 	else
 	{
-	    LED2SET = 1;
-	}
-
-
-	if( current_port_done == true )
-	{
-	    set_current_port( &current_port );
-
-	    current_port_done = false;
-	    end_of_transmission_received = false;
-
-	    receive_wait_count = 0;
-	    receive_in_command_count = 0;
-
-	    // put something in the send buffer to run the clock
-	    send_buffer.write_position = 0;
-	    send_buffer.read_position = 0;
-	    receive_buffer.write_position = 0;
-	    receive_buffer.read_position = 0;
-
 	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-	}
-
-	bool data_received;
-	
-	receive_current_state = receive_data( &receive_buffer, &data_received );
-	switch( receive_current_state )
-	{
-	case receive_waiting:
-	    // count # of times we are waiting for COMMAND_START_CHAR !
-	    if ( data_received == true)
-	    {
-		receive_wait_count++;
-	    }
-
-	    break;
-	case receive_in_command:
-	    // count # of times we are in a command
-	    // need to check if we somehow missed the COMMAND_END_CHAR *
-	    // must be more than max length a command can be
-	    if ( data_received == true)
-	    {
-		receive_wait_count = 0;
-		receive_in_command_count++;
-	    }
-
-	    break;
-	case receive_end_command:
-
-	    if( process_data( &receive_buffer, &send_buffer ) == true )
-	    {
-		end_of_transmission_received = true;
-	    }
-	    receive_wait_count = 0;
-	    receive_in_command_count = 0;
-
-	    break;
-	}
-
-	no_more_to_send = send_data( &send_buffer );
-
-	if( no_more_to_send == true )
-	{
-	    if( end_of_transmission_received == true )
-	    {
-		// make sure trans buffer is empty
-		// the following test is for standard buffer mode only
-		// a different check must be performed if the enhanced buffer is used
-		if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
-		{
-		    current_port_done = true;
-		}
-	    }
-	    else if( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
-	    {
-		// not receiving anything valid from slave
-		// just move to the next port - things should clear up on their own eventually
-
-		current_port_done = true;
-	    }
-	    else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
-	    {
-		// received too many characters before the command was ended
-		// likely a garbled COMMAND_END_CHAR or something
-		// just move to the next port - things should clear up on their own eventually
-		current_port_done = true;
-	    }
-	    else
-	    {
-		command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-	    }
 	}
     }
 
@@ -225,14 +203,13 @@ void communications( )
 
 void set_current_port( unsigned char *current_port )
 {
-    // will it work without disabling the master port?
+
     SPI1STATbits.SPIEN = 0; //disable master SPI
 
     SPI_PORT_0 = 1; //disable slave select (1 is disabled)
     SPI_PORT_1 = 1; //disable slave select (1 is disabled)
     SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-
-    //    delayMS(1000);
+    LED4SET = 0;
 
     ( *current_port )++;
     if( *current_port >= PORT_COUNT )
@@ -249,6 +226,7 @@ void set_current_port( unsigned char *current_port )
     case 1:
 	// set correct DO the chip select here
 	SPI_PORT_1 = 0;
+	LED4SET = 1;
 
 	break;
     case 2:
@@ -257,19 +235,7 @@ void set_current_port( unsigned char *current_port )
 	break;
     }
 
-    //    delayMS(1000);
-
     SPI1STATbits.SPIEN = 1; //enable master SPI
-    
-    // heartbeat each time we switch ports
-    if( LED4READ == 1 )
-    {
-	LED4SET = 0;
-    }
-    else
-    {
-	LED4SET = 1;
-    }
 
     return;
 }
@@ -286,23 +252,10 @@ enum receive_status receive_data( struct buffer *receive_buffer, bool *data_rece
     }
 
     *data_received = false;
-    
+
     if( SPI_receive_data( &data ) == true )
     {
-        *data_received = true;
-
-	if( data == COMMAND_START_CHAR )
-	{
-
-	    if( LED3READ == 1 )
-	    {
-		LED3SET = 0;
-	    }
-	    else
-	    {
-		LED3SET = 1;
-	    }
-	}
+	*data_received = true;
 
 
 	if( ( data == COMMAND_START_CHAR ) && ( my_status != receive_in_command ) )
@@ -725,6 +678,8 @@ void send_end_of_transmission( struct buffer *send_buffer )
 
 void SPIMasterInit( void )
 {
+    static bool firstRun = true;
+
     // make sure analog is turned off - it messes with the pins
     ANSA = 0;
     ANSB = 0;
@@ -737,9 +692,9 @@ void SPIMasterInit( void )
     SPI_PORT_1_DIR = 0;
     SPI_PORT_2_DIR = 0;
 
-    SPI_PORT_0 = 0;
-    SPI_PORT_1 = 0;
-    SPI_PORT_2 = 0;
+    SPI_PORT_0 = 1;
+    SPI_PORT_1 = 1;
+    SPI_PORT_2 = 1;
 
     //SPI1 Initialize
     SPI1CON1bits.MSTEN = 1; //making SPI1 Master
@@ -767,17 +722,21 @@ void SPIMasterInit( void )
     //SPI1BUF = SPI1BUF;
     //    SPI1STATbits.SPIEN = 1; //enable SPI
 
-    // set timer up here
-    T1CONbits.TSIDL = 0b1; //Discontinue module operation when device enters idle mode
-    T1CONbits.T1ECS = 0b00; // Timer1 uses Secondary Oscillator (SOSC) as the clock soource)
-    T1CONbits.TGATE = 0b0; // Gated time accumulation is disabled
-    T1CONbits.TSYNC = 0b0; // Do not synchronize external clock input (asynchronous)
-    T1CONbits.TCS = 0b0; //use internal clock
+    if( firstRun == true )
+    {
+	// set timer up here
+	T1CONbits.TSIDL = 0b1; //Discontinue module operation when device enters idle mode
+	T1CONbits.T1ECS = 0b00; // Timer1 uses Secondary Oscillator (SOSC) as the clock soource)
+	T1CONbits.TGATE = 0b0; // Gated time accumulation is disabled
+	T1CONbits.TSYNC = 0b0; // Do not synchronize external clock input (asynchronous)
+	T1CONbits.TCS = 0b0; //use internal clock
 
-    T1CONbits.TCKPS = 0b00; // Timer 1 Input Clock Prescale (11-256)(10-64) (01-8) (00-1)
-    TMR1 = 0x0000; // start timer at 0
 
-    T1CONbits.TON = 0b1; //turn on timer
+	T1CONbits.TCKPS = 0b00; // Timer 1 Input Clock Prescale (11-256)(10-64) (01-8) (00-1)
+	TMR1 = 0x0000; // start timer at 0
 
+	T1CONbits.TON = 0b1; //turn on timer
+	firstRun = false;
+    }
     return;
 }

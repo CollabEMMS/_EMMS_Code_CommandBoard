@@ -50,10 +50,10 @@
 #define _XTAL_FREQ 32000000
 
 unsigned char barGraphFlag, powerTest;
-unsigned char resetTime;
+unsigned char resetTimeI2C;
 unsigned char resetHour;
 unsigned char resetMinute;
-unsigned char timeSecond;
+unsigned char timeSecondI2C;
 unsigned long highAlloc, lowAlloc;
 char isHigh;
 char relayActive;
@@ -129,7 +129,7 @@ int __attribute__ ((space(eedata))) EEpowerUsed8L = 0;
 int __attribute__ ((space(eedata))) EEhighLow = 0xFF;
 int __attribute__ ((space(eedata))) EErelay = 0xFF;
 char passwordSet[6];
-unsigned char timeYear, timeMonth, timeDay;
+unsigned char timeYearI2C, timeMonthI2C, timeDayI2C;
 char emerButtonEnable;
 int emerButtonAlloc;
 unsigned char resetHour, resetMinute;

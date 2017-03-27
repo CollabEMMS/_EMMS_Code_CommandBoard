@@ -400,12 +400,14 @@ void processReceivedCommand() {
             char newMinute = (char) ((receivedValue[8]  - 48) * 10 + receivedValue[9]  - 48);
             char newSecond = (char) ((receivedValue[10] - 48) * 10 + receivedValue[11] - 48);
 #ifdef DISPLAY_BOX
-            writeTime(newYear, newMonth, newDay, newHour, newMinute, newSecond);
+            writeTimeI2C(newYear, newMonth, newDay, newHour, newMinute, newSecond);
 #endif
 #ifdef POWER_BOX
-            setI2CTime(newYear, newMonth, newDay, newHour, newMinute, newSecond);
+            writeTime(newYear, newMonth, newDay, newHour, newMinute, newSecond);
+	    setI2CTime(newYear, newMonth, newDay, newHour, newMinute, newSecond);
+	    
 #endif
-            readTime();
+            readTimeI2C();
         }
         else if (stringCompare(receivedAttribute, "power") == 0) {
             powerAllocated = atoi(commandExpander(receivedValue, 0));
@@ -590,7 +592,7 @@ void processReceivedCommand() {
 
 void setRemoteTime(void) {
 
-    readTime();
+    readTimeI2C();
 
 //    char newTime[11] = "";
     char newTime[13] = "";

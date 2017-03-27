@@ -6,6 +6,8 @@
 #ifndef EXTERNSHAREDDEFINITIONS_H
 #define	EXTERNSHAREDDEFINITIONS_H
 
+#include <stdbool.h>
+
 /* Communication Low Level ****************************************************/
 #define SEND_STRING_LENGTH 40
 #define RECEIVE_STRING_LENGTH 41
@@ -113,19 +115,25 @@ void sendUpdate(void);
 
 /* RTCC.c *********************************************************************/
 
+void readTimeI2C(void);
 void readTime(void);
 void writeClockStrings(void);
 void writeTempClockStrings(void);
-char writeTime(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
+char writeTimeI2C(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
+bool writeTime(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
 
+extern unsigned char resetTimeI2C;
 extern unsigned char resetTime;
-extern char clockStr[6], calendarStr[9];
+extern char clockStrI2C[6], calendarStrI2C[9];
+extern unsigned char timeYearI2C, timeMonthI2C, timeDayI2C, timeWeekdayI2C,
+        timeHourI2C, timeMinuteI2C, timeSecondI2C;
 extern unsigned char timeYear, timeMonth, timeDay, timeWeekday,
         timeHour, timeMinute, timeSecond;
 
-extern char timeSetPos;
+extern char timeSetPosI2C;
+extern char tempHourI2C, tempMinI2C, tempMonthI2C, tempDayI2C, tempYearI2C;
 extern char tempHour, tempMin, tempMonth, tempDay, tempYear;
-extern char tempClockStr[10], tempCalStr[15];
+extern char tempClockStrI2C[10], tempCalStrI2C[15];
 
 /* Delays.c *******************************************************************/
 

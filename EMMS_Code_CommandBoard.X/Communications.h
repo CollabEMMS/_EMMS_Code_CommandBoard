@@ -52,6 +52,9 @@
 #define	COMMUNICATIONS_H
 #endif
 
+#include <stdbool.h>
+
+
 void communications(void);
 void SPIMasterInit(void);
 
