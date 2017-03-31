@@ -55,6 +55,6 @@
 #include <stdbool.h>
 
 
-void communications(void);
+bool communications(void);
 void SPIMasterInit(void);
 

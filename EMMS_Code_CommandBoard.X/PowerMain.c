@@ -78,33 +78,37 @@ int main( void )
     }
 
     unsigned int timerCounterCommunications = 0;
+    unsigned int timerCounterComFunctions = 0;
     unsigned int timerCounterLowPriority = 0;
     unsigned int timerCounterReadI2CRTCC = 0;
     unsigned int timerCounterReadIntRTCC = 0;
 
-#define TIMER_MS_COUNT		    2000    // timer count for one ms to pass 
-#define TIMER_DELAY_COMMUNICATIONS  5	    // time in ms to run function
+    bool runCommunications = false;
+    bool runComFunctions = false;
+    bool runLowPriority = false;
+    bool runReadI2CRTCC = false;
+    bool runReadIntRTCC = false;
+
+#define TIMER_MS_COUNT		    2000    // timer count for one ms to pass (2000 - 1ms))
+#define TIMER_DELAY_COMMUNICATIONS  2	    // time in ms to run function
 #define TIMER_DELAY_LOW_PRIORITY    1000	    // time in ms to run function
 #define TIMER_DELAY_READ_I2C_RTCC   60000   // time in ms to run function
-#define TIMER_DELAY_READ_INT_RTCC   500	    // time in ms to run function
-
+#define TIMER_DELAY_READ_INT_RTCC   1000	    // time in ms to run function
+#define TIMER_DELAY_COM_FUNCTIONS   0	    // time in ms to run function
 
 
     readTimeI2C( );
     writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
 
+    bool enabledSPI;
+
     while( 1 )
     {
-
-	commFunctions( );
-
-	readButton( );
-	storeToEE( );
-
 	if( TMR1 > TIMER_MS_COUNT )
 	{
 	    TMR1 = 0;
 	    timerCounterCommunications++;
+	    timerCounterComFunctions++;
 	    timerCounterLowPriority++;
 	    timerCounterReadI2CRTCC++;
 	    timerCounterReadIntRTCC++;
@@ -112,48 +116,152 @@ int main( void )
 
 	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
 	{
+	    runCommunications = true;
 	    timerCounterCommunications = 0;
+	}
 
-	    communications( );
-	    if( LED2READ == 0b1 )
-	    {
-		LED2SET = 0;
-	    }
-	    else
-	    {
-		LED2SET = 1;
-	    }
+	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
+	{
+	    runComFunctions = true;
+	    timerCounterComFunctions = 0;
 	}
 
 	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
 	{
+	    runLowPriority = true;
 	    timerCounterLowPriority = 0;
-	    //            updateLEDs();
-	    dailyReset( );
-	    zeroPower( );
-	    relayControl( );
 	}
 
 	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
 	{
+	    runReadI2CRTCC = true;
 	    timerCounterReadI2CRTCC = 0;
-	    if( LED3READ == 0b1 )
-	    {
-		LED3SET = 0;
-	    }
-	    else
-	    {
-		LED3SET = 1;
-	    }
-	    readTimeI2C( );
-	    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
 	}
 
 	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
 	{
+	    runReadIntRTCC = true;
 	    timerCounterReadIntRTCC = 0;
-	    readTime();
 	}
+
+
+	if( runCommunications == true )
+	{
+	    timerCounterCommunications = 0;
+	    enabledSPI = communications( );
+	    runCommunications = false;
+	}
+
+	
+	
+	
+	if( enabledSPI == false )
+	{
+	    readButton( );
+	    storeToEE( );
+
+	    if( runComFunctions == true )
+	    {
+		timerCounterComFunctions = 0;
+		commFunctions( );
+		runComFunctions = false;
+	    }
+
+	    if( runLowPriority == true )
+	    {
+		timerCounterLowPriority = 0;
+
+		//            updateLEDs();
+		dailyReset( );
+		zeroPower( );
+		relayControl( );
+
+		runLowPriority = false;
+	    }
+
+	    if( runReadIntRTCC == true )
+	    {
+		timerCounterReadIntRTCC = 0;
+		readTime( );
+		runReadIntRTCC = false;
+	    }
+
+	    if( runReadI2CRTCC == true )
+	    {
+		timerCounterReadI2CRTCC = 0;
+		readTimeI2C( );
+		writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+		runReadI2CRTCC = false;
+	    }
+
+
+	}
+
+	//
+	//
+	//
+	//	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
+	//	{
+	//	    timerCounterCommunications = 0;
+	//
+	//	    enabledSPI = communications( );
+	//	    //	    if( LED2READ == 0b1 )
+	//	    //	    {
+	//	    //		LED2SET = 0;
+	//	    //	    }
+	//	    //	    else
+	//	    //	    {
+	//	    //		LED2SET = 1;
+	//	    //	    }
+	//	}
+	//
+	//
+	//	if( enabledSPI == false )
+	//	{
+	//	    commFunctions( );
+	//	}
+	//
+	//	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
+	//	{
+	//	    timerCounterComFunctions = 0;
+	//
+	//	    //	    if( enabledSPI = false )
+	//	    //	    {
+	//	    //		commFunctions( );
+	//	    //	    }
+	//
+	//	}
+	//
+	//
+	//	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
+	//	{
+	//	    timerCounterLowPriority = 0;
+	//	    //            updateLEDs();
+	//	    dailyReset( );
+	//	    zeroPower( );
+	//	    relayControl( );
+	//	}
+	//
+	//	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
+	//	{
+	//	    timerCounterReadI2CRTCC = 0;
+	//	    if( LED3READ == 1 )
+	//	    {
+	//		LED3SET = 0;
+	//	    }
+	//	    else
+	//	    {
+	//		LED3SET = 1;
+	//	    }
+	//	    readTimeI2C( );
+	//	    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+	//	}
+	//
+	//	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
+	//	{
+	//	    timerCounterReadIntRTCC = 0;
+	//	    readTime( );
+	//	}
     }
 
 }

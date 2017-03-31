@@ -65,7 +65,7 @@ struct buffer
 extern void delayMS( int );
 
 bool SPI_receive_data( char * );
-void set_current_port( unsigned char * );
+bool set_current_port( unsigned char * );
 
 enum receive_status receive_data( struct buffer *, bool *data_received );
 
@@ -93,8 +93,9 @@ void send_end_of_transmission( struct buffer *send_buffer );
  main code body
  */
 
-void communications( )
+bool communications( )
 {
+    bool enabledSPI;
 
     static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
     static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
@@ -111,21 +112,25 @@ void communications( )
 
     if( current_port_done == true )
     {
-	set_current_port( &current_port );
+	enabledSPI = set_current_port( &current_port );
 
-	current_port_done = false;
-	end_of_transmission_received = false;
+	if( enabledSPI == true )
+	{
+	    current_port_done = false;
+	    end_of_transmission_received = false;
 
-	receive_wait_count = 0;
-	receive_in_command_count = 0;
+	    receive_wait_count = 0;
+	    receive_in_command_count = 0;
 
-	// put something in the send buffer to run the clock
-	send_buffer.write_position = 0;
-	send_buffer.read_position = 0;
-	receive_buffer.write_position = 0;
-	receive_buffer.read_position = 0;
+	    // put something in the send buffer to run the clock
+	    send_buffer.write_position = 0;
+	    send_buffer.read_position = 0;
+	    receive_buffer.write_position = 0;
+	    receive_buffer.read_position = 0;
 
-	command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+
+	}
     }
 
     bool data_received;
@@ -198,46 +203,55 @@ void communications( )
 	}
     }
 
-    return;
+    return enabledSPI;
 }
 
-void set_current_port( unsigned char *current_port )
+bool set_current_port( unsigned char *current_port )
 {
+    static bool enabledSPI = true;
 
-    SPI1STATbits.SPIEN = 0; //disable master SPI
-
-    SPI_PORT_0 = 1; //disable slave select (1 is disabled)
-    SPI_PORT_1 = 1; //disable slave select (1 is disabled)
-    SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-    LED4SET = 0;
-
-    ( *current_port )++;
-    if( *current_port >= PORT_COUNT )
+    if( enabledSPI == true )
     {
-	*current_port = 0;
+	SPI1STATbits.SPIEN = 0; //disable master SPI
+	enabledSPI = false;
+
+	SPI_PORT_0 = 1; //disable slave select (1 is disabled)
+	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
+	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
+	LED4SET = 0;
+
+    }
+    else
+    {
+	( *current_port )++;
+	if( *current_port >= PORT_COUNT )
+	{
+	    *current_port = 0;
+	}
+
+	switch( *current_port )
+	{
+	case 0:
+	    // set correct DO chip select here
+	    SPI_PORT_0 = 0; //enable Slave Select
+	    break;
+	case 1:
+	    // set correct DO the chip select here
+	    SPI_PORT_1 = 0;
+	    LED4SET = 1;
+
+	    break;
+	case 2:
+	    // set correct DO the chip select here
+	    SPI_PORT_2 = 0;
+	    break;
+	}
+
+	SPI1STATbits.SPIEN = 1; //enable master SPI
+	enabledSPI = true;
     }
 
-    switch( *current_port )
-    {
-    case 0:
-	// set correct DO chip select here
-	SPI_PORT_0 = 0; //enable Slave Select
-	break;
-    case 1:
-	// set correct DO the chip select here
-	SPI_PORT_1 = 0;
-	LED4SET = 1;
-
-	break;
-    case 2:
-	// set correct DO the chip select here
-	SPI_PORT_2 = 0;
-	break;
-    }
-
-    SPI1STATbits.SPIEN = 1; //enable master SPI
-
-    return;
+    return enabledSPI;
 }
 
 enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received )
@@ -375,14 +389,15 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     if( strmatch( parameters[0], "END" ) == true )
     {
 
-	//	if( LED2READ == 1)
-	//	{
-	//	    LED2SET = 0;
-	//	}
-	//	else
-	//	{
-	//	    LED2SET = 1;
-	//	}
+
+	if( LED2READ == 1 )
+	{
+	    LED2SET = 0;
+	}
+	else
+	{
+	    LED2SET = 1;
+	}
 
 
 	send_end_of_transmission( send_buffer );
@@ -410,13 +425,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    if( strmatch( parameters[2], "On" ) == true )
 	    {
-		LED2SET = 1;
+		//LED2SET = 1;
 		command_builder3( send_buffer, "Conf", "LED", "On" );
 
 	    }
 	    else if( strmatch( parameters[2], "Off" ) == true )
 	    {
-		LED2SET = 0;
+		//LED2SET = 0;
 		command_builder3( send_buffer, "Conf", "LED", "Off" );
 	    }
 	}
