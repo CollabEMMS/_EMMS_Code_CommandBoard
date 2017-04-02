@@ -48,6 +48,10 @@
  * Initializes and runs through the main code that is repetitively called
  */
 
+unsigned long powerWatts = 0;
+unsigned long powerVolts = 0;
+unsigned long powerAmps = 0;
+
 
 void initRTCCDisplay( void );
 
@@ -90,11 +94,11 @@ int main( void )
     bool runReadIntRTCC = false;
 
 #define TIMER_MS_COUNT		    2000    // timer count for one ms to pass (2000 - 1ms))
-#define TIMER_DELAY_COMMUNICATIONS  2	    // time in ms to run function
+#define TIMER_DELAY_COMMUNICATIONS  4	    // time in ms to run function
 #define TIMER_DELAY_LOW_PRIORITY    1000	    // time in ms to run function
 #define TIMER_DELAY_READ_I2C_RTCC   60000   // time in ms to run function
 #define TIMER_DELAY_READ_INT_RTCC   1000	    // time in ms to run function
-#define TIMER_DELAY_COM_FUNCTIONS   0	    // time in ms to run function
+#define TIMER_DELAY_COM_FUNCTIONS   1	    // time in ms to run function
 
 
     readTimeI2C( );
@@ -150,11 +154,9 @@ int main( void )
 	    timerCounterCommunications = 0;
 	    enabledSPI = communications( );
 	    runCommunications = false;
+	    //enabledSPI = false;
 	}
 
-	
-	
-	
 	if( enabledSPI == false )
 	{
 	    readButton( );
@@ -173,7 +175,7 @@ int main( void )
 
 		//            updateLEDs();
 		dailyReset( );
-		zeroPower( );
+//		zeroPower( );
 		relayControl( );
 
 		runLowPriority = false;
@@ -193,75 +195,7 @@ int main( void )
 		writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
 		runReadI2CRTCC = false;
 	    }
-
-
 	}
-
-	//
-	//
-	//
-	//	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
-	//	{
-	//	    timerCounterCommunications = 0;
-	//
-	//	    enabledSPI = communications( );
-	//	    //	    if( LED2READ == 0b1 )
-	//	    //	    {
-	//	    //		LED2SET = 0;
-	//	    //	    }
-	//	    //	    else
-	//	    //	    {
-	//	    //		LED2SET = 1;
-	//	    //	    }
-	//	}
-	//
-	//
-	//	if( enabledSPI == false )
-	//	{
-	//	    commFunctions( );
-	//	}
-	//
-	//	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
-	//	{
-	//	    timerCounterComFunctions = 0;
-	//
-	//	    //	    if( enabledSPI = false )
-	//	    //	    {
-	//	    //		commFunctions( );
-	//	    //	    }
-	//
-	//	}
-	//
-	//
-	//	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
-	//	{
-	//	    timerCounterLowPriority = 0;
-	//	    //            updateLEDs();
-	//	    dailyReset( );
-	//	    zeroPower( );
-	//	    relayControl( );
-	//	}
-	//
-	//	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
-	//	{
-	//	    timerCounterReadI2CRTCC = 0;
-	//	    if( LED3READ == 1 )
-	//	    {
-	//		LED3SET = 0;
-	//	    }
-	//	    else
-	//	    {
-	//		LED3SET = 1;
-	//	    }
-	//	    readTimeI2C( );
-	//	    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
-	//	}
-	//
-	//	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
-	//	{
-	//	    timerCounterReadIntRTCC = 0;
-	//	    readTime( );
-	//	}
     }
 
 }
@@ -285,7 +219,7 @@ void init( void )
 
     initVars( );
     readI2CPowerTimes( );
-    initPWMeasurement( );
+//    initPWMeasurement( );
     initUART( );
     //    initOC_PWM();
     enableInterrupts( );

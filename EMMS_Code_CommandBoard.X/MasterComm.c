@@ -3,6 +3,7 @@
 
 #include "Communications.h"
 #include <stdbool.h>
+#include <stdlib.h>
 #include <xc.h>
 #include <p24FV32KA302.h>
 
@@ -63,6 +64,11 @@ struct buffer
 };
 
 extern void delayMS( int );
+
+extern unsigned long powerWatts;
+extern unsigned long powerVolts;
+extern unsigned long powerAmps;
+
 
 bool SPI_receive_data( char * );
 bool set_current_port( unsigned char * );
@@ -398,29 +404,31 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    LED2SET = 1;
 	}
-
-
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
     }
     else if( strmatch( parameters[0], "Set" ) == true )
     {
-	if( strmatch( parameters[1], "Power" ) == true )
+	if( strmatch( parameters[1], "Watts" ) == true )
 	{
-	    //set_power( parameters[3]);
-	    // send reply?
+	    powerWatts = atoi( parameters[2] );
+	    command_builder2( send_buffer, "Conf", "Watts" );
 	}
 	else if( strmatch( parameters[1], "Volts" ) == true )
 	{
-	    //set_volts( parameters[2]);
-	    // send reply?
+	    powerVolts = atoi( parameters[2] );
+	    command_builder2( send_buffer, "Conf", "Volts" );
 	}
-	else if( strmatch( parameters[1], "Current" ) == true )
+	else if( strmatch( parameters[1], "Amps" ) == true )
 	{
-
-	    //set_current( parameters[3]);
-	    // send reply?
+	    powerAmps = atoi( parameters[2] );
+	    command_builder2( send_buffer, "Conf", "Amps" );
 	}
+	else if( strmatch( parameters[1], "PSVersion" ) == true )
+	{
+	    command_builder2( send_buffer, "Conf", "PSVersion" );
+	}
+
 	else if( strmatch( parameters[1], "LED" ) == true )
 	{
 	    if( strmatch( parameters[2], "On" ) == true )
@@ -454,30 +462,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     }
     else if( strmatch( parameters[0], "Read" ) == true )
     {
-	if( strmatch( parameters[1], "Power" ) == true )
-	{
-	    // send command power
-	}
-	else if( strmatch( parameters[1], "Volts" ) == true )
-	{
-	    // send command volts
-	}
-	else if( strmatch( parameters[1], "Current" ) == true )
-	{
-	    // send command current
-	}
-	else if( strmatch( parameters[1], "LED" ) == true )
-	{
-	    if( LED2READ == 0b1 )
-	    {
-		command_builder3( send_buffer, "Data", "LED", "On" );
-	    }
-	    else
-	    {
-		command_builder3( send_buffer, "Data", "LED", "Off" );
-	    }
-	}
-	else if( strmatch( parameters[1], "LEDB" ) == true )
+	if( strmatch( parameters[1], "LEDB" ) == true )
 	{
 
 	    if( LED1READ == 0b1 )
@@ -500,6 +485,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 void command_builder1( struct buffer *send_buffer, char* data1 )
 {
+    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
     command_builder_add_char( send_buffer, COMMAND_END_CHAR );
@@ -509,6 +495,7 @@ void command_builder1( struct buffer *send_buffer, char* data1 )
 
 void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
 {
+    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -520,6 +507,7 @@ void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
 
 void command_builder3( struct buffer *send_buffer, char* data1, char* data2, char* data3 )
 {
+    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -533,6 +521,7 @@ void command_builder3( struct buffer *send_buffer, char* data1, char* data2, cha
 
 void command_builder4( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4 )
 {
+    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
     command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -655,13 +644,9 @@ bool SPI_receive_data( char *data )
 {
     bool recvGood = false;
 
-    if( SPI1STATbits.SPIRBF == 0b1 )
+    if( SPI1STATbits.SPIRBF == 1 )
     {
 	*data = SPI1BUF;
-	//        if (*data == 'L') {
-	//            recvGood = true;
-	//            char gregory = *data;
-	//        }
 	recvGood = true;
     }
 
@@ -672,7 +657,7 @@ bool SPI_send_data( char data )
 {
     bool sendGood = false;
 
-    if( SPI1STATbits.SPITBF == 0b0 ) //if in enhance mode use SPI1STATbits.SR1MPT
+    if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
 	SPI1BUF = data;
 	sendGood = true;
@@ -717,11 +702,11 @@ void SPIMasterInit( void )
     SPI1CON1bits.DISSCK = 0b0; // SPI clock enabled
     SPI1CON1bits.DISSDO = 0b0; // SDO used
     SPI1CON1bits.MODE16 = 0b0; // 8 bit mode
-    SPI1CON1bits.SMP = 0b0; // sample phase mode middle
+    SPI1CON1bits.SMP = 0b1; // sample phase mode end
     SPI1CON1bits.CKE = 0b1; // serial data changes on active to idle clock state
     SPI1CON1bits.SSEN = 0b0; // not a slave
     SPI1CON1bits.CKP = 0b1; // clock idle is high
-    SPI1CON1bits.SPRE = 0b000; // secondary prescale 8:1
+    SPI1CON1bits.SPRE = 0b110; // secondary prescale 8:1
     SPI1CON1bits.PPRE = 0b11; // primary prescale 1:1
     //    SPI1CON1bits.PPRE = 0b00; // primary prescale 1:1
 
@@ -733,6 +718,16 @@ void SPIMasterInit( void )
     SPI1CON2bits.SPIBEN = 0b0; // 1=enhanced buffer mode
 
     SPI1STATbits.SPIROV = 0; //clear flag for overflow data
+
+
+    // do not use the interrupt , could not get it to work
+    //    SPI1STATbits.SISEL = 0b001;
+    //        
+    //    IFS0bits.SPI1IF = 0;
+    //    IEC0bits.SPI1IE = 1;
+
+
+
 
     //SPI1BUF = SPI1BUF;
     //    SPI1STATbits.SPIEN = 1; //enable SPI
@@ -755,3 +750,15 @@ void SPIMasterInit( void )
     }
     return;
 }
+
+//void __attribute__((__interrupt__,__auto_psv__)) _SPI1Interrupt(void)
+//{
+//    // we received a byte
+//    IFS0bits.SPI1IF = 0;
+//    
+//    rcvSPI = true;
+//    rcvChar =  SPI1BUF;
+//    
+//    return;
+//    
+//}

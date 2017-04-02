@@ -149,6 +149,10 @@ extern unsigned long powerUsed;
 extern unsigned long powerAllocated;
 extern unsigned long currentLoad;
 
+extern unsigned long powerWatts;
+extern unsigned long powerVolts;
+extern unsigned long powerAmps;
+
 
 /* Variable Definitions *******************************************************/
 extern char buffer1[11];
