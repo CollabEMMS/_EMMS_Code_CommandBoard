@@ -38,7 +38,7 @@
 #define LED3READ PORTBbits.RB4
 
 
-#define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
+//#define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
 // uncomment for using the LEDS for debugging
 
 
@@ -173,7 +173,7 @@ int main( void )
 	    {
 		timerCounterLowPriority = 0;
 
-		//            updateLEDs();
+		            updateLEDs();
 		dailyReset( );
 //		zeroPower( );
 		relayControl( );

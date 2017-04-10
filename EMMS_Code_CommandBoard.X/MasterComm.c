@@ -224,7 +224,7 @@ bool set_current_port( unsigned char *current_port )
 	SPI_PORT_0 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-	LED4SET = 0;
+//	LED4SET = 0;
 
     }
     else
@@ -244,7 +244,7 @@ bool set_current_port( unsigned char *current_port )
 	case 1:
 	    // set correct DO the chip select here
 	    SPI_PORT_1 = 0;
-	    LED4SET = 1;
+//	    LED4SET = 1;
 
 	    break;
 	case 2:
@@ -396,14 +396,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     {
 
 
-	if( LED2READ == 1 )
-	{
-	    LED2SET = 0;
-	}
-	else
-	{
-	    LED2SET = 1;
-	}
+//	if( LED2READ == 1 )
+//	{
+//	    LED2SET = 0;
+//	}
+//	else
+//	{
+//	    LED2SET = 1;
+//	}
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
     }
@@ -433,13 +433,11 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    if( strmatch( parameters[2], "On" ) == true )
 	    {
-		//LED2SET = 1;
 		command_builder3( send_buffer, "Conf", "LED", "On" );
 
 	    }
 	    else if( strmatch( parameters[2], "Off" ) == true )
 	    {
-		//LED2SET = 0;
 		command_builder3( send_buffer, "Conf", "LED", "Off" );
 	    }
 	}
@@ -447,13 +445,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    if( strmatch( parameters[2], "On" ) == true )
 	    {
-		LED1SET = 1;
+//		LED1SET = 1;
 		command_builder3( send_buffer, "Conf", "LEDB", "On" );
 
 	    }
 	    else if( strmatch( parameters[2], "Off" ) == true )
 	    {
-		LED1SET = 0;
+//		LED1SET = 0;
 		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
 	    }
 	}

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "ExternSharedDefinitions.h"
+#include "SharedDefinitions.h"
 
 #ifdef POWER_BOX
 void commInit(void) {
@@ -617,10 +618,10 @@ void setRemoteTime(void) {
 void setRemotePower(void) {
 
     char newPowerAllocated[7];
-    utoa(newPowerAllocated, (unsigned int) powerAmps, 10);
+    utoa(newPowerAllocated, (unsigned int) powerAllocated, 10);
 
     char newPowerUsed[7];
-    utoa(newPowerUsed, (unsigned int) powerVolts, 10);
+    utoa(newPowerUsed, (unsigned int) powerUsed, 10);
 
     char newCurrentLoad[7];
     utoa(newCurrentLoad, (unsigned int) powerWatts, 10);
