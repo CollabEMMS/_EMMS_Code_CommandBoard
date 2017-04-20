@@ -68,7 +68,7 @@ extern void delayMS( int );
 extern unsigned long powerWatts;
 extern unsigned long powerVolts;
 extern unsigned long powerAmps;
-
+extern unsigned long powerUsed;
 
 bool SPI_receive_data( char * );
 bool set_current_port( unsigned char * );
@@ -413,6 +413,11 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    powerWatts = atoi( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
+	}
+	else if( strmatch( parameters[1], "EnUsed" ) == true )
+	{
+	    powerUsed = atoi( parameters[2] );
+	    command_builder2( send_buffer, "Conf", "EnUsed" );
 	}
 	else if( strmatch( parameters[1], "Volts" ) == true )
 	{
