@@ -224,7 +224,7 @@ bool set_current_port( unsigned char *current_port )
 	SPI_PORT_0 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-//	LED4SET = 0;
+	//	LED4SET = 0;
 
     }
     else
@@ -244,7 +244,7 @@ bool set_current_port( unsigned char *current_port )
 	case 1:
 	    // set correct DO the chip select here
 	    SPI_PORT_1 = 0;
-//	    LED4SET = 1;
+	    //	    LED4SET = 1;
 
 	    break;
 	case 2:
@@ -396,14 +396,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     {
 
 
-//	if( LED2READ == 1 )
-//	{
-//	    LED2SET = 0;
-//	}
-//	else
-//	{
-//	    LED2SET = 1;
-//	}
+	//	if( LED2READ == 1 )
+	//	{
+	//	    LED2SET = 0;
+	//	}
+	//	else
+	//	{
+	//	    LED2SET = 1;
+	//	}
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
     }
@@ -416,8 +416,20 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
 	{
-	    powerUsed = atoi( parameters[2] );
-	    command_builder2( send_buffer, "Conf", "EnUsed" );
+	    unsigned long tempPowerRead;
+	    tempPowerRead = atol( parameters[2] );
+	    if( tempPowerRead < powerUsed )
+	    {
+		char temp[12];
+		ultoa( temp, powerUsed, 10 );
+
+		command_builder3( send_buffer, "Set", "EnUsed", temp );
+	    }
+	    else
+	    {
+		powerUsed = tempPowerRead;
+		command_builder2( send_buffer, "Conf", "EnUsed" );
+	    }
 	}
 	else if( strmatch( parameters[1], "Volts" ) == true )
 	{
@@ -450,13 +462,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    if( strmatch( parameters[2], "On" ) == true )
 	    {
-//		LED1SET = 1;
+		//		LED1SET = 1;
 		command_builder3( send_buffer, "Conf", "LEDB", "On" );
 
 	    }
 	    else if( strmatch( parameters[2], "Off" ) == true )
 	    {
-//		LED1SET = 0;
+		//		LED1SET = 0;
 		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
 	    }
 	}
@@ -474,6 +486,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    }
 	    else
 	    {
+
 		command_builder3( send_buffer, "Data", "LEDB", "Off" );
 	    }
 	}
@@ -488,6 +501,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 void command_builder1( struct buffer *send_buffer, char* data1 )
 {
+
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
@@ -498,6 +512,7 @@ void command_builder1( struct buffer *send_buffer, char* data1 )
 
 void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
 {
+
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
@@ -510,6 +525,7 @@ void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
 
 void command_builder3( struct buffer *send_buffer, char* data1, char* data2, char* data3 )
 {
+
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
@@ -524,6 +540,7 @@ void command_builder3( struct buffer *send_buffer, char* data1, char* data2, cha
 
 void command_builder4( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4 )
 {
+
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     command_builder_add_string( send_buffer, data1 );
@@ -545,6 +562,7 @@ void command_builder_add_char( struct buffer *send_buffer, char data )
     send_buffer->write_position++;
     if( send_buffer->write_position >= BUFFER_LENGTH )
     {
+
 	send_buffer->write_position = 0;
     }
 
@@ -555,6 +573,7 @@ void command_builder_add_string( struct buffer *send_buffer, char *data_string )
 {
     for( int inx = 0; data_string[inx] != CHAR_NULL; inx++ )
     {
+
 	command_builder_add_char( send_buffer, data_string[inx] );
     }
 
@@ -577,6 +596,7 @@ bool send_data( struct buffer *send_buffer )
 	    send_buffer->read_position++;
 	    if( send_buffer->read_position >= BUFFER_LENGTH )
 	    {
+
 		send_buffer->read_position = 0;
 	    }
 	}
@@ -601,6 +621,7 @@ bool strmatch( char* a, char* b )
     }
     else
     {
+
 	match = false;
     }
 
@@ -636,6 +657,7 @@ int strcmp2( char* a, char* b )
     }
     else if( ( a[inx] != CHAR_NULL ) && ( b[inx] == CHAR_NULL ) )
     {
+
 	match = 1;
     }
 
@@ -649,6 +671,7 @@ bool SPI_receive_data( char *data )
 
     if( SPI1STATbits.SPIRBF == 1 )
     {
+
 	*data = SPI1BUF;
 	recvGood = true;
     }
@@ -662,6 +685,7 @@ bool SPI_send_data( char data )
 
     if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
+
 	SPI1BUF = data;
 	sendGood = true;
     }
@@ -674,6 +698,7 @@ bool SPI_send_data( char data )
 
 void send_end_of_transmission( struct buffer *send_buffer )
 {
+
     command_builder1( send_buffer, "END" );
 
     return;
