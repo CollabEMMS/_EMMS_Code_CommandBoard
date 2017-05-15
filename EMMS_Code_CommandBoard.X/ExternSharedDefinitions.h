@@ -74,13 +74,11 @@ extern char stringToSendU2[SEND_STRING_LENGTH];
 extern char receiveBufferU2[RECEIVE_STRING_LENGTH];
 
 /* Communication Low Level - Power Box Only ***********************************/
-#ifdef POWER_BOX
 extern char newSendDataU1;
 extern short sendIndexU1;
 extern short receiveIndexU1;
 extern char stringToSendU1[SEND_STRING_LENGTH];
 extern char receiveBufferU1[RECEIVE_STRING_LENGTH];
-#endif
 
 /* Communication High Level ***************************************************/
 void setRemoteTime(void);
@@ -109,31 +107,18 @@ void readUpdate(void);
 void doReset(void);
 
 /* Communication High Level - Power Box Only **********************************/
-#ifdef POWER_BOX
 void sendUpdate(void);
-#endif
 
 /* RTCC.c *********************************************************************/
 
-void readTimeI2C(void);
 void readTime(void);
 void writeClockStrings(void);
-void writeTempClockStrings(void);
-char writeTimeI2C(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
 bool writeTime(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
 
-extern unsigned char resetTimeI2C;
-extern unsigned char resetTime;
-extern char clockStrI2C[6], calendarStrI2C[9];
-extern unsigned char timeYearI2C, timeMonthI2C, timeDayI2C, timeWeekdayI2C,
-        timeHourI2C, timeMinuteI2C, timeSecondI2C;
 extern unsigned char timeYear, timeMonth, timeDay, timeWeekday,
         timeHour, timeMinute, timeSecond;
 
-extern char timeSetPosI2C;
-extern char tempHourI2C, tempMinI2C, tempMonthI2C, tempDayI2C, tempYearI2C;
 extern char tempHour, tempMin, tempMonth, tempDay, tempYear;
-extern char tempClockStrI2C[10], tempCalStrI2C[15];
 
 /* Delays.c *******************************************************************/
 
@@ -145,13 +130,13 @@ void delayMS(unsigned int);
 void initUART(void);
 
 /* Power.c ********************************************************************/
-extern unsigned long powerUsed;
-extern unsigned long powerAllocated;
-extern unsigned long currentLoad;
+//extern unsigned long powerUsed;
+//extern unsigned long powerAllocated;
+//extern unsigned long currentLoad;
 
-extern unsigned long powerWatts;
-extern unsigned long powerVolts;
-extern unsigned long powerAmps;
+//extern unsigned long powerWatts;
+//extern unsigned long powerVolts;
+//extern unsigned long powerAmps;
 
 
 /* Variable Definitions *******************************************************/
@@ -177,10 +162,7 @@ extern char powerBoxCodeVersionString[9];
 extern unsigned char resetHour;
 extern unsigned char resetMinute;
 extern char relayActive;
-extern unsigned long totalUsed;
-extern unsigned long previousDayUsed;
 extern char isHigh;
-extern unsigned long extraPower;
-extern unsigned char reset;
+
 
 #endif

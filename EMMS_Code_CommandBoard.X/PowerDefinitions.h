@@ -45,21 +45,15 @@
 /******************************************************************************/
 
 /* PowerMain.c ****************************************************************/
-#define POWER_BOX
 #define FOSC       32000000
 #define _XTAL_FREQ 32000000
 
-unsigned char barGraphFlag, powerTest;
-unsigned char resetTimeI2C;
 unsigned char resetHour;
 unsigned char resetMinute;
-unsigned char timeSecondI2C;
-unsigned long highAlloc, lowAlloc;
+unsigned long highAlloc;
+unsigned long lowAlloc;
 char isHigh;
 char relayActive;
-unsigned long totalUsed;
-unsigned long previousDayUsed;
-char resetFlag, EEflag;
 
 void init(void);
 void initVars(void);
@@ -75,7 +69,7 @@ void storeToEE(void);
 void setHighLow(void);
 
 /* OC_PWM.c *******************************************************************/
-void initOC_PWM(void);
+//void initOC_PWM(void);
 void updateLEDs(void);
 
 /* I2C_RTCC.c *****************************************************************/
@@ -129,12 +123,15 @@ int __attribute__ ((space(eedata))) EEpowerUsed8L = 0;
 int __attribute__ ((space(eedata))) EEhighLow = 0xFF;
 int __attribute__ ((space(eedata))) EErelay = 0xFF;
 char passwordSet[6];
-unsigned char timeYearI2C, timeMonthI2C, timeDayI2C;
 char emerButtonEnable;
 int emerButtonAlloc;
-unsigned char resetHour, resetMinute;
-char audibleAlarm, alarmOnePower, alarmTwoPower, alarmOneEnabled, alarmTwoEnabled;
-unsigned long totalUsed, previousDayUsed;
+unsigned char resetHour;
+unsigned char resetMinute;
+char audibleAlarm;
+char alarmOnePower;
+char alarmTwoPower;
+char alarmOneEnabled;
+char alarmTwoEnabled;
 char isHigh;
 char relayActive;
 
@@ -165,13 +162,7 @@ void EEreadAll(void);
 
 /* Power.c ********************************************************************/
 
-void initPWMeasurement(void);
-void zeroPower(void);
-void relayAction(void);
 
-DWORD_VAL pulseWidth;
-DWORD_VAL prevCapTime;
-unsigned long powerUsedMW;
 extern char relayActive;
 
 #endif

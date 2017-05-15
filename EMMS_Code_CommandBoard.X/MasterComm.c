@@ -2,6 +2,7 @@
 
 
 #include "Communications.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <xc.h>
@@ -49,6 +50,10 @@
 #define LED4READ PORTAbits.RA4
 #define LED4DIR TRISAbits.TRISA4
 
+extern unsigned long tba_powerWatts;
+extern unsigned long tba_energyUsedLifetime;
+
+
 enum receive_status
 {
     receive_waiting,
@@ -64,11 +69,6 @@ struct buffer
 };
 
 extern void delayMS( int );
-
-extern unsigned long powerWatts;
-extern unsigned long powerVolts;
-extern unsigned long powerAmps;
-extern unsigned long powerUsed;
 
 bool SPI_receive_data( char * );
 bool set_current_port( unsigned char * );
@@ -395,15 +395,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     if( strmatch( parameters[0], "END" ) == true )
     {
 
-
-//	if( LED2READ == 1 )
-//	{
-//	    LED2SET = 0;
-//	}
-//	else
-//	{
-//	    LED2SET = 1;
-//	}
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
     }
@@ -411,72 +402,93 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     {
 	if( strmatch( parameters[1], "Watts" ) == true )
 	{
-	    powerWatts = atoi( parameters[2] );
+	    tba_powerWatts = strtoul( parameters[2], NULL, 10 );
 	    command_builder2( send_buffer, "Conf", "Watts" );
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
 	{
-	    powerUsed = atoi( parameters[2] );
-	    command_builder2( send_buffer, "Conf", "EnUsed" );
+	    // the lifetime energy is currently stored in the command board EEPROM
+	    // power sense at power-up has lifetime energy at 0
+	    // if power sense lifetime energy is < command board lifetime energy we must be in start-up
+	    // send power sense new lifetime energy value
+	    
+	    unsigned long tempEnergyUsedLifetime;
+
+	    tempEnergyUsedLifetime = strtoul( parameters[2], NULL, 10 );
+
+	    if( tempEnergyUsedLifetime < tba_energyUsedLifetime )
+	    {
+		char temp[12];
+		//		ultoa( temp, totalUsed, 10 );
+		ultoa( temp, tba_energyUsedLifetime, 10 );
+		command_builder3( send_buffer, "Set", "EnUsed", temp );
+	    }
+	    else
+	    {
+		tba_energyUsedLifetime = tempEnergyUsedLifetime;
+// done know if we need this here		powerUsed = totalUsed - tba_powerUsedDayStart;
+		command_builder2( send_buffer, "Conf", "EnUsed" );
+	    }
+
 	}
-	else if( strmatch( parameters[1], "Volts" ) == true )
-	{
-	    powerVolts = atoi( parameters[2] );
-	    command_builder2( send_buffer, "Conf", "Volts" );
-	}
-	else if( strmatch( parameters[1], "Amps" ) == true )
-	{
-	    powerAmps = atoi( parameters[2] );
-	    command_builder2( send_buffer, "Conf", "Amps" );
-	}
+//	else if( strmatch( parameters[1], "Volts" ) == true )
+//	{
+//	    powerVolts = atoi( parameters[2] );
+//	    command_builder2( send_buffer, "Conf", "Volts" );
+//	}
+//	else if( strmatch( parameters[1], "Amps" ) == true )
+//	{
+//	    powerAmps = atoi( parameters[2] );
+//	    command_builder2( send_buffer, "Conf", "Amps" );
+//	}
 	else if( strmatch( parameters[1], "PSVersion" ) == true )
 	{
 	    command_builder2( send_buffer, "Conf", "PSVersion" );
 	}
 
-	else if( strmatch( parameters[1], "LED" ) == true )
-	{
-	    if( strmatch( parameters[2], "On" ) == true )
-	    {
-		command_builder3( send_buffer, "Conf", "LED", "On" );
-
-	    }
-	    else if( strmatch( parameters[2], "Off" ) == true )
-	    {
-		command_builder3( send_buffer, "Conf", "LED", "Off" );
-	    }
-	}
-	else if( strmatch( parameters[1], "LEDB" ) == true )
-	{
-	    if( strmatch( parameters[2], "On" ) == true )
-	    {
-//		LED1SET = 1;
-		command_builder3( send_buffer, "Conf", "LEDB", "On" );
-
-	    }
-	    else if( strmatch( parameters[2], "Off" ) == true )
-	    {
-//		LED1SET = 0;
-		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
-	    }
-	}
+//	else if( strmatch( parameters[1], "LED" ) == true )
+//	{
+//	    if( strmatch( parameters[2], "On" ) == true )
+//	    {
+//		command_builder3( send_buffer, "Conf", "LED", "On" );
+//
+//	    }
+//	    else if( strmatch( parameters[2], "Off" ) == true )
+//	    {
+//		command_builder3( send_buffer, "Conf", "LED", "Off" );
+//	    }
+//	}
+//	else if( strmatch( parameters[1], "LEDB" ) == true )
+//	{
+//	    if( strmatch( parameters[2], "On" ) == true )
+//	    {
+////		LED1SET = 1;
+//		command_builder3( send_buffer, "Conf", "LEDB", "On" );
+//
+//	    }
+//	    else if( strmatch( parameters[2], "Off" ) == true )
+//	    {
+////		LED1SET = 0;
+//		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
+//	    }
+//	}
 
 
     }
     else if( strmatch( parameters[0], "Read" ) == true )
     {
-	if( strmatch( parameters[1], "LEDB" ) == true )
-	{
-
-	    if( LED1READ == 0b1 )
-	    {
-		command_builder3( send_buffer, "Data", "LEDB", "On" );
-	    }
-	    else
-	    {
-		command_builder3( send_buffer, "Data", "LEDB", "Off" );
-	    }
-	}
+//	if( strmatch( parameters[1], "LEDB" ) == true )
+//	{
+//
+//	    if( LED1READ == 0b1 )
+//	    {
+//		command_builder3( send_buffer, "Data", "LEDB", "On" );
+//	    }
+//	    else
+//	    {
+//		command_builder3( send_buffer, "Data", "LEDB", "Off" );
+//	    }
+//	}
     }
 
     // add new parameters as necessary

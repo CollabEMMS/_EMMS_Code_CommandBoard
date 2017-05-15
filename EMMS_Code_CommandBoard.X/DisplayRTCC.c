@@ -68,7 +68,7 @@ void readTime( void )
 bool writeTime( char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond )
 {
     bool validDateTime = true;
-    
+
     unsigned int tempYear;
     unsigned int tempMonth;
     unsigned int tempDay;
@@ -78,7 +78,7 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 
     unsigned int tempMonthDay;
     unsigned int tempMinuteSecond;
-    
+
     // this just makes sure the day of month is valid
     switch( newMonth )
     {
@@ -105,9 +105,9 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 	break;
     }
 
-    
-    
-    
+
+
+
     // put values into BCD
     tempYear = DecToBcd( newYear );
     tempMonth = DecToBcd( newMonth );
@@ -118,8 +118,8 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 
     tempMonthDay = (  tempMonth  << 8 ) + tempDay;
     tempMinuteSecond = ( tempMinute  << 8 ) + tempSecond;
-    
-    
+
+
     _RTCEN = 0; // disable clock
 
     //does unlock sequence to enable write to RTCC, sets RTCWEN
@@ -134,8 +134,6 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
     _RTCEN = 1; // enable clock
 
     _RTCWREN = 0; // Disable Writing
-
-    resetTime = 59;
 
     return validDateTime;
 }

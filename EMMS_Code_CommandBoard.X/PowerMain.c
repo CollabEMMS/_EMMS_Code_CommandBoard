@@ -52,6 +52,12 @@ unsigned long powerWatts = 0;
 unsigned long powerVolts = 0;
 unsigned long powerAmps = 0;
 
+unsigned long tba_energyAllocation;
+unsigned long tba_energyUsedLifetime;
+unsigned long tba_energyUsedLastDayReset;
+unsigned long tba_powerWatts;
+unsigned long tba_energyUsedPreviousDay = 0;
+
 
 void initRTCCDisplay( void );
 
@@ -173,9 +179,9 @@ int main( void )
 	    {
 		timerCounterLowPriority = 0;
 
-		            updateLEDs();
+		updateLEDs( );
 		dailyReset( );
-//		zeroPower( );
+		//		zeroPower( );
 		relayControl( );
 
 		runLowPriority = false;
@@ -219,7 +225,7 @@ void init( void )
 
     initVars( );
     readI2CPowerTimes( );
-//    initPWMeasurement( );
+    //    initPWMeasurement( );
     initUART( );
     //    initOC_PWM();
     enableInterrupts( );
@@ -232,18 +238,15 @@ void init( void )
  */
 void initVars( void )
 {
-    resetTimeI2C = 59;
-    currentLoad = 0;
-    powerUsedMW = 0;
-    powerUsed = 0;
+
 
     EEreadAll( );
 
     // set up highAlloc and lowAlloc
-    if( ( highAlloc == lowAlloc ) && ( powerAllocated != 0 ) )
+    if( ( highAlloc == lowAlloc ) && ( tba_energyAllocation != 0 ) )
     {
-	highAlloc = powerAllocated;
-	lowAlloc = ( powerAllocated * 3 ) / 4;
+	highAlloc = tba_energyAllocation;
+	lowAlloc = ( tba_energyAllocation * 3 ) / 4;
     }
 
     setHighLow( );
@@ -295,22 +298,50 @@ void setClock( void )
 
 void dailyReset( void )
 {
-    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
+
+    static unsigned char resetComplete = 0;
+
+    if( ( timeSecond == 0 ) && ( timeMinute == resetMinute ) && ( timeHour == resetHour ) )
     {
-	resetFlag = 0;
-	reset = 0;
-	totalUsed += powerUsed + extraPower;
-	previousDayUsed = powerUsed + extraPower;
-	powerUsedMW = 0;
-	powerUsed = 0;
-	extraPower = 0;
-	setRemoteStats( );
-	EEwriteTotals( );
+	if( resetComplete == 0 )
+	{
+	    tba_energyUsedPreviousDay = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
+	    tba_energyUsedLastDayReset = tba_energyUsedLifetime;
+
+	    EEwriteTotals( );
+	    EEwritePowerUsed( );
+	    setRemoteStats( );
+
+	    // reset allocation to what is stored
+	    EEreadPowerAlloc( );
+
+
+	    resetComplete = 1;
+	}
     }
-    else if( !resetFlag && timeSecond )
+    else
     {
-	resetFlag = 0xFF;
+	resetComplete = 0;
     }
+
+    return;
+
+    //    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
+    //    {
+    //	resetFlag = 0;
+    //	reset = 0;
+    //	totalUsed += powerUsed + extraPower;
+    //	previousDayUsed = powerUsed + extraPower;
+    //	powerUsedMW = 0;
+    //	powerUsed = 0;
+    //	extraPower = 0;
+    //	setRemoteStats( );
+    //	EEwriteTotals( );
+    //    }
+    //    else if( !resetFlag && timeSecond )
+    //    {
+    //	resetFlag = 0xFF;
+    //    }
 }
 
 /* initPorts
@@ -406,57 +437,128 @@ void disableInterrupts( void )
 
 void readButton( void )
 {
-    static unsigned char lastSecond = 0;
+    static unsigned char buttonEmergencyComplete = 0;
+    static unsigned char buttonTimeSecond = 255;
 
-    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
+    if( emerButtonEnable )
     {
-
-	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
+	if( BTN_EMER )
 	{
-	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
-
-
+	    if( buttonEmergencyComplete == 0 )
+	    {
+		if( buttonTimeSecond != timeSecond )
+		{
+		    tba_energyAllocation += emerButtonAlloc;
+		    buttonEmergencyComplete = 1;
+		    buttonTimeSecond = timeSecond;
+		}
+	    }
 	}
 	else
 	{
-	    powerUsedMW = 0;
-	    powerUsed = 0;
+	    if( buttonTimeSecond != timeSecond )
+	    {
+		buttonEmergencyComplete = 0;
+	    }
 	}
-	lastSecond = timeSecond;
     }
+
+    return;
+
+    //    static unsigned char lastSecond = 0;
+    //    static unsigned char lastButton = 0;
+    //
+    //    if( emerButtonEnable )
+    //    {
+    //	if( BTN_EMER )
+    //	{
+    //	    if( lastButton == 0 )
+    //	    {
+    //		if( lastSecond != timeSecond )
+    //		{
+    //		    lastSecond = timeSecond;
+    //
+    //		    tba_energyAllocation += emerButtonAlloc;
+    //		}
+    //		lastButton = 1;
+    //	    }
+    //
+    //	}
+    //	else
+    //	{
+    //	    lastButton = 0;
+    //	}
+    //    }
+    //
+    //    return;
+
+    //
+    //    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
+    //    {
+    //
+    //	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
+    //	{
+    //	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
+    //
+    //
+    //	}
+    //	else
+    //	{
+    //	    powerUsedMW = 0;
+    //	    powerUsed = 0;
+    //	}
+    //	lastSecond = timeSecond;
+    //    }
 
 }
 
 void storeToEE( void )
 {
-    if( ( timeSecond == 30 ) && EEflag )
+    static unsigned char eeComplete = 0;
+
+    if( ( timeMinute == 0 ) || ( timeMinute == 15 ) || ( timeMinute == 30 ) || ( timeMinute == 45 ) )
     {
-	//        if ((timeHour == 0) && (timeMinute == 0)) {
-	//            EEwriteDate();
-	//            EEflag = 0;
-	//        }
-	//
-	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
+	if( eeComplete == 0 )
 	{
 	    EEwritePowerUsed( );
-	    EEflag = 0;
+	    eeComplete = 1;
 	}
     }
     else
     {
-	EEflag = 1;
+	eeComplete = 0;
     }
+
+    //    if( ( timeSecond == 30 ) && EEflag )
+    //    {
+    //	//        if ((timeHour == 0) && (timeMinute == 0)) {
+    //	//            EEwriteDate();
+    //	//            EEflag = 0;
+    //	//        }
+    //	//
+    //	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
+    //	{
+    //	    EEwritePowerUsed( );
+    //	    EEflag = 0;
+    //	}
+    //    }
+    //    else
+    //    {
+    //	EEflag = 1;
+    //    }
 }
 
 void setHighLow( )
 {
     if( isHigh )
     {
-	powerAllocated = highAlloc;
+	//	powerAllocated = highAlloc;
+	tba_energyAllocation = highAlloc;
     }
     else
     {
-	powerAllocated = lowAlloc;
+	//	powerAllocated = lowAlloc;
+	tba_energyAllocation = lowAlloc;
     }
 }
 
