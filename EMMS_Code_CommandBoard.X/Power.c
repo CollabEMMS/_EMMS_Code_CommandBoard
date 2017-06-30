@@ -14,11 +14,13 @@
 //#define SCALING_FACTOR 3785065107 // about 1044W. Should be 1050W
 //#define SCALING_FACTOR 1766363717 // about 1063W. Should be 1050W
 //#define SCALING_FACTOR 1852829074 // about 1063W. Should be 1050W
-#define SCALING_FACTOR 1930534614 // about 1063W. Should be 1050W
-#define INCREMENT_MWH  858
+//#define SCALING_FACTOR 1930534614 // about 1063W. Should be 1050W
+//#define INCREMENT_MWH  858
 
+extern unsigned long tba_energyAllocation;
+extern unsigned long tba_energyUsedLifetime;
+extern unsigned long tba_energyUsedLastDayReset;
 
-//static char interruptOccurred = 0;
 
 /* Functions ******************************************************************/
 
@@ -88,21 +90,47 @@
 //    }
 //}
 
-void relayControl(void) {
+void relayControl(void)
+{
     static unsigned char lastSecond;
 
-    // turn it off
-    if ((timeSecondI2C != lastSecond) && (powerAllocated <= powerUsed) && (relayActive)) {
-        RELAY = 0;
-        // no reason to wait for zeroing if relay is off
-        currentLoad = 0;
-        lastSecond = timeSecondI2C;
+    unsigned long tempEnergyUsed;
+
+    tempEnergyUsed = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
+
+    if (timeSecond != lastSecond)
+    {
+        if (relayActive)
+        {
+            if (tempEnergyUsed < tba_energyAllocation)
+            {
+                RELAY = 1;
+            }
+            else
+            {
+                RELAY = 0;
+                //		currentLoad = 0; // just set power to zero because relay is off
+            }
+        }
+        lastSecond = timeSecond;
     }
-        // turn it on
-    else if ((timeSecondI2C != lastSecond) && (powerAllocated > powerUsed)) {
-        RELAY = 1;
-        lastSecond = timeSecondI2C;
-    }
+
+    return;
+
+
+    //
+    //    // turn it off
+    //    if ((timeSecondI2C != lastSecond) && (powerAllocated <= powerUsed) && (relayActive)) {
+    //        RELAY = 0;
+    //        // no reason to wait for zeroing if relay is off
+    //        currentLoad = 0;
+    //        lastSecond = timeSecondI2C;
+    //    }
+    //        // turn it on
+    //    else if ((timeSecondI2C != lastSecond) && (powerAllocated > powerUsed)) {
+    //        RELAY = 1;
+    //        lastSecond = timeSecondI2C;
+    //    }
 }
 
 

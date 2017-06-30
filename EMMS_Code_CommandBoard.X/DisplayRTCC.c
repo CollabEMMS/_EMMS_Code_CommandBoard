@@ -32,7 +32,7 @@ void readTime( void )
     temp1 = RTCVAL;
     temp2 = temp1 >> 8;
     timeMonth = BcdToDec( temp2 );
-    temp2 = RTCVAL & 0x00FF;
+    temp2 = temp1 & 0x00FF;
     timeDay = BcdToDec( temp2 );
 
     temp1 = RTCVAL;
@@ -45,30 +45,12 @@ void readTime( void )
     temp2 = temp1 & 0x00FF;
     timeSecond = BcdToDec( temp2 );
 
-
-
-
-    //    timeYear = RTCVAL; //11
-    //    temp = RTCVAL; //10
-    //    timeMonth = temp >> 8;
-    //    timeDay = temp & 0xFF;
-    //    timeHour = RTCVAL & 0xFF; //01
-    //    temp = RTCVAL; //00
-    //    timeMinute = temp >> 8;
-    //    timeSecond = temp & 0xFF;
-
-    //    timeYear   = BcdToDec(timeYear);
-    //    timeMonth  = BcdToDec(timeMonth);
-    //    timeDay    = BcdToDec(timeDay);
-    //    timeHour   = BcdToDec(timeHour);
-    //    timeMinute = BcdToDec(timeMinute);
-    //    timeSecond = BcdToDec(timeSecond);
 }
 
 bool writeTime( char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond )
 {
     bool validDateTime = true;
-    
+
     unsigned int tempYear;
     unsigned int tempMonth;
     unsigned int tempDay;
@@ -78,7 +60,7 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 
     unsigned int tempMonthDay;
     unsigned int tempMinuteSecond;
-    
+
     // this just makes sure the day of month is valid
     switch( newMonth )
     {
@@ -105,9 +87,9 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 	break;
     }
 
-    
-    
-    
+
+
+
     // put values into BCD
     tempYear = DecToBcd( newYear );
     tempMonth = DecToBcd( newMonth );
@@ -118,8 +100,8 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 
     tempMonthDay = (  tempMonth  << 8 ) + tempDay;
     tempMinuteSecond = ( tempMinute  << 8 ) + tempSecond;
-    
-    
+
+
     _RTCEN = 0; // disable clock
 
     //does unlock sequence to enable write to RTCC, sets RTCWEN
@@ -134,8 +116,6 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
     _RTCEN = 1; // enable clock
 
     _RTCWREN = 0; // Disable Writing
-
-    resetTime = 59;
 
     return validDateTime;
 }

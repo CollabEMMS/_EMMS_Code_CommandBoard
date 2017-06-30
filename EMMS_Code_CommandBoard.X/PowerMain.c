@@ -29,13 +29,15 @@
 #define LED3_DIR TRISBbits.TRISB4
 #define LED4_DIR TRISAbits.TRISA4
 
-#define LED1 LATAbits.LATA2
+#define LED1SET LATAbits.LATA2
 #define LED2SET LATAbits.LATA3
 #define LED3SET LATBbits.LATB4
-#define LED4 LATAbits.LATA4
+#define LED4SET LATAbits.LATA4
 
+#define LED1READ PORTAbits.RA2
 #define LED2READ PORTAbits.RA3
 #define LED3READ PORTBbits.RB4
+#define LED4READ PORTAbits.RA4
 
 
 //#define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
@@ -48,38 +50,114 @@
  * Initializes and runs through the main code that is repetitively called
  */
 
-unsigned long powerWatts = 0;
-unsigned long powerVolts = 0;
-unsigned long powerAmps = 0;
+//unsigned long powerWatts = 0;
+//unsigned long powerVolts = 0;
+//unsigned long powerAmps = 0;
 
+unsigned long tba_energyAllocation;
+unsigned long tba_energyUsedLifetime;
+unsigned long tba_energyUsedLastDayReset;
+unsigned long tba_powerWatts;
+unsigned long tba_energyUsedPreviousDay = 0;
 
-void initRTCCDisplay( void );
+void initRTCCDisplay(void);
 
-int main( void )
+int main(void)
 {
-    init( );
-    initRTCCDisplay( );
+    LED1_DIR = 0;
+    LED2_DIR = 0;
+    LED3_DIR = 0;
+    LED4_DIR = 0;
 
-    SPIMasterInit( );
+    LED1SET = 0;
+    LED2SET = 0;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 1;
+    LED2SET = 0;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 1;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 0;
+    LED3SET = 1;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 0;
+    LED3SET = 0;
+    LED4SET = 1;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 0;
+    LED3SET = 1;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 1;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 1;
+    LED2SET = 0;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+    LED1SET = 0;
+    LED2SET = 0;
+    LED3SET = 0;
+    LED4SET = 0;
+        delayMS(100);
+
+    
+    
+
+    for (int inx = 0; inx < 5; inx++)
+    {
+        LED1SET = 1;
+        LED2SET = 1;
+        LED3SET = 1;
+        LED4SET = 1;
+        delayMS(100);
+        LED1SET = 0;
+        LED2SET = 0;
+        LED3SET = 0;
+        LED4SET = 0;
+        delayMS(100);
+    }
+
+    init();
+    initRTCCDisplay();
+
+    SPIMasterInit();
+
 
     LED1_DIR = 0;
     LED2_DIR = 0;
     LED3_DIR = 0;
     LED4_DIR = 0;
 
-    for( int inx = 0; inx < 5; inx++ )
+    for (int inx = 0; inx < 5; inx++)
     {
-	LED1 = 1;
-	LED2SET = 1;
-	LED3SET = 1;
-	LED4 = 1;
-	delayMS( 100 );
-	LED1 = 0;
-	LED2SET = 0;
-	LED3SET = 0;
-	LED4 = 0;
-	delayMS( 100 );
+        LED1SET = 1;
+        LED2SET = 1;
+        LED3SET = 1;
+        LED4SET = 1;
+        delayMS(100);
+        LED1SET = 0;
+        LED2SET = 0;
+        LED3SET = 0;
+        LED4SET = 0;
+        delayMS(100);
     }
+
+    //    dailyResetPowerOnCheck();
 
     unsigned int timerCounterCommunications = 0;
     unsigned int timerCounterComFunctions = 0;
@@ -101,101 +179,103 @@ int main( void )
 #define TIMER_DELAY_COM_FUNCTIONS   1	    // time in ms to run function
 
 
-    readTimeI2C( );
-    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+    readTimeI2C();
+    writeTime(timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond);
+
+    // check if we lost power over a reset time
+
 
     bool enabledSPI;
 
-    while( 1 )
+    while (1)
     {
-	if( TMR1 > TIMER_MS_COUNT )
-	{
-	    TMR1 = 0;
-	    timerCounterCommunications++;
-	    timerCounterComFunctions++;
-	    timerCounterLowPriority++;
-	    timerCounterReadI2CRTCC++;
-	    timerCounterReadIntRTCC++;
-	}
+        if (TMR1 > TIMER_MS_COUNT)
+        {
+            TMR1 = 0;
+            timerCounterCommunications++;
+            timerCounterComFunctions++;
+            timerCounterLowPriority++;
+            timerCounterReadI2CRTCC++;
+            timerCounterReadIntRTCC++;
+        }
 
-	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
-	{
-	    runCommunications = true;
-	    timerCounterCommunications = 0;
-	}
+        if (timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS)
+        {
+            runCommunications = true;
+            timerCounterCommunications = 0;
+        }
 
-	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
-	{
-	    runComFunctions = true;
-	    timerCounterComFunctions = 0;
-	}
+        if (timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS)
+        {
+            runComFunctions = true;
+            timerCounterComFunctions = 0;
+        }
 
-	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
-	{
-	    runLowPriority = true;
-	    timerCounterLowPriority = 0;
-	}
+        if (timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY)
+        {
+            runLowPriority = true;
+            timerCounterLowPriority = 0;
+        }
 
-	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
-	{
-	    runReadI2CRTCC = true;
-	    timerCounterReadI2CRTCC = 0;
-	}
+        if (timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC)
+        {
+            runReadI2CRTCC = true;
+            timerCounterReadI2CRTCC = 0;
+        }
 
-	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
-	{
-	    runReadIntRTCC = true;
-	    timerCounterReadIntRTCC = 0;
-	}
+        if (timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC)
+        {
+            runReadIntRTCC = true;
+            timerCounterReadIntRTCC = 0;
+        }
 
 
-	if( runCommunications == true )
-	{
-	    timerCounterCommunications = 0;
-	    enabledSPI = communications( );
-	    runCommunications = false;
-	    //enabledSPI = false;
-	}
+        if (runCommunications == true)
+        {
+            timerCounterCommunications = 0;
+            enabledSPI = communications();
+            runCommunications = false;
+            //enabledSPI = false;
+        }
 
-	if( enabledSPI == false )
-	{
-	    readButton( );
-	    storeToEE( );
+        if (enabledSPI == false)
+        {
+            readButton();
+            storeToEE();
 
-	    if( runComFunctions == true )
-	    {
-		timerCounterComFunctions = 0;
-		commFunctions( );
-		runComFunctions = false;
-	    }
+            if (runComFunctions == true)
+            {
+                timerCounterComFunctions = 0;
+                commFunctions();
+                runComFunctions = false;
+            }
 
-	    if( runLowPriority == true )
-	    {
-		timerCounterLowPriority = 0;
+            if (runLowPriority == true)
+            {
+                timerCounterLowPriority = 0;
 
-		            updateLEDs();
-		dailyReset( );
-//		zeroPower( );
-		relayControl( );
+                updateLEDs();
+                dailyResetCheck();
+                relayControl();
 
-		runLowPriority = false;
-	    }
+                runLowPriority = false;
+            }
 
-	    if( runReadIntRTCC == true )
-	    {
-		timerCounterReadIntRTCC = 0;
-		readTime( );
-		runReadIntRTCC = false;
-	    }
+            if (runReadIntRTCC == true)
+            {
+                timerCounterReadIntRTCC = 0;
+                readTime();
+                runReadIntRTCC = false;
+            }
 
-	    if( runReadI2CRTCC == true )
-	    {
-		timerCounterReadI2CRTCC = 0;
-		readTimeI2C( );
-		writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
-		runReadI2CRTCC = false;
-	    }
-	}
+            if (runReadI2CRTCC == true)
+            {
+                timerCounterReadI2CRTCC = 0;
+                readTimeI2C();
+                writeTime(timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond);
+                runReadI2CRTCC = false;
+            }
+        }
     }
 
 }
@@ -206,57 +286,54 @@ int main( void )
 /* init
  * Calls each individual initialization method
  */
-void init( void )
+void init(void)
 {
 
 
-    initI2C( );
+    initI2C();
 
-    startClock( );
-    setClock( );
+    startClock();
+    setClock();
 
-    initPorts( );
+    initPorts();
 
-    initVars( );
-    readI2CPowerTimes( );
-//    initPWMeasurement( );
-    initUART( );
+    initVars();
+    readI2CPowerTimes();
+    //    initPWMeasurement( );
+    initUART();
     //    initOC_PWM();
-    enableInterrupts( );
-    commandBuilder1( "Reboot", "Now", "0" );
-    commandBuilder1( "Reboot", "Now", "0" );
+    enableInterrupts();
+    commandBuilder1("Reboot", "Now", "0");
+    commandBuilder1("Reboot", "Now", "0");
 }
 
 /* initVars
  * Initializes variables to their starting values (usually 0)
  */
-void initVars( void )
+void initVars(void)
 {
-    resetTimeI2C = 59;
-    currentLoad = 0;
-    powerUsedMW = 0;
-    powerUsed = 0;
 
-    EEreadAll( );
+
+    EEreadAll();
 
     // set up highAlloc and lowAlloc
-    if( ( highAlloc == lowAlloc ) && ( powerAllocated != 0 ) )
+    if ((highAlloc == lowAlloc) && (tba_energyAllocation != 0))
     {
-	highAlloc = powerAllocated;
-	lowAlloc = ( powerAllocated * 3 ) / 4;
+        highAlloc = tba_energyAllocation;
+        lowAlloc = (tba_energyAllocation * 3) / 4;
     }
 
-    setHighLow( );
+    setHighLow();
 }
 
 /* setClocks()
  * At boot time, check which RTCC has the most recent time and synchronize them.
  * If this is a new build of the code, use the build time to set both RTCCs.
  */
-void setClock( void )
+void setClock(void)
 {
     unsigned char year, month, day, hour, minute, second;
-    readI2CTime( &year, &month, &day, &hour, &minute, &second );
+    readI2CTime(&year, &month, &day, &hour, &minute, &second);
 
     // Minute  6 bits // << 0
     // Hour    5 bits // << 6
@@ -265,59 +342,297 @@ void setClock( void )
     // Year    7 bits // << 20
     // The entire date and time fits in a 32-bit long for comparison
     unsigned long
-    buildDate = ( ( unsigned long ) BUILD_YEAR << 20 ) +
-	    ( ( unsigned long ) BUILD_MONTH << 16 ) +
-	    ( ( unsigned long ) BUILD_DAY << 11 ) +
-	    ( ( unsigned long ) BUILD_HOUR << 6 ) + BUILD_MINUTE,
+    buildDate = ((unsigned long) BUILD_YEAR << 20) +
+            ((unsigned long) BUILD_MONTH << 16) +
+            ((unsigned long) BUILD_DAY << 11) +
+            ((unsigned long) BUILD_HOUR << 6) + BUILD_MINUTE,
 
-	    I2CDate = ( ( unsigned long ) year << 20 ) +
-	    ( ( unsigned long ) month << 16 ) +
-	    ( ( unsigned long ) day << 11 ) +
-	    ( ( unsigned long ) hour << 6 ) + minute;
+            I2CDate = ((unsigned long) year << 20) +
+            ((unsigned long) month << 16) +
+            ((unsigned long) day << 11) +
+            ((unsigned long) hour << 6) + minute;
 
     // Find most recent date/time
-    if( buildDate > I2CDate )
+    if (buildDate > I2CDate)
     {
-	// Correct for the 17 seconds it takes to program the PIC
-	second = BUILD_SECOND + 17;
-	minute = BUILD_MINUTE;
-	hour = BUILD_HOUR;
-	if( second > 59 )
-	{
-	    minute++;
-	    if( minute > 59 )
-		hour++;
-	}
+        // Correct for the 17 seconds it takes to program the PIC
+        second = BUILD_SECOND + 17;
+        minute = BUILD_MINUTE;
+        hour = BUILD_HOUR;
+        if (second > 59)
+        {
+            minute++;
+            if (minute > 59)
+                hour++;
+        }
 
-	setI2CTime( BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60 );
+        setI2CTime(BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60);
     }
 }
 
-void dailyReset( void )
+//void dailyResetPowerOnCheck(void)
+//{
+//    // right now the powerDown and powerUp is not working correctly
+//    // don't try to reset during a power outage for now
+//    
+//    
+//    
+//    
+//    // on startup check to see if we need to reset the power allocation
+//
+//    unsigned char resetMonth;
+//    unsigned char resetDay;
+//
+//
+//    // determine which day the reset was to occurr in relation to the day the power went out
+//    if (powerDownHour > resetHour)
+//    {
+//        resetDay = powerDownDay + 1;
+//    }
+//    else if (powerDownHour == resetHour)
+//    {
+//        if (powerDownMinute > resetMinute)
+//        {
+//            resetDay = powerDownDay + 1;
+//        }
+//    }
+//    else
+//    {
+//        resetDay = powerDownDay;
+//    }
+//    resetMonth = powerDownMonth;
+//
+//    // account for days in the month
+//    switch (powerDownMonth)
+//    {
+//        case 1:
+//        case 3:
+//        case 5:
+//        case 7:
+//        case 8:
+//        case 10:
+//        case 12:
+//            if (resetDay > 31)
+//            {
+//                resetDay = 1;
+//                resetMonth++;
+//            }
+//            break;
+//
+//        case 2:
+//            if ((timeYear % 4) == 0)
+//            {
+//                if (resetDay >= 29)
+//                {
+//                    resetDay = 1;
+//                    resetMonth++;
+//                }
+//            }
+//            else
+//            {
+//                if (resetDay >= 28)
+//                {
+//                    resetDay = 1;
+//                    resetMonth++;
+//                }
+//            }
+//            break;
+//        case 4:
+//        case 6:
+//        case 9:
+//        case 11:
+//            if (resetDay > 30)
+//            {
+//                resetDay = 1;
+//                resetMonth++;
+//            }
+//            break;
+//    }
+//
+//    // no more than 12 months
+//    // recognized glitch here if power is out and reset over the new year
+//    if (resetMonth > 12)
+//    {
+//        resetMonth = 1;
+//    }
+//
+//    // turn the information into numbers that we can easily compare
+//    unsigned long powerUpTime;
+//    unsigned long resetTime;
+//    unsigned long powerDownTime;
+//
+//    powerUpTime = (powerUpMonth * 1000000) + (powerUpDay * 10000) + (powerUpHour * 100) + (powerUpMinute);
+//    resetTime = (resetMonth * 1000000) + (resetDay * 10000) + (resetHour * 100) + (resetMinute);
+//    powerDownTime = (powerDownMonth * 1000000) + (powerDownDay * 10000) + (powerDownHour * 100) + (powerDownMinute);
+//
+//
+//    if (powerUpTime > resetTime)
+//    {
+//        dailyReset();
+//    }
+//
+//
+//    switch (powerDownMonth)
+//    {
+//        case 0:
+//            LED1SET = 0;
+//            LED2SET = 0;
+//            LED3SET = 0;
+//            LED4SET = 0;
+//        case 1:
+//            LED1SET = 1;
+//            LED2SET = 0;
+//            LED3SET = 0;
+//            LED4SET = 0;
+//        case 2:
+//            LED1SET = 0;
+//            LED2SET = 1;
+//            LED3SET = 0;
+//            LED4SET = 0;
+//        case 3:
+//            LED1SET = 1;
+//            LED2SET = 1;
+//            LED3SET = 0;
+//            LED4SET = 0;
+//        case 4:
+//            LED1SET = 0;
+//            LED2SET = 0;
+//            LED3SET = 1;
+//            LED4SET = 0;
+//        case 5:
+//            LED1SET = 1;
+//            LED2SET = 0;
+//            LED3SET = 1;
+//            LED4SET = 0;
+//        case 6:
+//            LED1SET = 0;
+//            LED2SET = 1;
+//            LED3SET = 1;
+//            LED4SET = 0;
+//        case 7:
+//            LED1SET = 1;
+//            LED2SET = 1;
+//            LED3SET = 1;
+//            LED4SET = 0;
+//        case 8:
+//            LED1SET = 0;
+//            LED2SET = 0;
+//            LED3SET = 0;
+//            LED4SET = 1;
+//        case 9:
+//            LED1SET = 1;
+//            LED2SET = 0;
+//            LED3SET = 0;
+//            LED4SET = 1;
+//        case 10:
+//            LED1SET = 0;
+//            LED2SET = 1;
+//            LED3SET = 0;
+//            LED4SET = 1;
+//        case 11:
+//            LED1SET = 1;
+//            LED2SET = 1;
+//            LED3SET = 0;
+//            LED4SET = 1;
+//        case 12:
+//            LED1SET = 0;
+//            LED2SET = 0;
+//            LED3SET = 1;
+//            LED4SET = 1;
+//        case 13:
+//            LED1SET = 1;
+//            LED2SET = 0;
+//            LED3SET = 1;
+//            LED4SET = 1;
+//        case 14:
+//            LED1SET = 0;
+//            LED2SET = 1;
+//            LED3SET = 1;
+//            LED4SET = 1;
+//        default:
+//            LED1SET = 1;
+//            LED2SET = 1;
+//            LED3SET = 1;
+//            LED4SET = 1;
+//    }
+//
+//    return;
+//}
+
+void dailyResetCheck(void)
 {
-    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
+    static bool resetComplete = false;
+
+    if ((timeMinute == resetMinute) && (timeHour == resetHour))
     {
-	resetFlag = 0;
-	reset = 0;
-	totalUsed += powerUsed + extraPower;
-	previousDayUsed = powerUsed + extraPower;
-	powerUsedMW = 0;
-	powerUsed = 0;
-	extraPower = 0;
-	setRemoteStats( );
-	EEwriteTotals( );
+        if (resetComplete == false)
+        {
+            dailyReset();
+            resetComplete = true;
+        }
     }
-    else if( !resetFlag && timeSecond )
+    else
     {
-	resetFlag = 0xFF;
+
+        resetComplete = false;
     }
+
+}
+
+void dailyReset(void)
+{
+
+    //    static bool resetComplete = false;
+
+    //    if ((timeMinute == resetMinute) && (timeHour == resetHour))
+    //    {
+    //        if (resetComplete == false)
+    //        {
+    tba_energyUsedPreviousDay = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
+    tba_energyUsedLastDayReset = tba_energyUsedLifetime;
+
+    EEwriteTotals();
+    EEwritePowerUsed();
+    setRemoteStats();
+
+    // reset allocation to what is stored
+    EEreadPowerAlloc();
+
+
+    //            resetComplete = true;
+    //
+    //        }
+    //    }
+    //    else
+    //    {
+    //        resetComplete = false;
+    //    }
+
+    return;
+
+    //    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
+    //    {
+    //	resetFlag = 0;
+    //	reset = 0;
+    //	totalUsed += powerUsed + extraPower;
+    //	previousDayUsed = powerUsed + extraPower;
+    //	powerUsedMW = 0;
+    //	powerUsed = 0;
+    //	extraPower = 0;
+    //	setRemoteStats( );
+    //	EEwriteTotals( );
+    //    }
+    //    else if( !resetFlag && timeSecond )
+    //    {
+    //	resetFlag = 0xFF;
+    //    }
 }
 
 /* initPorts
  * initializes ports for I/O
  * disables Int0 interrupt
  */
-void initPorts( void )
+void initPorts(void)
 {
 
     // Pin 1:  RA5
@@ -343,6 +658,7 @@ void initPorts( void )
 
     //Everything starts as an output, make input if needed
     //OSCCON = 0b0000000010100101;
+
     ANSA = 0x0000;
     ANSB = 0x0000;
     //PORTA = 0b1111111111111111;
@@ -387,84 +703,161 @@ void initPorts( void )
     _INT0IE = 0;
 }
 
-void enablePullDownResistors( void )
+void enablePullDownResistors(void)
 {
 
     _CN2PDE = 1; // pin 2 for emergency button
 
 }
 
-void enableInterrupts( void )
+void enableInterrupts(void)
 {
+
     INTCON1 |= 0b1000000000000000;
 }
 
-void disableInterrupts( void )
+void disableInterrupts(void)
 {
+
     INTCON1 &= 0b0111111111111111;
 }
 
-void readButton( void )
+void readButton(void)
 {
-    static unsigned char lastSecond = 0;
+    static unsigned char buttonEmergencyComplete = 0;
+    static unsigned char buttonTimeSecond = 255;
 
-    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
+    if (emerButtonEnable)
     {
+        if (BTN_EMER)
+        {
+            if (buttonEmergencyComplete == 0)
+            {
+                if (buttonTimeSecond != timeSecond)
+                {
+                    tba_energyAllocation += emerButtonAlloc;
+                    buttonEmergencyComplete = 1;
+                    buttonTimeSecond = timeSecond;
+                }
+            }
+        }
+        else
+        {
+            if (buttonTimeSecond != timeSecond)
+            {
 
-	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
-	{
-	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
-
-
-	}
-	else
-	{
-	    powerUsedMW = 0;
-	    powerUsed = 0;
-	}
-	lastSecond = timeSecond;
+                buttonEmergencyComplete = 0;
+            }
+        }
     }
+
+    return;
+
+    //    static unsigned char lastSecond = 0;
+    //    static unsigned char lastButton = 0;
+    //
+    //    if( emerButtonEnable )
+    //    {
+    //	if( BTN_EMER )
+    //	{
+    //	    if( lastButton == 0 )
+    //	    {
+    //		if( lastSecond != timeSecond )
+    //		{
+    //		    lastSecond = timeSecond;
+    //
+    //		    tba_energyAllocation += emerButtonAlloc;
+    //		}
+    //		lastButton = 1;
+    //	    }
+    //
+    //	}
+    //	else
+    //	{
+    //	    lastButton = 0;
+    //	}
+    //    }
+    //
+    //    return;
+
+    //
+    //    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
+    //    {
+    //
+    //	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
+    //	{
+    //	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
+    //
+    //
+    //	}
+    //	else
+    //	{
+    //	    powerUsedMW = 0;
+    //	    powerUsed = 0;
+    //	}
+    //	lastSecond = timeSecond;
+    //    }
 
 }
 
-void storeToEE( void )
+void storeToEE(void)
 {
-    if( ( timeSecond == 30 ) && EEflag )
+    static unsigned char eeComplete = 0;
+
+          if( ( timeMinute == 0 ) || ( timeMinute == 15 ) || ( timeMinute == 30 ) || ( timeMinute == 45 ) )
+//    if ((timeMinute % 2) == 0)
     {
-	//        if ((timeHour == 0) && (timeMinute == 0)) {
-	//            EEwriteDate();
-	//            EEflag = 0;
-	//        }
-	//
-	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
-	{
-	    EEwritePowerUsed( );
-	    EEflag = 0;
-	}
+        if (eeComplete == 0)
+        {
+            EEwritePowerUsed();
+            eeComplete = 1;
+        }
     }
     else
     {
-	EEflag = 1;
+
+        eeComplete = 0;
     }
+
+    //    if( ( timeSecond == 30 ) && EEflag )
+    //    {
+    //	//        if ((timeHour == 0) && (timeMinute == 0)) {
+    //	//            EEwriteDate();
+    //	//            EEflag = 0;
+    //	//        }
+    //	//
+    //	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
+    //	{
+    //	    EEwritePowerUsed( );
+    //	    EEflag = 0;
+    //	}
+    //    }
+    //    else
+    //    {
+    //	EEflag = 1;
+    //    }
 }
 
-void setHighLow( )
+void setHighLow()
 {
-    if( isHigh )
+    if (isHigh)
     {
-	powerAllocated = highAlloc;
+        //	powerAllocated = highAlloc;
+        tba_energyAllocation = highAlloc;
     }
     else
     {
-	powerAllocated = lowAlloc;
+        //	powerAllocated = lowAlloc;
+
+        tba_energyAllocation = lowAlloc;
     }
 }
 
-void initRTCCDisplay( void )
+void initRTCCDisplay(void)
 {
 
     //does unlock sequence to enable write to RTCC, sets RTCWEN
-    __builtin_write_RTCWEN( );
+    __builtin_write_RTCWEN();
 
     RCFGCAL = 0b0010001100000000;
     RTCPWC = 0b0000010100000000; // LPRC is clock source

@@ -30,6 +30,7 @@
       <itemPath>SharedCommunication.c</itemPath>
       <itemPath>MasterComm.c</itemPath>
       <itemPath>DisplayRTCC.c</itemPath>
+      <itemPath>-CL_CommandBoard.txt</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -51,7 +52,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.23</languageToolchainVersion>
+        <languageToolchainVersion>1.31</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <compileType>

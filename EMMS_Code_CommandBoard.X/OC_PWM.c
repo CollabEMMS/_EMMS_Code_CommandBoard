@@ -13,65 +13,93 @@
 #define LED3 LATBbits.LATB4
 #define LED4 LATAbits.LATA4
 
-void initOC_PWM(void) {
-//    OC2CON1 = 0; // Clear OC2 control registers
-//    OC2CON2 = 0; // Clear OC2 control registers
-//
-//    // Duty cycle = On-time / Period
-//    OC2R  = 0;   // On-time
-//    OC2RS = 110; // Period
-//
-//    OC2CON2bits.SYNCSEL = 0b11111; // Self-synchronize
-//    OC2CON1bits.OCTSEL  = 0b111;   // Clock source: system clock
-//    OC2CON1bits.OCM     = 0b110;   // Edge-aligned mode
+#define LED1_READ PORTAbits.RA2
+#define LED2_READ PORTAbits.RA3
+#define LED3_READ PORTBbits.RB4
+#define LED4_READ PORTAbits.RA4
 
 
-//    LED1_DIR = 0;
-//    LED2_DIR = 0;
-//    LED3_DIR = 0;
-//    LED4_DIR = 0;
+extern unsigned long tba_energyAllocation;
+extern unsigned long tba_energyUsedLifetime;
+extern unsigned long tba_energyUsedLastDayReset;
 
-}
-// Set OC2R to any percent value 0 to 100
-void updateLEDs(void) {
-//    OC2R = (timeSecond % 11) * 10;
-    //OC2R = (100 * (powerAllocated - powerUsed)) / powerAllocated;
+void updateLEDs(void)
+{
 
     int percent;
-    percent = (100 * (powerAllocated - powerUsed)) / powerAllocated;
 
-#ifndef LEDS_FOR_DEBUG
-//    return;
-    
+    unsigned long tempPowerUsed;
+
+    tempPowerUsed = (tba_energyUsedLifetime - tba_energyUsedLastDayReset);
+    if (tba_energyAllocation > tempPowerUsed)
+    {
+        percent = (100 * (tba_energyAllocation - tempPowerUsed)) / tba_energyAllocation;
+    }
+    else
+    {
+        percent = 0;
+    }
+
+    //    percent = (100 * (powerAllocated - powerUsed)) / powerAllocated;
+
     // Update the 4 LEDs to show power remaining
-    if (percent > 75) {
+    if (percent > 75)
+    {
         LED1 = 1;
         LED2 = 1;
         LED3 = 1;
         LED4 = 1;
-    } else if (percent > 50) {
+    }
+    else if (percent > 50)
+    {
         LED1 = 1;
         LED2 = 1;
         LED3 = 1;
         LED4 = 0;
-    } else if (percent > 25) {
+    }
+    else if (percent > 25)
+    {
         LED1 = 1;
         LED2 = 1;
         LED3 = 0;
         LED4 = 0;
-    } else if (percent > 0) {
+    }
+    else if (percent > 5)
+    {
         LED1 = 1;
         LED2 = 0;
         LED3 = 0;
         LED4 = 0;
-    } else {
+    }
+    else if (tba_energyAllocation > tempPowerUsed)
+    {
+        static unsigned char lastTime = 255;
+
+        if (lastTime != timeSecond)
+        {
+            if (LED1_READ == 1)
+            {
+                LED1 = 0;
+            }
+            else
+            {
+                LED1 = 1;
+            }
+            lastTime = timeSecond;
+        }
+
+        LED2 = 0;
+        LED3 = 0;
+        LED4 = 0;
+    }
+    else
+    {
         LED1 = 0;
         LED2 = 0;
         LED3 = 0;
         LED4 = 0;
     }
 
-#endif
 
     return;
 }

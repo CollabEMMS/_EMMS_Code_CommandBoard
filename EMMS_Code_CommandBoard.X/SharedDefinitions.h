@@ -19,7 +19,7 @@ void processReceivedCommand(void);
 void splitReceivedCommand(void);
 void stringCopy(char* from, char* to);
 char stringCompare(char* a, char* b);
-int  stringLength(char* string);
+int stringLength(char* string);
 void stringConcat(char* destination, char* source);
 void zeroPad(char* target, int length);
 char* sendBuffer(void);
@@ -57,8 +57,8 @@ char newSendData;
 char newReceiveData;
 unsigned char commError;
 unsigned char commErrorTime;
-int  emerAllocNow;
-int  emerAllocSend;
+int emerAllocNow;
+int emerAllocSend;
 char powerDownTime[12];
 char powerUpTime[12];
 
@@ -71,13 +71,11 @@ char stringToSendU2[SEND_STRING_LENGTH];
 char receiveBufferU2[RECEIVE_STRING_LENGTH];
 
 /* Communication Low Level - Power Box Only ***********************************/
-#ifdef POWER_BOX
 char newSendDataU1;
 short sendIndexU1;
 short receiveIndexU1;
 char stringToSendU1[SEND_STRING_LENGTH];
 char receiveBufferU1[RECEIVE_STRING_LENGTH];
-#endif
 
 /* Communication High Level ***************************************************/
 void setRemoteTime(void);
@@ -106,37 +104,29 @@ void readUpdate(void);
 
 void doReset(void);
 
-/* Communication High Level - Display Box Only **********************************/
-#ifdef DISPLAY_BOX
-void periodicUpdate(void);
-void initDisplayBox(void);
-#endif
 
 /* Communication High Level - Power Box Only **********************************/
-#ifdef POWER_BOX
 void sendUpdate(void);
-#endif
 
 /* RTCC.c *********************************************************************/
 
 void readTimeI2C(void);
 void writeClockStrings(void);
-void writeTempClockStrings(void);
-char writeTimeI2C(char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond);
 
-unsigned char resetTimeI2C;
-unsigned char resetTime;
-char clockStrI2C[6], calendarStrI2C[9];
-unsigned char timeYearI2C, timeMonthI2C, timeDayI2C, timeWeekdayI2C,
-        timeHourI2C, timeMinuteI2C, timeSecondI2C;
+unsigned char timeYear;
+unsigned char timeMonth;
+unsigned char timeDay;
+unsigned char timeWeekday;
+unsigned char timeHour;
+unsigned char timeMinute;
+unsigned char timeSecond;
 
-unsigned char timeYear, timeMonth, timeDay, timeWeekday,
-        timeHour, timeMinute, timeSecond;
+char tempHour;
+char tempMin;
+char tempMonth;
+char tempDay;
+char tempYear;
 
-char timeSetPosI2C;
-char tempHourI2C, tempMinI2C, tempMonthI2C, tempDayI2C, tempYearI2C;
-char tempHour, tempMin, tempMonth, tempDay, tempYear;
-char tempClockStrI2C[10], tempCalStrI2C[15];
 
 /* Delays.c *******************************************************************/
 
@@ -150,24 +140,17 @@ void commDelay(unsigned int);
 void initUART(void);
 
 /* Power.c ********************************************************************/
-unsigned long powerUsed;
-unsigned long powerAllocated;
-unsigned long currentLoad;
-
-extern unsigned long powerWatts;
-extern unsigned long powerVolts;
-extern unsigned long powerAmps;
 
 
 /* Variable Definitions *******************************************************/
-char buffer1[11];
-char buffer2[11];
-char buffer3[11];
-char buffer4[11];
-char buffer5[11];
-char buffer6[11];
-char buffer7[11];
-char buffer8[11];
+char buffer1[12];
+char buffer2[12];
+char buffer3[12];
+char buffer4[12];
+char buffer5[12];
+char buffer6[12];
+char buffer7[12];
+char buffer8[12];
 char audibleAlarm;
 char alarmOneEnabled;
 char alarmTwoEnabled;
@@ -175,23 +158,19 @@ char alarmOnePower;
 char alarmTwoPower;
 char passwordSet[6];
 char emerButtonEnable;
-int  emerButtonAlloc;
+int emerButtonAlloc;
 unsigned long powerBoxCodeVersion;
 unsigned long displayBoxCodeVersion;
 char powerBoxCodeVersionString[9];
 unsigned char resetHour;
 unsigned char resetMinute;
 char relayActive;
-unsigned long totalUsed;
-unsigned long previousDayUsed;
 char isHigh;
-unsigned long extraPower;
-unsigned char reset;
 
 
 ///* PowerSurvive.c *************************************************************/
 //void initPowerLossDetection(void);
 
 /* Watchdog.c *****************************************************************/
-void resetWDT(void);
+//void resetWDT(void);
 #endif

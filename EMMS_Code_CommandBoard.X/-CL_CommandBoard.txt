@@ -1,0 +1,24 @@
+open issues
+
+5/30/2017
+    daily reset did not work as expected
+        daily reset code needed second == 0 at the right minute and hour to activate
+        with new SPI communication this 0 second might be missed
+        removed second == 0 criteria
+        also changed 'one shot' variable from unsigned char to bool
+            for some reason it would keep resetting while the hour/minute was valid
+            this is now fixed
+    read_time had a error where hours was actually seconds
+        the RTCC was read twice while getting month/days which caused hours to then read the seconds
+        this has been fixed
+
+6/2/2017
+    when sending powerWatts to the UI sometimes the UI would display the power used in the Watts position.
+        explicitly set the outgoing string to "0" if the power is zero
+        seemed to fix the problem
+
+6/6/2017
+    changed power logging to every 15 minutes to save EEPROM write cycles
+        was set at 2 minutes for debugging
+    relay control would keep the relay on when power left was 0 and turned off when power left was < 0
+        power now turns off when power =0 to make operation seem consistent.
