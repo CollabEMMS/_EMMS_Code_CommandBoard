@@ -36,14 +36,12 @@
 
 // YYMMDDVV
 
-#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, \
-    (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
+//#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, \
+//    (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
 
-
-
+#define POWER_BOX_CODE_VERSION "170610a"
 
 /******************************************************************************/
-
 /* PowerMain.c ****************************************************************/
 #define FOSC       32000000
 #define _XTAL_FREQ 32000000
@@ -55,9 +53,22 @@ unsigned long lowAlloc;
 char isHigh;
 char relayActive;
 
+extern unsigned char powerDownMinute;
+extern unsigned char powerDownHour;
+extern unsigned char powerDownDay;
+extern unsigned char powerDownMonth;
+
+extern unsigned char powerUpMinute;
+extern unsigned char powerUpHour;
+extern unsigned char powerUpDay;
+extern unsigned char powerUpMonth;
+
+
 void init(void);
 void initVars(void);
 void setClock(void);
+//void dailyResetPowerOnCheck(void);
+void dailyResetCheck(void);
 void dailyReset(void);
 void initPorts(void);
 void enablePullDownResistors(void);
@@ -91,7 +102,7 @@ int __attribute__ ((space(eedata))) EEpassword2 = '3';
 int __attribute__ ((space(eedata))) EEpassword3 = '4';
 int __attribute__ ((space(eedata))) EEpassword4 = '1';
 int __attribute__ ((space(eedata))) EEpassword5 = '2';
-int __attribute__ ((space(eedata))) EEpowerAlloc = 2;
+int __attribute__ ((space(eedata))) EEpowerAlloc = 50;
 //int __attribute__ ((space(eedata))) EEyear = 14;
 //int __attribute__ ((space(eedata))) EEmonth = 1;
 //int __attribute__ ((space(eedata))) EEday = 1;

@@ -98,21 +98,21 @@ void relayControl(void)
 
     tempEnergyUsed = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
 
-    if( timeSecond != lastSecond )
+    if (timeSecond != lastSecond)
     {
-	if( relayActive )
-	{
-	    if( tempEnergyUsed <= tba_energyAllocation )
-	    {
-		RELAY = 1;
-	    }
-	    else
-	    {
-		RELAY = 0;
-		//		currentLoad = 0; // just set power to zero because relay is off
-	    }
-	}
-	lastSecond = timeSecond;
+        if (relayActive)
+        {
+            if (tempEnergyUsed < tba_energyAllocation)
+            {
+                RELAY = 1;
+            }
+            else
+            {
+                RELAY = 0;
+                //		currentLoad = 0; // just set power to zero because relay is off
+            }
+        }
+        lastSecond = timeSecond;
     }
 
     return;

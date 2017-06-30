@@ -19,7 +19,7 @@ void processReceivedCommand(void);
 void splitReceivedCommand(void);
 void stringCopy(char* from, char* to);
 char stringCompare(char* a, char* b);
-int  stringLength(char* string);
+int stringLength(char* string);
 void stringConcat(char* destination, char* source);
 void zeroPad(char* target, int length);
 char* sendBuffer(void);
@@ -57,8 +57,8 @@ char newSendData;
 char newReceiveData;
 unsigned char commError;
 unsigned char commErrorTime;
-int  emerAllocNow;
-int  emerAllocSend;
+int emerAllocNow;
+int emerAllocSend;
 char powerDownTime[12];
 char powerUpTime[12];
 
@@ -113,10 +113,20 @@ void sendUpdate(void);
 void readTimeI2C(void);
 void writeClockStrings(void);
 
-unsigned char timeYear, timeMonth, timeDay, timeWeekday,
-        timeHour, timeMinute, timeSecond;
+unsigned char timeYear;
+unsigned char timeMonth;
+unsigned char timeDay;
+unsigned char timeWeekday;
+unsigned char timeHour;
+unsigned char timeMinute;
+unsigned char timeSecond;
 
-char tempHour, tempMin, tempMonth, tempDay, tempYear;
+char tempHour;
+char tempMin;
+char tempMonth;
+char tempDay;
+char tempYear;
+
 
 /* Delays.c *******************************************************************/
 
@@ -133,14 +143,14 @@ void initUART(void);
 
 
 /* Variable Definitions *******************************************************/
-char buffer1[11];
-char buffer2[11];
-char buffer3[11];
-char buffer4[11];
-char buffer5[11];
-char buffer6[11];
-char buffer7[11];
-char buffer8[11];
+char buffer1[12];
+char buffer2[12];
+char buffer3[12];
+char buffer4[12];
+char buffer5[12];
+char buffer6[12];
+char buffer7[12];
+char buffer8[12];
 char audibleAlarm;
 char alarmOneEnabled;
 char alarmTwoEnabled;
@@ -148,7 +158,7 @@ char alarmOnePower;
 char alarmTwoPower;
 char passwordSet[6];
 char emerButtonEnable;
-int  emerButtonAlloc;
+int emerButtonAlloc;
 unsigned long powerBoxCodeVersion;
 unsigned long displayBoxCodeVersion;
 char powerBoxCodeVersionString[9];

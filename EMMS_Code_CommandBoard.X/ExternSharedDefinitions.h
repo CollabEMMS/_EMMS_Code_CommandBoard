@@ -140,14 +140,14 @@ void initUART(void);
 
 
 /* Variable Definitions *******************************************************/
-extern char buffer1[11];
-extern char buffer2[11];
-extern char buffer3[11];
-extern char buffer4[11];
-extern char buffer5[11];
-extern char buffer6[11];
-extern char buffer7[11];
-extern char buffer8[11];
+extern char buffer1[12];
+extern char buffer2[12];
+extern char buffer3[12];
+extern char buffer4[12];
+extern char buffer5[12];
+extern char buffer6[12];
+extern char buffer7[12];
+extern char buffer8[12];
 extern char audibleAlarm;
 extern char alarmOneEnabled;
 extern char alarmTwoEnabled;

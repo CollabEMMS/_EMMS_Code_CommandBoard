@@ -24,7 +24,6 @@ void init(void);
 void initVars(void);
 void setClocks(void);
 void syncClocks(void);
-void dailyReset(void);
 void initPorts(void);
 void enablePullDownResistors(void);
 void enableInterrupts(void);

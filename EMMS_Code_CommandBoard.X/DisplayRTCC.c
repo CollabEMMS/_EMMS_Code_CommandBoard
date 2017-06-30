@@ -32,7 +32,7 @@ void readTime( void )
     temp1 = RTCVAL;
     temp2 = temp1 >> 8;
     timeMonth = BcdToDec( temp2 );
-    temp2 = RTCVAL & 0x00FF;
+    temp2 = temp1 & 0x00FF;
     timeDay = BcdToDec( temp2 );
 
     temp1 = RTCVAL;
@@ -45,24 +45,6 @@ void readTime( void )
     temp2 = temp1 & 0x00FF;
     timeSecond = BcdToDec( temp2 );
 
-
-
-
-    //    timeYear = RTCVAL; //11
-    //    temp = RTCVAL; //10
-    //    timeMonth = temp >> 8;
-    //    timeDay = temp & 0xFF;
-    //    timeHour = RTCVAL & 0xFF; //01
-    //    temp = RTCVAL; //00
-    //    timeMinute = temp >> 8;
-    //    timeSecond = temp & 0xFF;
-
-    //    timeYear   = BcdToDec(timeYear);
-    //    timeMonth  = BcdToDec(timeMonth);
-    //    timeDay    = BcdToDec(timeDay);
-    //    timeHour   = BcdToDec(timeHour);
-    //    timeMinute = BcdToDec(timeMinute);
-    //    timeSecond = BcdToDec(timeSecond);
 }
 
 bool writeTime( char newYear, char newMonth, char newDay, char newHour, char newMinute, char newSecond )
