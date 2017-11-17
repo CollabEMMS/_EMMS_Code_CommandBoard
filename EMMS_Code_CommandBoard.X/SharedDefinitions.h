@@ -101,6 +101,8 @@ void readRemoteHL(void);
 void setRemotePowerDownUpTime(void);
 void readRemotePowerDownUpTime(void);
 void readUpdate(void);
+void setRemoteMod( int modIndex );
+
 
 void doReset(void);
 

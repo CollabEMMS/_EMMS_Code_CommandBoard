@@ -1,5 +1,11 @@
 open issues
 
+*********************
+11/16/2017
+    added communication code for module info
+        demo data right now
+        need to add structure and variables to handle real data
+
 5/30/2017
     daily reset did not work as expected
         daily reset code needed second == 0 at the right minute and hour to activate
