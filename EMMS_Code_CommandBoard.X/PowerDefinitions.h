@@ -39,7 +39,7 @@
 //#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, \
 //    (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
 
-#define POWER_BOX_CODE_VERSION "170610a"
+#define POWER_BOX_CODE_VERSION "180418b"
 
 /******************************************************************************/
 /* PowerMain.c ****************************************************************/

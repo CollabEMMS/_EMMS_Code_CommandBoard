@@ -720,7 +720,7 @@ void SPIMasterInit(void)
     SPI1CON1bits.CKE = 0b1; // serial data changes on active to idle clock state
     SPI1CON1bits.SSEN = 0b0; // not a slave
     SPI1CON1bits.CKP = 0b1; // clock idle is high
-    SPI1CON1bits.SPRE = 0b110; // secondary prescale 8:1
+    SPI1CON1bits.SPRE = 0b110; // secondary prescale 2:1
     SPI1CON1bits.PPRE = 0b11; // primary prescale 1:1
     //    SPI1CON1bits.PPRE = 0b00; // primary prescale 1:1
 
