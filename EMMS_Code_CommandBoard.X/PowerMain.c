@@ -54,11 +54,11 @@
 //unsigned long powerVolts = 0;
 //unsigned long powerAmps = 0;
 
-unsigned long tba_energyAllocation;
-unsigned long tba_energyUsedLifetime;
-unsigned long tba_energyUsedLastDayReset;
-unsigned long tba_powerWatts;
-unsigned long tba_energyUsedPreviousDay = 0;
+long tba_energyAllocation;
+long tba_energyUsedLifetime;
+long tba_energyUsedLastDayReset;
+long tba_powerWatts;
+long tba_energyUsedPreviousDay = 0;
 
 void initRTCCDisplay(void);
 

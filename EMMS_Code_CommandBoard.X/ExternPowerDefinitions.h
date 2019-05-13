@@ -15,8 +15,8 @@
 
 extern unsigned char resetHour;
 extern unsigned char resetMinute;
-extern unsigned long highAlloc;
-extern unsigned long lowAlloc;
+extern long highAlloc;
+extern long lowAlloc;
 extern char isHigh;
 extern char relayActive;
 

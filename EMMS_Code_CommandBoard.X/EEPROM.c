@@ -9,8 +9,8 @@
 #include "ExternPowerDefinitions.h"
 #include "ExternSharedDefinitions.h"
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
+extern long tba_energyAllocation;
+extern long tba_energyUsedLifetime;
 extern unsigned long tba_energyUsedLastDayReset;
 extern unsigned long tba_energyUsedPreviousDay;
 

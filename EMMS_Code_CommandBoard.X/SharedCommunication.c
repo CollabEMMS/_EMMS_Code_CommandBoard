@@ -26,11 +26,11 @@
 //#include "OC_PWM.c" // why do we include this here?
 
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
-extern unsigned long tba_energyUsedLastDayReset;
-extern unsigned long tba_powerWatts;
-extern unsigned long tba_energyUsedPreviousDay;
+extern long tba_energyAllocation;
+extern long tba_energyUsedLifetime;
+extern long tba_energyUsedLastDayReset;
+extern long tba_powerWatts;
+extern long tba_energyUsedPreviousDay;
 
 void commInit(void)
 {
@@ -474,7 +474,7 @@ void processReceivedCommand()
             // makes no sense to set power used or current load from the UI
             // these are ignored for now, but should be removed at a later time
 
-            tba_energyAllocation = strtoul(commandExpander(receivedValue, 0), NULL, 10);
+            tba_energyAllocation = atol(commandExpander(receivedValue, 0)); // Changed from strtoul() to atol()
 
             //	    powerAllocated = atoi( commandExpander( receivedValue, 0 ) );
             //	    powerUsed = atoi( commandExpander( receivedValue, 1 ) );
@@ -693,7 +693,7 @@ void setRemoteTime(void)
 
 void setRemotePower(void)
 {
-    unsigned long tempEnergyUsed;
+    long tempEnergyUsed;
 
     tempEnergyUsed = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
 
@@ -701,8 +701,8 @@ void setRemotePower(void)
     char charEnergyUsed[12];
     char charPowerWatts[12];
 
-    ultoa(charEnergyAllocated, tba_energyAllocation, 10);
-    ultoa(charEnergyUsed, tempEnergyUsed, 10);
+    ltoa(charEnergyAllocated, tba_energyAllocation, 10);    // was ultoa()
+    ltoa(charEnergyUsed, tempEnergyUsed, 10);       // was ultoa()
     if (tba_powerWatts == 0)
     {
         charPowerWatts[0] = '0';
@@ -710,7 +710,7 @@ void setRemotePower(void)
     }
     else
     {
-        ultoa(charPowerWatts, tba_powerWatts, 10);
+        ltoa(charPowerWatts, tba_powerWatts, 10);   // was ultoa()
     }
 
     commandBuilder3("Set", "Power", charEnergyAllocated, charEnergyUsed, charPowerWatts);
@@ -798,8 +798,8 @@ void setRemoteStats(void)
     char charEnergyUsedLifetime[12];
     char charEnergyUsedPreviousDay[12];
 
-    ultoa(charEnergyUsedLifetime, tba_energyUsedLifetime, 10);
-    ultoa(charEnergyUsedPreviousDay, tba_energyUsedPreviousDay, 10);
+    ltoa(charEnergyUsedLifetime, tba_energyUsedLifetime, 10);   // was ultoa()
+    ltoa(charEnergyUsedPreviousDay, tba_energyUsedPreviousDay, 10); // was ultoa()
 
     commandBuilder2("Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay);
 

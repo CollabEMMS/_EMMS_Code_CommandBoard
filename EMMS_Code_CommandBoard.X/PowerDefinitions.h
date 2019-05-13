@@ -48,8 +48,8 @@
 
 unsigned char resetHour;
 unsigned char resetMinute;
-unsigned long highAlloc;
-unsigned long lowAlloc;
+long highAlloc;
+long lowAlloc;
 char isHigh;
 char relayActive;
 

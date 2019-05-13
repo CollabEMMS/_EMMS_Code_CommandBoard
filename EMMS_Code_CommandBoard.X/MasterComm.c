@@ -50,8 +50,8 @@
 #define LED4READ PORTAbits.RA4
 #define LED4DIR TRISAbits.TRISA4
 
-extern unsigned long tba_powerWatts;
-extern unsigned long tba_energyUsedLifetime;
+extern long tba_powerWatts;
+extern long tba_energyUsedLifetime;
 
 enum receive_status
 {
@@ -401,7 +401,7 @@ bool process_data_parameters(char parameters[][PARAMETER_MAX_LENGTH], struct buf
     {
         if (strmatch(parameters[1], "Watts") == true)
         {
-            tba_powerWatts = strtoul(parameters[2], NULL, 10);
+            tba_powerWatts = atol(parameters[2]);
             command_builder2(send_buffer, "Conf", "Watts");
         }
         else if (strmatch(parameters[1], "EnUsed") == true)
@@ -411,15 +411,15 @@ bool process_data_parameters(char parameters[][PARAMETER_MAX_LENGTH], struct buf
             // if power sense lifetime energy is < command board lifetime energy we must be in start-up
             // send power sense new lifetime energy value
 
-            unsigned long tempEnergyUsedLifetime;
+            long tempEnergyUsedLifetime;
 
-            tempEnergyUsedLifetime = strtoul(parameters[2], NULL, 10);
+            tempEnergyUsedLifetime = atol(parameters[2]);
 
             if (tempEnergyUsedLifetime < tba_energyUsedLifetime)
             {
                 char temp[12];
                 //		ultoa( temp, totalUsed, 10 );
-                ultoa(temp, tba_energyUsedLifetime, 10);
+                ltoa(temp, tba_energyUsedLifetime, 10);
                 command_builder3(send_buffer, "Set", "EnUsed", temp);
             }
             else

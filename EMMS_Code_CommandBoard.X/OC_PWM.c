@@ -19,16 +19,16 @@
 #define LED4_READ PORTAbits.RA4
 
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
-extern unsigned long tba_energyUsedLastDayReset;
+extern long tba_energyAllocation;
+extern long tba_energyUsedLifetime;
+extern long tba_energyUsedLastDayReset;
 
 void updateLEDs(void)
 {
 
     int percent;
 
-    unsigned long tempPowerUsed;
+    long tempPowerUsed;
 
     tempPowerUsed = (tba_energyUsedLifetime - tba_energyUsedLastDayReset);
     if (tba_energyAllocation > tempPowerUsed)
