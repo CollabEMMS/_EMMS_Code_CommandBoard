@@ -60,10 +60,14 @@ unsigned long tba_energyUsedLastDayReset;
 unsigned long tba_powerWatts;
 unsigned long tba_energyUsedPreviousDay = 0;
 
-void initRTCCDisplay(void);
+void initRTCCDisplay( void );
 
-int main(void)
+int main( void )
 {
+
+    ANSA = 0x0000;
+    ANSB = 0x0000;
+
     LED1_DIR = 0;
     LED2_DIR = 0;
     LED3_DIR = 0;
@@ -73,69 +77,69 @@ int main(void)
     LED2SET = 0;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 1;
     LED2SET = 0;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 1;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 0;
     LED3SET = 1;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 0;
     LED3SET = 0;
     LED4SET = 1;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 0;
     LED3SET = 1;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 1;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 1;
     LED2SET = 0;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
     LED1SET = 0;
     LED2SET = 0;
     LED3SET = 0;
     LED4SET = 0;
-        delayMS(100);
+    delayMS( 100 );
 
-    
-    
 
-    for (int inx = 0; inx < 5; inx++)
+
+
+    for( int inx = 0; inx < 5; inx++ )
     {
-        LED1SET = 1;
-        LED2SET = 1;
-        LED3SET = 1;
-        LED4SET = 1;
-        delayMS(100);
-        LED1SET = 0;
-        LED2SET = 0;
-        LED3SET = 0;
-        LED4SET = 0;
-        delayMS(100);
+	LED1SET = 1;
+	LED2SET = 1;
+	LED3SET = 1;
+	LED4SET = 1;
+	delayMS( 100 );
+	LED1SET = 0;
+	LED2SET = 0;
+	LED3SET = 0;
+	LED4SET = 0;
+	delayMS( 100 );
     }
 
-    init();
-    initRTCCDisplay();
+    init( );
+    initRTCCDisplay( );
 
-    SPIMasterInit();
+    SPIMasterInit( );
 
 
     LED1_DIR = 0;
@@ -143,18 +147,18 @@ int main(void)
     LED3_DIR = 0;
     LED4_DIR = 0;
 
-    for (int inx = 0; inx < 5; inx++)
+    for( int inx = 0; inx < 5; inx++ )
     {
-        LED1SET = 1;
-        LED2SET = 1;
-        LED3SET = 1;
-        LED4SET = 1;
-        delayMS(100);
-        LED1SET = 0;
-        LED2SET = 0;
-        LED3SET = 0;
-        LED4SET = 0;
-        delayMS(100);
+	LED1SET = 1;
+	LED2SET = 1;
+	LED3SET = 1;
+	LED4SET = 1;
+	delayMS( 100 );
+	LED1SET = 0;
+	LED2SET = 0;
+	LED3SET = 0;
+	LED4SET = 0;
+	delayMS( 100 );
     }
 
     //    dailyResetPowerOnCheck();
@@ -179,103 +183,103 @@ int main(void)
 #define TIMER_DELAY_COM_FUNCTIONS   1	    // time in ms to run function
 
 
-    readTimeI2C();
-    writeTime(timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond);
+    readTimeI2C( );
+    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
 
     // check if we lost power over a reset time
 
 
     bool enabledSPI;
 
-    while (1)
+    while( 1 )
     {
-        if (TMR1 > TIMER_MS_COUNT)
-        {
-            TMR1 = 0;
-            timerCounterCommunications++;
-            timerCounterComFunctions++;
-            timerCounterLowPriority++;
-            timerCounterReadI2CRTCC++;
-            timerCounterReadIntRTCC++;
-        }
+	if( TMR1 > TIMER_MS_COUNT )
+	{
+	    TMR1 = 0;
+	    timerCounterCommunications++;
+	    timerCounterComFunctions++;
+	    timerCounterLowPriority++;
+	    timerCounterReadI2CRTCC++;
+	    timerCounterReadIntRTCC++;
+	}
 
-        if (timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS)
-        {
-            runCommunications = true;
-            timerCounterCommunications = 0;
-        }
+	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
+	{
+	    runCommunications = true;
+	    timerCounterCommunications = 0;
+	}
 
-        if (timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS)
-        {
-            runComFunctions = true;
-            timerCounterComFunctions = 0;
-        }
+	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
+	{
+	    runComFunctions = true;
+	    timerCounterComFunctions = 0;
+	}
 
-        if (timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY)
-        {
-            runLowPriority = true;
-            timerCounterLowPriority = 0;
-        }
+	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
+	{
+	    runLowPriority = true;
+	    timerCounterLowPriority = 0;
+	}
 
-        if (timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC)
-        {
-            runReadI2CRTCC = true;
-            timerCounterReadI2CRTCC = 0;
-        }
+	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
+	{
+	    runReadI2CRTCC = true;
+	    timerCounterReadI2CRTCC = 0;
+	}
 
-        if (timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC)
-        {
-            runReadIntRTCC = true;
-            timerCounterReadIntRTCC = 0;
-        }
+	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
+	{
+	    runReadIntRTCC = true;
+	    timerCounterReadIntRTCC = 0;
+	}
 
 
-        if (runCommunications == true)
-        {
-            timerCounterCommunications = 0;
-            enabledSPI = communications();
-            runCommunications = false;
-            //enabledSPI = false;
-        }
+	if( runCommunications == true )
+	{
+	    timerCounterCommunications = 0;
+	    enabledSPI = communications( );
+	    runCommunications = false;
+	    //enabledSPI = false;
+	}
 
-        if (enabledSPI == false)
-        {
-            readButton();
-            storeToEE();
+	if( enabledSPI == false )
+	{
+	    readButton( );
+	    storeToEE( );
 
-            if (runComFunctions == true)
-            {
-                timerCounterComFunctions = 0;
-                commFunctions();
-                runComFunctions = false;
-            }
+	    if( runComFunctions == true )
+	    {
+		timerCounterComFunctions = 0;
+		commFunctions( );
+		runComFunctions = false;
+	    }
 
-            if (runLowPriority == true)
-            {
-                timerCounterLowPriority = 0;
+	    if( runLowPriority == true )
+	    {
+		timerCounterLowPriority = 0;
 
-                updateLEDs();
-                dailyResetCheck();
-                relayControl();
+		updateLEDs( );
+		dailyResetCheck( );
+		relayControl( );
 
-                runLowPriority = false;
-            }
+		runLowPriority = false;
+	    }
 
-            if (runReadIntRTCC == true)
-            {
-                timerCounterReadIntRTCC = 0;
-                readTime();
-                runReadIntRTCC = false;
-            }
+	    if( runReadIntRTCC == true )
+	    {
+		timerCounterReadIntRTCC = 0;
+		readTime( );
+		runReadIntRTCC = false;
+	    }
 
-            if (runReadI2CRTCC == true)
-            {
-                timerCounterReadI2CRTCC = 0;
-                readTimeI2C();
-                writeTime(timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond);
-                runReadI2CRTCC = false;
-            }
-        }
+	    if( runReadI2CRTCC == true )
+	    {
+		timerCounterReadI2CRTCC = 0;
+		readTimeI2C( );
+		writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
+		runReadI2CRTCC = false;
+	    }
+	}
     }
 
 }
@@ -286,54 +290,55 @@ int main(void)
 /* init
  * Calls each individual initialization method
  */
-void init(void)
+void init( void )
 {
 
 
-    initI2C();
+    initI2C( );
 
-    startClock();
-    setClock();
+    startClock( );
+    setClock( );
 
-    initPorts();
+    initPorts( );
 
-    initVars();
-    readI2CPowerTimes();
+    initVars( );
+    readI2CPowerTimes( );
     //    initPWMeasurement( );
-    initUART();
+    initUART( );
     //    initOC_PWM();
-    enableInterrupts();
-    commandBuilder1("Reboot", "Now", "0");
-    commandBuilder1("Reboot", "Now", "0");
+    enableInterrupts( );
+    commandBuilder1( "Reboot", "Now", "0" );
+    commandBuilder1( "Reboot", "Now", "0" );
 }
 
 /* initVars
  * Initializes variables to their starting values (usually 0)
  */
-void initVars(void)
+void initVars( void )
 {
 
 
-    EEreadAll();
+    EEreadAll( );
 
     // set up highAlloc and lowAlloc
-    if ((highAlloc == lowAlloc) && (tba_energyAllocation != 0))
+    if( (highAlloc == lowAlloc) && (tba_energyAllocation != 0) )
     {
-        highAlloc = tba_energyAllocation;
-        lowAlloc = (tba_energyAllocation * 3) / 4;
+	highAlloc = tba_energyAllocation;
+	lowAlloc = (tba_energyAllocation * 3) / 4;
     }
 
-    setHighLow();
+    setHighLow( );
+
 }
 
 /* setClocks()
  * At boot time, check which RTCC has the most recent time and synchronize them.
  * If this is a new build of the code, use the build time to set both RTCCs.
  */
-void setClock(void)
+void setClock( void )
 {
     unsigned char year, month, day, hour, minute, second;
-    readI2CTime(&year, &month, &day, &hour, &minute, &second);
+    readI2CTime( &year, &month, &day, &hour, &minute, &second );
 
     // Minute  6 bits // << 0
     // Hour    5 bits // << 6
@@ -343,30 +348,30 @@ void setClock(void)
     // The entire date and time fits in a 32-bit long for comparison
     unsigned long
     buildDate = ((unsigned long) BUILD_YEAR << 20) +
-            ((unsigned long) BUILD_MONTH << 16) +
-            ((unsigned long) BUILD_DAY << 11) +
-            ((unsigned long) BUILD_HOUR << 6) + BUILD_MINUTE,
+	    ((unsigned long) BUILD_MONTH << 16) +
+	    ((unsigned long) BUILD_DAY << 11) +
+	    ((unsigned long) BUILD_HOUR << 6) + BUILD_MINUTE,
 
-            I2CDate = ((unsigned long) year << 20) +
-            ((unsigned long) month << 16) +
-            ((unsigned long) day << 11) +
-            ((unsigned long) hour << 6) + minute;
+	    I2CDate = ((unsigned long) year << 20) +
+	    ((unsigned long) month << 16) +
+	    ((unsigned long) day << 11) +
+	    ((unsigned long) hour << 6) + minute;
 
     // Find most recent date/time
-    if (buildDate > I2CDate)
+    if( buildDate > I2CDate )
     {
-        // Correct for the 17 seconds it takes to program the PIC
-        second = BUILD_SECOND + 17;
-        minute = BUILD_MINUTE;
-        hour = BUILD_HOUR;
-        if (second > 59)
-        {
-            minute++;
-            if (minute > 59)
-                hour++;
-        }
+	// Correct for the 17 seconds it takes to program the PIC
+	second = BUILD_SECOND + 17;
+	minute = BUILD_MINUTE;
+	hour = BUILD_HOUR;
+	if( second > 59 )
+	{
+	    minute++;
+	    if( minute > 59 )
+		hour++;
+	}
 
-        setI2CTime(BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60);
+	setI2CTime( BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60 );
     }
 }
 
@@ -374,10 +379,10 @@ void setClock(void)
 //{
 //    // right now the powerDown and powerUp is not working correctly
 //    // don't try to reset during a power outage for now
-//    
-//    
-//    
-//    
+//
+//
+//
+//
 //    // on startup check to see if we need to reset the power allocation
 //
 //    unsigned char resetMonth;
@@ -559,27 +564,27 @@ void setClock(void)
 //    return;
 //}
 
-void dailyResetCheck(void)
+void dailyResetCheck( void )
 {
     static bool resetComplete = false;
 
-    if ((timeMinute == resetMinute) && (timeHour == resetHour))
+    if( (timeMinute == resetMinute) && (timeHour == resetHour) )
     {
-        if (resetComplete == false)
-        {
-            dailyReset();
-            resetComplete = true;
-        }
+	if( resetComplete == false )
+	{
+	    dailyReset( );
+	    resetComplete = true;
+	}
     }
     else
     {
 
-        resetComplete = false;
+	resetComplete = false;
     }
 
 }
 
-void dailyReset(void)
+void dailyReset( void )
 {
 
     //    static bool resetComplete = false;
@@ -591,12 +596,12 @@ void dailyReset(void)
     tba_energyUsedPreviousDay = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
     tba_energyUsedLastDayReset = tba_energyUsedLifetime;
 
-    EEwriteTotals();
-    EEwritePowerUsed();
-    setRemoteStats();
+    EEwriteTotals( );
+    EEwritePowerUsed( );
+    setRemoteStats( );
 
     // reset allocation to what is stored
-    EEreadPowerAlloc();
+    EEreadPowerAlloc( );
 
 
     //            resetComplete = true;
@@ -632,7 +637,7 @@ void dailyReset(void)
  * initializes ports for I/O
  * disables Int0 interrupt
  */
-void initPorts(void)
+void initPorts( void )
 {
 
     // Pin 1:  RA5
@@ -703,52 +708,52 @@ void initPorts(void)
     _INT0IE = 0;
 }
 
-void enablePullDownResistors(void)
+void enablePullDownResistors( void )
 {
 
     _CN2PDE = 1; // pin 2 for emergency button
 
 }
 
-void enableInterrupts(void)
+void enableInterrupts( void )
 {
 
     INTCON1 |= 0b1000000000000000;
 }
 
-void disableInterrupts(void)
+void disableInterrupts( void )
 {
 
     INTCON1 &= 0b0111111111111111;
 }
 
-void readButton(void)
+void readButton( void )
 {
     static unsigned char buttonEmergencyComplete = 0;
     static unsigned char buttonTimeSecond = 255;
 
-    if (emerButtonEnable)
+    if( emerButtonEnable )
     {
-        if (BTN_EMER)
-        {
-            if (buttonEmergencyComplete == 0)
-            {
-                if (buttonTimeSecond != timeSecond)
-                {
-                    tba_energyAllocation += emerButtonAlloc;
-                    buttonEmergencyComplete = 1;
-                    buttonTimeSecond = timeSecond;
-                }
-            }
-        }
-        else
-        {
-            if (buttonTimeSecond != timeSecond)
-            {
+	if( BTN_EMER )
+	{
+	    if( buttonEmergencyComplete == 0 )
+	    {
+		if( buttonTimeSecond != timeSecond )
+		{
+		    tba_energyAllocation += emerButtonAlloc;
+		    buttonEmergencyComplete = 1;
+		    buttonTimeSecond = timeSecond;
+		}
+	    }
+	}
+	else
+	{
+	    if( buttonTimeSecond != timeSecond )
+	    {
 
-                buttonEmergencyComplete = 0;
-            }
-        }
+		buttonEmergencyComplete = 0;
+	    }
+	}
     }
 
     return;
@@ -800,23 +805,33 @@ void readButton(void)
 
 }
 
-void storeToEE(void)
+void storeToEE( void )
 {
     static unsigned char eeComplete = 0;
 
-          if( ( timeMinute == 0 ) || ( timeMinute == 15 ) || ( timeMinute == 30 ) || ( timeMinute == 45 ) )
-//    if ((timeMinute % 2) == 0)
+    //TESTING
+    //    if( (timeMinute == 0) || (timeMinute == 15) || (timeMinute == 30) || (timeMinute == 45) )
+    if( (timeSecond == 0) )
     {
-        if (eeComplete == 0)
-        {
-            EEwritePowerUsed();
-            eeComplete = 1;
-        }
+	if( eeComplete == 0 )
+	{
+	    for( int inx = 0; inx < 10; inx++ )
+	    {
+		LED1SET = 0;
+		delayMS( 100 );
+		LED1SET = 1;
+		delayMS( 100 );
+	    }
+
+
+
+	    EEwritePowerUsed( );
+	    eeComplete = 1;
+	}
     }
     else
     {
-
-        eeComplete = 0;
+	eeComplete = 0;
     }
 
     //    if( ( timeSecond == 30 ) && EEflag )
@@ -838,26 +853,26 @@ void storeToEE(void)
     //    }
 }
 
-void setHighLow()
+void setHighLow( )
 {
-    if (isHigh)
+    if( isHigh )
     {
-        //	powerAllocated = highAlloc;
-        tba_energyAllocation = highAlloc;
+	//	powerAllocated = highAlloc;
+	tba_energyAllocation = highAlloc;
     }
     else
     {
-        //	powerAllocated = lowAlloc;
+	//	powerAllocated = lowAlloc;
 
-        tba_energyAllocation = lowAlloc;
+	tba_energyAllocation = lowAlloc;
     }
 }
 
-void initRTCCDisplay(void)
+void initRTCCDisplay( void )
 {
 
     //does unlock sequence to enable write to RTCC, sets RTCWEN
-    __builtin_write_RTCWEN();
+    __builtin_write_RTCWEN( );
 
     RCFGCAL = 0b0010001100000000;
     RTCPWC = 0b0000010100000000; // LPRC is clock source
