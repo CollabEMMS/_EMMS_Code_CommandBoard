@@ -1,19 +1,40 @@
-/* File:    DisplayRTCC.c
- * Authors: Dan Baker
- *          Nathan Chaney
- */
+/****************
+ INCLUDES
+ only include the header files that are required
+ ****************/
+#include "common.h"
+#include "I2C_RTCC.h"
+
+/****************
+ MACROS
+ ****************/
+
+/****************
+ VARIABLES
+ these are the globals required by only this c file
+ there should be as few of these as possible to help keep things clean
+ variables required by other c functions should be here and also in the header .h file
+ as external
+ ****************/
+// external
+
+// internal only
 
 
-/* Includes *******************************************************************/
-
-#include <p24FV32KA302.h>
-#include <stdbool.h>
-#include "ExternSharedDefinitions.h"
-
+/****************
+ FUNCTION PROTOTYPES
+ only include functions called from within this code
+ external functions should be in the header
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally (prototype here and in the .h file)
+     should be marked
+ *****************/
 char BcdToDec( unsigned int val );
 unsigned int DecToBcd( char val );
 
-/* Functions ******************************************************************/
+/****************
+ CODE
+ ****************/
 
 /* readTime
  * reads time from RTCC, writes to global time variables
@@ -87,9 +108,6 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
 	break;
     }
 
-
-
-
     // put values into BCD
     tempYear = DecToBcd( newYear );
     tempMonth = DecToBcd( newMonth );
@@ -98,8 +116,8 @@ bool writeTime( char newYear, char newMonth, char newDay, char newHour, char new
     tempMinute = DecToBcd( newMinute );
     tempSecond = DecToBcd( newSecond );
 
-    tempMonthDay = (  tempMonth  << 8 ) + tempDay;
-    tempMinuteSecond = ( tempMinute  << 8 ) + tempSecond;
+    tempMonthDay = (tempMonth << 8) + tempDay;
+    tempMinuteSecond = (tempMinute << 8) + tempSecond;
 
 
     _RTCEN = 0; // disable clock
@@ -124,7 +142,7 @@ char BcdToDec( unsigned int bcdNum )
 {
 
     char decNum;
-    decNum = ( bcdNum / 16 * 10 ) + ( bcdNum % 16 );
+    decNum = (bcdNum / 16 * 10) + (bcdNum % 16);
 
     return decNum;
 }
@@ -132,7 +150,7 @@ char BcdToDec( unsigned int bcdNum )
 unsigned int DecToBcd( char decNum )
 {
     unsigned int bcdNum;
-    bcdNum = (decNum / 10 * 16 ) + ( decNum % 10 );
+    bcdNum = (decNum / 10 * 16) + (decNum % 10);
 
     return bcdNum;
 }

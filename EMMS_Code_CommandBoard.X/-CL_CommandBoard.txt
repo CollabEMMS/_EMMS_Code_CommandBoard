@@ -22,3 +22,21 @@ open issues
         was set at 2 minutes for debugging
     relay control would keep the relay on when power left was 0 and turned off when power left was < 0
         power now turns off when power =0 to make operation seem consistent.
+
+5/28/2019  TBA
+    rewrote UART communication code to use SPI communication code
+    had to update SPI communication code to pull out SPI specific elements
+    UART communications was causing meter to reset
+        startup code was opcode error - indicative of buffer overrun error
+        code was closely inspected - 2 observations
+            some buffer size allocation problems
+            very few if no buffer bounds checking
+                easily can overrun buffer length if messages are changed
+                problem is deep and cannot be fixed with a simple fix
+
+5/28/2019   TBA
+    added "common.h" file to contain elements that may be used throughout the project
+        CHAR_NULL
+        LED control bits
+    simply include this file in .c listing to have access to those macros
+    

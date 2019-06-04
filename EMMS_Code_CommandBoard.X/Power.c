@@ -1,25 +1,41 @@
-/* File:    Power.c
- * Authors: Dan Baker
- *          Nathan Chaney
- */
+/****************
+ INCLUDES
+ only include the header files that are required
+ ****************/
+#include "common.h"
+#include "I2C_RTCC.h"
+#include "PowerMain.h"
+#include "MasterComm.h"
 
-/* Includes *******************************************************************/
+/****************
+ MACROS
+ ****************/
 
-#include <p24FV32KA302.h>
-#include "ExternPowerDefinitions.h"
-#include "ExternSharedDefinitions.h"
-#include "PowerPinDefinitions.h"
+/****************
+ VARIABLES
+ these are the globals required by only this c file
+ there should be as few of these as possible to help keep things clean
+ variables required by other c functions should be here and also in the header .h file
+ as external
+ ****************/
+// external
+// internal only
 
-// Must be less than   4294967296
-//#define SCALING_FACTOR 3785065107 // about 1044W. Should be 1050W
-//#define SCALING_FACTOR 1766363717 // about 1063W. Should be 1050W
-//#define SCALING_FACTOR 1852829074 // about 1063W. Should be 1050W
-//#define SCALING_FACTOR 1930534614 // about 1063W. Should be 1050W
-//#define INCREMENT_MWH  858
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
-extern unsigned long tba_energyUsedLastDayReset;
+/****************
+ FUNCTION PROTOTYPES
+ only include functions called from within this code
+ external functions should be in the header
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally (prototype here and in the .h file)
+     should be marked
+ ****************/
+
+/****************
+ CODE
+ ****************/
+
+
 
 
 /* Functions ******************************************************************/
@@ -90,7 +106,7 @@ extern unsigned long tba_energyUsedLastDayReset;
 //    }
 //}
 
-void relayControl(void)
+void relayControl( void )
 {
     static unsigned char lastSecond;
 
@@ -98,21 +114,21 @@ void relayControl(void)
 
     tempEnergyUsed = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
 
-    if (timeSecond != lastSecond)
+    if( timeSecond != lastSecond )
     {
-        if (relayActive)
-        {
-            if (tempEnergyUsed < tba_energyAllocation)
-            {
-                RELAY = 1;
-            }
-            else
-            {
-                RELAY = 0;
-                //		currentLoad = 0; // just set power to zero because relay is off
-            }
-        }
-        lastSecond = timeSecond;
+	if( relayActive )
+	{
+	    if( tempEnergyUsed < tba_energyAllocation )
+	    {
+		RELAY = 1;
+	    }
+	    else
+	    {
+		RELAY = 0;
+		//		currentLoad = 0; // just set power to zero because relay is off
+	    }
+	}
+	lastSecond = timeSecond;
     }
 
     return;

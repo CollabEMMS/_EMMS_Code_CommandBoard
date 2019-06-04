@@ -1,5 +1,6 @@
 build/default/production/EEPROM.o:  \
 EEPROM.c  \
-ExternPowerDefinitions.h  \
- GenericTypeDefs.h  \
-ExternSharedDefinitions.h 
+common.h  \
+GenericTypeDefs.h  \
+ MasterComm.h  \
+PowerMain.h 

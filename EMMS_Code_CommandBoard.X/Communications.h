@@ -50,11 +50,10 @@
 
 #ifndef COMMUNICATIONS_H
 #define	COMMUNICATIONS_H
-#endif
-
-#include <stdbool.h>
 
 
-bool communications(void);
+
+void communications( bool init);
 void SPIMasterInit(void);
 
+#endif

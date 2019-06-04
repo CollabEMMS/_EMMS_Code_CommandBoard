@@ -1,43 +1,144 @@
-/* File:    PowerMain.c
- * Authors: Dan Baker
- *          Nathan Chaney
- *          Greg Talamo
+/*
+ TODO
+
+ DONE
+ fix NULL_CHAR
+ ----make CHAR_NULL universally available somehow
+
+
+ DONE - needs tested
+ add UART handling
+ ----first try - read from uart in recv function
+ --------remove UART interrupt
+ ----second try - leave uart interrupt - flag that char is available
+ --------make sure interval is quick enough to catch all characters at 9600
+ ----third try - have interrupt build receive buffer
+ --------this sucks because of volatile
+
+ --MAYBE incorporate uart large buffer as in UI code.
+
+
+ fix UI communications
+ ----must remove existing due to poor buffer bounds handling in the SharedCOmmunications
+ --------grrr
+
+ ---- need to rework how the UI updates all of its data
+ --------maybe periodic full refresh
+ --------are we able to send a trigger from the CommandBoard?
+ ------------research this at least a little
+
+
+
  */
+
+/****************
+ INCLUDES
+ only include the header files that are required
+ ****************/
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "common.h"
+#include "Communications.h"
+#include "I2C_RTCC.h"
+#include "MasterComm.h"
+#include "Delays.h"
+#include "PowerUART.h"
+#include "OC_PWM.h"
+#include "EEPROM.h"
+
+/****************
+ MACROS
+ ****************/
+/*
+ The following section sets a macros with the build date and time
+ This eventually gets displayed on the UI and the power box version
+ */
+
+//#define POWER_BOX_CODE_VERSION "20190602a"
+
+// Build date: __DATE__ -> "Mar  2 2015"
+// Build time: __TIME__ -> "14:05:00"
+#define BUILD_YEAR  (((__DATE__ [9] - 48) * 10) + (__DATE__ [10] - 48))
+#define BUILD_MONTH (\
+  __DATE__ [2] == 'n' ? (__DATE__ [1] == 'a' ? 1 : 6) \
+: __DATE__ [2] == 'b' ? 2 \
+: __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 3 : 4) \
+: __DATE__ [2] == 'y' ? 5 \
+: __DATE__ [2] == 'l' ? 7 \
+: __DATE__ [2] == 'g' ? 8 \
+: __DATE__ [2] == 'p' ? 9 \
+: __DATE__ [2] == 't' ? 10 \
+: __DATE__ [2] == 'v' ? 11 \
+: 12)
+
+#define BUILD_DAY (__DATE__ [4] == ' ' ? (__DATE__ [5] - 48) \
+: ((__DATE__ [4] - 48) * 10) + (__DATE__ [5] - 48))
+
+#define BUILD_HOUR   (((__TIME__ [0] - 48) * 10) + (__TIME__ [1] - 48))
+#define BUILD_MINUTE (((__TIME__ [3] - 48) * 10) + (__TIME__ [4] - 48))
+#define BUILD_SECOND (((__TIME__ [6] - 48) * 10) + (__TIME__ [7] - 48))
+
+#define CODE_REVISION 1
+
+#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
+
+/****************
+ VARIABLES
+ these are the globals required by only this c file
+ there should be as few of these as possible to help keep things clean
+ variables required by other c functions should be here and also in the header .h file
+ as external
+ ****************/
+// external
+// internal only
+
+//FIX = this is clunky and may not work
+char powerBoxCodeVersion[9] = "20190603";
+
+long highAlloc;
+long lowAlloc;
+
+char emerButtonEnable;
+int emerButtonEnergyAllocate;
+
+unsigned char resetTimeHour;
+unsigned char resetTimeMinute;
+
+char isHigh = 0xFF;
+char relayActive;
+
+
+/****************
+ FUNCTION PROTOTYPES
+ only include functions called from within this code
+ external functions should be in the header
+ ideally these are in the same order as in the code listing
+  any functions used internally and externally (prototype here and in the .h file)
+     should be marked
+ ****************/
+
+void dailyResetPowerOnCheck( void );
+
+
+// internal and external
+void debugLEDSet( int LEDNum, bool On );
+void debugLEDRotateA( int minLED, int maxLED );
+void debugLEDRotateB( int minLED, int maxLED );
+void debugLEDToggle( int LEDNum );
+
+/****************
+ CODE
+ ****************/
 
 
 /* Includes *******************************************************************/
 
-#include <xc.h>
-#include <p24FV32KA302.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 
-#include "Communications.h"
-#include "PowerDefinitions.h"
-#include "PowerPinDefinitions.h"
-#include "SharedDefinitions.h"
 
-/* Ensure that SharedCommunication.c is excluded from the source build path!
- * SharedCommunication.c must be included LAST in your main source file
- * like this to ensure the compiler builds the correct variant. */
-#define COMM_INCLUDED
-#include "SharedCommunication.c"
 
-#define LED1_DIR TRISAbits.TRISA2
-#define LED2_DIR TRISAbits.TRISA3
-#define LED3_DIR TRISBbits.TRISB4
-#define LED4_DIR TRISAbits.TRISA4
 
-#define LED1SET LATAbits.LATA2
-#define LED2SET LATAbits.LATA3
-#define LED3SET LATBbits.LATB4
-#define LED4SET LATAbits.LATA4
 
-#define LED1READ PORTAbits.RA2
-#define LED2READ PORTAbits.RA3
-#define LED3READ PORTBbits.RB4
-#define LED4READ PORTAbits.RA4
 
 
 //#define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
@@ -54,114 +155,209 @@
 //unsigned long powerVolts = 0;
 //unsigned long powerAmps = 0;
 
-unsigned long tba_energyAllocation;
-unsigned long tba_energyUsedLifetime;
-unsigned long tba_energyUsedLastDayReset;
-unsigned long tba_powerWatts;
-unsigned long tba_energyUsedPreviousDay = 0;
-
+void init( void );
 void initRTCCDisplay( void );
+void initVars( void );
+void setClock( void );
+void dailyResetCheck( void );
+void dailyReset( void );
+void initPorts( void );
+void enableInterrupts( void );
+void readButton( void );
+void relayControl( void );
+void storeToEE( void );
+void setHighLow( void );
+
+void LEDrunup( int LEDrundelay )
+{
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 1;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 1;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 1;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 1;
+    delayMS( LEDrundelay );
+
+}
+
+void LEDrundown( int LEDrundelay )
+{
+
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 1;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 1;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 1;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 1;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 0;
+    delayMS( LEDrundelay );
+
+}
+
+void LEDrun( int LEDrundelay )
+{
+    LEDrunup( LEDrundelay );
+    LEDrundown( LEDrundelay );
+}
 
 int main( void )
 {
 
-    ANSA = 0x0000;
-    ANSB = 0x0000;
+    //    powerBoxCodeVersion[0] = '2';
+    //    powerBoxCodeVersion[1] = '0';
+    //    powerBoxCodeVersion[2] = '1';
+    //    powerBoxCodeVersion[3] = '9';
+    //    powerBoxCodeVersion[4] = '0';
+    //    powerBoxCodeVersion[5] = '6';
+    //    powerBoxCodeVersion[6] = '0';
+    //    powerBoxCodeVersion[7] = '3';
+    //    powerBoxCodeVersion[8] = CHAR_NULL;
+
+    int reset_bits;
+    reset_bits = RCON;
+    RCON = 0;
+
+    bool b[16];
+    //    reset_bits = 0b10000100;
+
+    for( int j = 0; j < 16; ++j )
+    {
+	b [j] = 0 != (reset_bits & (1 << j));
+    }
 
     LED1_DIR = 0;
     LED2_DIR = 0;
     LED3_DIR = 0;
     LED4_DIR = 0;
 
-    LED1SET = 0;
-    LED2SET = 0;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 1;
-    LED2SET = 0;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 1;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 0;
-    LED3SET = 1;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 0;
-    LED3SET = 0;
-    LED4SET = 1;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 0;
-    LED3SET = 1;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 1;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 1;
-    LED2SET = 0;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
-    LED1SET = 0;
-    LED2SET = 0;
-    LED3SET = 0;
-    LED4SET = 0;
-    delayMS( 100 );
+    for( int inx = 0; inx < 0; inx++ )
+    {
+	LEDrun( 100 );
 
+	LEDrunup( 25 );
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
+	delayMS( 250 );
+	LED1_SET = b[0];
+	LED2_SET = b[1];
+	LED3_SET = b[2];
+	LED4_SET = b[3];
+	delayMS( 1000 );
+	LEDrunup( 25 );
+	LED1_SET = b[4];
+	LED2_SET = b[5];
+	LED3_SET = b[6];
+	LED4_SET = b[7];
+	delayMS( 1000 );
+	LEDrunup( 25 );
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
+	delayMS( 250 );
 
+	LED1_SET = b[8];
+	LED2_SET = b[9];
+	LED3_SET = b[10];
+	LED4_SET = b[11];
+	delayMS( 1000 );
+	LEDrunup( 25 );
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
+	delayMS( 250 );
 
+	LED1_SET = b[12];
+	LED2_SET = b[13];
+	LED3_SET = b[14];
+	LED4_SET = b[15];
+	delayMS( 1000 );
+	LEDrunup( 25 );
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
+	delayMS( 250 );
+    }
 
     for( int inx = 0; inx < 5; inx++ )
     {
-	LED1SET = 1;
-	LED2SET = 1;
-	LED3SET = 1;
-	LED4SET = 1;
+	LED1_SET = 1;
+	LED2_SET = 1;
+	LED3_SET = 1;
+	LED4_SET = 1;
 	delayMS( 100 );
-	LED1SET = 0;
-	LED2SET = 0;
-	LED3SET = 0;
-	LED4SET = 0;
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
 	delayMS( 100 );
     }
 
     init( );
     initRTCCDisplay( );
-
     SPIMasterInit( );
-
-
-    LED1_DIR = 0;
-    LED2_DIR = 0;
-    LED3_DIR = 0;
-    LED4_DIR = 0;
 
     for( int inx = 0; inx < 5; inx++ )
     {
-	LED1SET = 1;
-	LED2SET = 1;
-	LED3SET = 1;
-	LED4SET = 1;
-	delayMS( 100 );
-	LED1SET = 0;
-	LED2SET = 0;
-	LED3SET = 0;
-	LED4SET = 0;
-	delayMS( 100 );
+	LED1_SET = 1;
+	LED2_SET = 1;
+	LED3_SET = 1;
+	LED4_SET = 1;
+	delayMS( 10 );
+	LED1_SET = 0;
+	LED2_SET = 0;
+	LED3_SET = 0;
+	LED4_SET = 0;
+	delayMS( 10 );
     }
 
-    //    dailyResetPowerOnCheck();
+    LED1_SET = 0;
+    LED2_SET = 0;
+    LED3_SET = 0;
+    LED4_SET = 0;
+
+    communications( true );
+    dailyResetPowerOnCheck( );
+
 
     unsigned int timerCounterCommunications = 0;
     unsigned int timerCounterComFunctions = 0;
@@ -169,18 +365,25 @@ int main( void )
     unsigned int timerCounterReadI2CRTCC = 0;
     unsigned int timerCounterReadIntRTCC = 0;
 
+    unsigned int timerCounterCommunicationsUART = 0;
+
     bool runCommunications = false;
     bool runComFunctions = false;
     bool runLowPriority = false;
     bool runReadI2CRTCC = false;
     bool runReadIntRTCC = false;
 
+    bool runCommunicationsUART = false;
+
 #define TIMER_MS_COUNT		    2000    // timer count for one ms to pass (2000 - 1ms))
-#define TIMER_DELAY_COMMUNICATIONS  4	    // time in ms to run function
-#define TIMER_DELAY_LOW_PRIORITY    1000	    // time in ms to run function
-#define TIMER_DELAY_READ_I2C_RTCC   60000   // time in ms to run function
-#define TIMER_DELAY_READ_INT_RTCC   1000	    // time in ms to run function
-#define TIMER_DELAY_COM_FUNCTIONS   1	    // time in ms to run function
+#define TIMER_HALF_MS_COUNT	    1000    // timer count for one half ms to pass (2000 - 1ms))
+#define TIMER_DELAY_COMMUNICATIONS  8 //4	    // time in ms to run function
+#define TIMER_DELAY_LOW_PRIORITY    2000 //1000	    // time in ms to run function
+#define TIMER_DELAY_READ_I2C_RTCC   120000 //60000   // time in ms to run function
+#define TIMER_DELAY_READ_INT_RTCC   2000 //1000	    // time in ms to run function
+#define TIMER_DELAY_COM_FUNCTIONS   2 //1 	    // time in ms to run function
+
+#define TIMER_DELAY_COMMUNICATIONS_UART	    1	// half ms	    // time in ms to run function
 
 
     readTimeI2C( );
@@ -189,7 +392,7 @@ int main( void )
     // check if we lost power over a reset time
 
 
-    bool enabledSPI;
+    bool enabledSPI = false;
 
     while( 1 )
     {
@@ -201,6 +404,8 @@ int main( void )
 	    timerCounterLowPriority++;
 	    timerCounterReadI2CRTCC++;
 	    timerCounterReadIntRTCC++;
+
+	    timerCounterCommunicationsUART++;
 	}
 
 	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
@@ -233,11 +438,26 @@ int main( void )
 	    timerCounterReadIntRTCC = 0;
 	}
 
+	if( timerCounterCommunicationsUART >= TIMER_DELAY_COMMUNICATIONS_UART )
+	{
+	    runCommunicationsUART = true;
+	    timerCounterCommunicationsUART = 0;
+	}
+
+
+
+
+	//	if( runCommunicationsUART == true )
+	//	{
+	//	    communicationsUART( );
+	//	    runCommunicationsUART = false;
+	//	}
 
 	if( runCommunications == true )
 	{
 	    timerCounterCommunications = 0;
-	    enabledSPI = communications( );
+	    //	    enabledSPI = communications( false );
+	    communications( false );
 	    runCommunications = false;
 	    //enabledSPI = false;
 	}
@@ -247,10 +467,15 @@ int main( void )
 	    readButton( );
 	    storeToEE( );
 
+
+	    // FIX LIKELY DONE
+	    // i think this just needs to go away
+	    // it is not commented right now so the counter is zeroed
+	    // no change needed to make this work - this is just extra code right now
 	    if( runComFunctions == true )
 	    {
 		timerCounterComFunctions = 0;
-		commFunctions( );
+		//		commFunctions( ); //UART processing
 		runComFunctions = false;
 	    }
 
@@ -292,23 +517,27 @@ int main( void )
  */
 void init( void )
 {
-
-
     initI2C( );
-
     startClock( );
     setClock( );
-
     initPorts( );
-
     initVars( );
     readI2CPowerTimes( );
     //    initPWMeasurement( );
     initUART( );
     //    initOC_PWM();
     enableInterrupts( );
-    commandBuilder1( "Reboot", "Now", "0" );
-    commandBuilder1( "Reboot", "Now", "0" );
+
+
+    // FIX NEEDS IMPLEMENTED
+    // need to figure out ow to issue commands from outside communications
+    // we make a function that is exposed that we can call
+    // commCommandRebootNow( );
+
+
+
+    //    commandBuilder1( "Reboot", "Now", "0" );
+    //    commandBuilder1( "Reboot", "Now", "0" );
 }
 
 /* initVars
@@ -316,7 +545,6 @@ void init( void )
  */
 void initVars( void )
 {
-
 
     EEreadAll( );
 
@@ -375,200 +603,125 @@ void setClock( void )
     }
 }
 
-//void dailyResetPowerOnCheck(void)
-//{
-//    // right now the powerDown and powerUp is not working correctly
-//    // don't try to reset during a power outage for now
-//
-//
-//
-//
-//    // on startup check to see if we need to reset the power allocation
-//
-//    unsigned char resetMonth;
-//    unsigned char resetDay;
-//
-//
-//    // determine which day the reset was to occurr in relation to the day the power went out
-//    if (powerDownHour > resetHour)
-//    {
-//        resetDay = powerDownDay + 1;
-//    }
-//    else if (powerDownHour == resetHour)
-//    {
-//        if (powerDownMinute > resetMinute)
-//        {
-//            resetDay = powerDownDay + 1;
-//        }
-//    }
-//    else
-//    {
-//        resetDay = powerDownDay;
-//    }
-//    resetMonth = powerDownMonth;
-//
-//    // account for days in the month
-//    switch (powerDownMonth)
-//    {
-//        case 1:
-//        case 3:
-//        case 5:
-//        case 7:
-//        case 8:
-//        case 10:
-//        case 12:
-//            if (resetDay > 31)
-//            {
-//                resetDay = 1;
-//                resetMonth++;
-//            }
-//            break;
-//
-//        case 2:
-//            if ((timeYear % 4) == 0)
-//            {
-//                if (resetDay >= 29)
-//                {
-//                    resetDay = 1;
-//                    resetMonth++;
-//                }
-//            }
-//            else
-//            {
-//                if (resetDay >= 28)
-//                {
-//                    resetDay = 1;
-//                    resetMonth++;
-//                }
-//            }
-//            break;
-//        case 4:
-//        case 6:
-//        case 9:
-//        case 11:
-//            if (resetDay > 30)
-//            {
-//                resetDay = 1;
-//                resetMonth++;
-//            }
-//            break;
-//    }
-//
-//    // no more than 12 months
-//    // recognized glitch here if power is out and reset over the new year
-//    if (resetMonth > 12)
-//    {
-//        resetMonth = 1;
-//    }
-//
-//    // turn the information into numbers that we can easily compare
-//    unsigned long powerUpTime;
-//    unsigned long resetTime;
-//    unsigned long powerDownTime;
-//
-//    powerUpTime = (powerUpMonth * 1000000) + (powerUpDay * 10000) + (powerUpHour * 100) + (powerUpMinute);
-//    resetTime = (resetMonth * 1000000) + (resetDay * 10000) + (resetHour * 100) + (resetMinute);
-//    powerDownTime = (powerDownMonth * 1000000) + (powerDownDay * 10000) + (powerDownHour * 100) + (powerDownMinute);
-//
-//
-//    if (powerUpTime > resetTime)
-//    {
-//        dailyReset();
-//    }
-//
-//
-//    switch (powerDownMonth)
-//    {
-//        case 0:
-//            LED1SET = 0;
-//            LED2SET = 0;
-//            LED3SET = 0;
-//            LED4SET = 0;
-//        case 1:
-//            LED1SET = 1;
-//            LED2SET = 0;
-//            LED3SET = 0;
-//            LED4SET = 0;
-//        case 2:
-//            LED1SET = 0;
-//            LED2SET = 1;
-//            LED3SET = 0;
-//            LED4SET = 0;
-//        case 3:
-//            LED1SET = 1;
-//            LED2SET = 1;
-//            LED3SET = 0;
-//            LED4SET = 0;
-//        case 4:
-//            LED1SET = 0;
-//            LED2SET = 0;
-//            LED3SET = 1;
-//            LED4SET = 0;
-//        case 5:
-//            LED1SET = 1;
-//            LED2SET = 0;
-//            LED3SET = 1;
-//            LED4SET = 0;
-//        case 6:
-//            LED1SET = 0;
-//            LED2SET = 1;
-//            LED3SET = 1;
-//            LED4SET = 0;
-//        case 7:
-//            LED1SET = 1;
-//            LED2SET = 1;
-//            LED3SET = 1;
-//            LED4SET = 0;
-//        case 8:
-//            LED1SET = 0;
-//            LED2SET = 0;
-//            LED3SET = 0;
-//            LED4SET = 1;
-//        case 9:
-//            LED1SET = 1;
-//            LED2SET = 0;
-//            LED3SET = 0;
-//            LED4SET = 1;
-//        case 10:
-//            LED1SET = 0;
-//            LED2SET = 1;
-//            LED3SET = 0;
-//            LED4SET = 1;
-//        case 11:
-//            LED1SET = 1;
-//            LED2SET = 1;
-//            LED3SET = 0;
-//            LED4SET = 1;
-//        case 12:
-//            LED1SET = 0;
-//            LED2SET = 0;
-//            LED3SET = 1;
-//            LED4SET = 1;
-//        case 13:
-//            LED1SET = 1;
-//            LED2SET = 0;
-//            LED3SET = 1;
-//            LED4SET = 1;
-//        case 14:
-//            LED1SET = 0;
-//            LED2SET = 1;
-//            LED3SET = 1;
-//            LED4SET = 1;
-//        default:
-//            LED1SET = 1;
-//            LED2SET = 1;
-//            LED3SET = 1;
-//            LED4SET = 1;
-//    }
-//
-//    return;
-//}
+void dailyResetPowerOnCheck( void )
+{
+    // the clock chip saves the timestamp for when power failed
+    // the clock chip saves the timestamp for when the power is restored
+
+    // this function compares the down time against the reset time and
+    // resets the allocation
+    //
+
+    // this needs verified
+    // right now the powerDown and powerUp is not working correctly
+    // don't try to reset during a power outage for now
+
+
+
+
+    // on startup check to see if we need to reset the power allocation
+
+    unsigned char resetTimeMonth;
+    unsigned char resetTimeDay;
+
+
+    // determine which day the reset was to occurr in relation to the day the power went out
+    if( powerFailTimeHour > resetTimeHour )
+    {
+	resetTimeDay = powerFailTimeDay + 1;
+    }
+    else if( powerFailTimeHour == resetTimeHour )
+    {
+	if( powerFailTimeMinute > resetTimeMinute )
+	{
+	    resetTimeDay = powerFailTimeDay + 1;
+	}
+    }
+    else
+    {
+	resetTimeDay = powerFailTimeDay;
+    }
+    resetTimeMonth = powerFailTimeMonth;
+
+    // account for days in the month
+    switch( powerFailTimeMonth )
+    {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+	if( resetTimeDay > 31 )
+	{
+	    resetTimeDay = 1;
+	    resetTimeMonth++;
+	}
+	break;
+
+    case 2:
+	if( (timeYear % 4) == 0 )
+	{
+	    if( resetTimeDay >= 29 )
+	    {
+		resetTimeDay = 1;
+		resetTimeMonth++;
+	    }
+	}
+	else
+	{
+	    if( resetTimeDay >= 28 )
+	    {
+		resetTimeDay = 1;
+		resetTimeMonth++;
+	    }
+	}
+	break;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+	if( resetTimeDay > 30 )
+	{
+	    resetTimeDay = 1;
+	    resetTimeMonth++;
+	}
+	break;
+    }
+
+    // no more than 12 months
+    // recognized glitch here if power is out and reset over the new year
+    if( resetTimeMonth > 12 )
+    {
+	resetTimeMonth = 1;
+    }
+
+    // turn the information into numbers that we can easily compare
+    unsigned long powerFailTimeSerial;
+    unsigned long resetTimeSerial;
+    unsigned long powerRestoreTimeSerial;
+    // some of these variables need to be global so we can send them to the UI
+
+
+    powerFailTimeSerial = (powerRestoreTimeMonth * 1000000) + (powerRestoreTimeDay * 10000) + (powerRestoreTimeHour * 100) + (powerRestoreTimeMinute);
+    resetTimeSerial = (resetTimeMonth * 1000000) + (resetTimeDay * 10000) + (resetTimeHour * 100) + (resetTimeMinute);
+    powerRestoreTimeSerial = (powerFailTimeMonth * 1000000) + (powerFailTimeDay * 10000) + (powerFailTimeHour * 100) + (powerFailTimeMinute);
+
+
+    if( powerFailTimeSerial > resetTimeSerial )
+    {
+	dailyReset( );
+    }
+
+    return;
+}
 
 void dailyResetCheck( void )
 {
     static bool resetComplete = false;
 
-    if( (timeMinute == resetMinute) && (timeHour == resetHour) )
+    if( (timeMinute == resetTimeMinute) && (timeHour == resetTimeHour) )
     {
 	if( resetComplete == false )
 	{
@@ -597,11 +750,26 @@ void dailyReset( void )
     tba_energyUsedLastDayReset = tba_energyUsedLifetime;
 
     EEwriteTotals( );
-    EEwritePowerUsed( );
-    setRemoteStats( );
+    EEwriteEnergyUsed( );
+
+    // FIX NEEDS IMPLEMENTED
+    // for right now just let the UI naturally update itself
+    // expose functions from communications
+    // commCommandSendStats();
+
+    //    setRemoteStats( );
+    // this is in the old SharedCommunications
+    //    char charEnergyUsedLifetime[12];
+    //    char charEnergyUsedPreviousDay[12];
+    //
+    //    ultoa( charEnergyUsedLifetime, tba_energyUsedLifetime, 10 );
+    //    ultoa( charEnergyUsedPreviousDay, tba_energyUsedPreviousDay, 10 );
+    //
+    //    commandBuilder2( "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
+
 
     // reset allocation to what is stored
-    EEreadPowerAlloc( );
+    EEreadEnergyAlloc( );
 
 
     //            resetComplete = true;
@@ -706,6 +874,13 @@ void initPorts( void )
 
     // disable int0 interrupt, just in case it initializes enabled
     _INT0IE = 0;
+
+    LED1_DIR = 0;
+    LED2_DIR = 0;
+    LED3_DIR = 0;
+    LED4_DIR = 0;
+
+    return;
 }
 
 void enablePullDownResistors( void )
@@ -740,7 +915,7 @@ void readButton( void )
 	    {
 		if( buttonTimeSecond != timeSecond )
 		{
-		    tba_energyAllocation += emerButtonAlloc;
+		    tba_energyAllocation += emerButtonEnergyAllocate;
 		    buttonEmergencyComplete = 1;
 		    buttonTimeSecond = timeSecond;
 		}
@@ -815,17 +990,7 @@ void storeToEE( void )
     {
 	if( eeComplete == 0 )
 	{
-	    for( int inx = 0; inx < 10; inx++ )
-	    {
-		LED1SET = 0;
-		delayMS( 100 );
-		LED1SET = 1;
-		delayMS( 100 );
-	    }
-
-
-
-	    EEwritePowerUsed( );
+	    EEwriteEnergyUsed( );
 	    eeComplete = 1;
 	}
     }
@@ -881,3 +1046,146 @@ void initRTCCDisplay( void )
 
     _RTCWREN = 0; // Disable Writing
 }
+
+void debugLEDSet( int LEDNum, bool On )
+{
+    int ledState;
+
+    if( LEDS_FOR_TESTING == true )
+    {
+
+	if( On == true )
+	{
+	    ledState = 1;
+	}
+	else
+	{
+	    ledState = 0;
+	}
+
+	switch( LEDNum )
+	{
+	case 1:
+	    LED1_SET = ledState;
+	    break;
+
+	case 2:
+	    LED2_SET = ledState;
+	    break;
+	case 3:
+	    LED3_SET = ledState;
+	    break;
+	case 4:
+	    LED4_SET = ledState;
+	    break;
+	}
+    }
+
+    return;
+}
+
+void debugLEDRotateA( int minLED, int maxLED )
+{
+    static int pos = 0;
+
+    if( pos == 0 )
+    {
+	pos = minLED;
+    }
+
+    pos++;
+    if( pos > maxLED )
+    {
+	pos = minLED;
+    }
+
+    for( int inx = minLED; inx <= maxLED; inx++ )
+    {
+	debugLEDSet( inx, false );
+    }
+    debugLEDSet( pos, true );
+
+
+}
+
+void debugLEDRotateB( int minLED, int maxLED )
+{
+    static int pos = 0;
+
+    if( pos == 0 )
+    {
+	pos = minLED;
+    }
+
+    pos++;
+    if( pos > maxLED )
+    {
+	pos = minLED;
+    }
+
+    for( int inx = minLED; inx <= maxLED; inx++ )
+    {
+	debugLEDSet( inx, false );
+    }
+    debugLEDSet( pos, true );
+
+
+}
+
+void debugLEDToggle( int LEDNum )
+{
+
+    int set = 0;
+
+    switch( LEDNum )
+    {
+    case 1:
+	if( LED1_READ == 1 )
+	{
+	    set = 0;
+	}
+	else
+	{
+	    set = 1;
+	}
+	LED1_SET = set;
+	break;
+    case 2:
+	if( LED2_READ == 1 )
+	{
+	    set = 0;
+	}
+	else
+	{
+	    set = 1;
+	}
+	LED2_SET = set;
+	break;
+    case 3:
+	if( LED3_READ == 1 )
+	{
+	    set = 0;
+	}
+	else
+	{
+	    set = 1;
+	}
+	LED3_SET = set;
+	break;
+    case 4:
+	if( LED4_READ == 1 )
+	{
+	    set = 0;
+	}
+	else
+	{
+	    set = 1;
+	}
+	LED4_SET = set;
+	break;
+
+    }
+    return;
+
+}
+

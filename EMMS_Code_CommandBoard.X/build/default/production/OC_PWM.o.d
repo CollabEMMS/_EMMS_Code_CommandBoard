@@ -1,5 +1,6 @@
 build/default/production/OC_PWM.o:  \
 OC_PWM.c  \
-ExternSharedDefinitions.h  \
- ExternPowerDefinitions.h  \
-GenericTypeDefs.h 
+common.h  \
+GenericTypeDefs.h  \
+ I2C_RTCC.h  \
+MasterComm.h 

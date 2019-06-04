@@ -1,32 +1,104 @@
-/* File:    EEPROM.c
- * Authors: Dan Baker
- *          Nathan Chaney
- */
+/****************
+ INCLUDES
+ only include the header files that are required
+ ****************/
+#include "common.h"
+#include "MasterComm.h"
+#include "PowerMain.h"
 
-/* Includes *******************************************************************/
+/****************
+ MACROS
+ ****************/
 
-#include <p24FV32KA302.h>
-#include "ExternPowerDefinitions.h"
-#include "ExternSharedDefinitions.h"
+/****************
+ VARIABLES
+ these are the globals required by only this c file
+ there should be as few of these as possible to help keep things clean
+ variables required by other c functions should be here and also in the header .h file
+ as external
+ ****************/
+// external
+char passwordSet[6];
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
-extern unsigned long tba_energyUsedLastDayReset;
-extern unsigned long tba_energyUsedPreviousDay;
+// internal only
 
-/* Functions ******************************************************************/
+// not yet sorted
+int __attribute__( (space( eedata )) ) EEpassword0 = '1';
+int __attribute__( (space( eedata )) ) EEpassword1 = '2';
+int __attribute__( (space( eedata )) ) EEpassword2 = '3';
+int __attribute__( (space( eedata )) ) EEpassword3 = '4';
+int __attribute__( (space( eedata )) ) EEpassword4 = '1';
+int __attribute__( (space( eedata )) ) EEpassword5 = '2';
+int __attribute__( (space( eedata )) ) EEpowerAlloc = 50;
+//int __attribute__ ((space(eedata))) EEyear = 14;
+//int __attribute__ ((space(eedata))) EEmonth = 1;
+//int __attribute__ ((space(eedata))) EEday = 1;
+int __attribute__( (space( eedata )) ) EEemerButton = 0;
+int __attribute__( (space( eedata )) ) EEresetTime = 700;
+int __attribute__( (space( eedata )) ) EEaudibleAlarm = 0;
+int __attribute__( (space( eedata )) ) EEalarmOnePower = 0;
+int __attribute__( (space( eedata )) ) EEalarmTwoPower = 0;
+int __attribute__( (space( eedata )) ) EEtotalUsedH = 0;
+int __attribute__( (space( eedata )) ) EEtotalUsedL = 0;
+int __attribute__( (space( eedata )) ) EEpreviousDayUsedH = 0;
+int __attribute__( (space( eedata )) ) EEpreviousDayUsedL = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed1H = 0xFF;
+int __attribute__( (space( eedata )) ) EEpowerUsed1L = 0xFF;
+int __attribute__( (space( eedata )) ) EEpowerUsed2H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed2L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed3H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed3L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed4H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed4L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed5H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed5L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed6H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed6L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed7H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed7L = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed8H = 0;
+int __attribute__( (space( eedata )) ) EEpowerUsed8L = 0;
+int __attribute__( (space( eedata )) ) EEhighLow = 0xFF;
+int __attribute__( (space( eedata )) ) EErelay = 0xFF;
 
+/****************
+ FUNCTION PROTOTYPES
+ only include functions called from within this code
+ external functions should be in the header
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally (prototype here and in the .h file)
+     should be marked
+ *****************/
+unsigned char findPowerToRead( void );
+unsigned char findPowerToWrite( void );
+
+void EEreadAlarm( void );
+void EEreadPassword( void );
+void EEreadEmerButton( void );
+void EEreadResetTime( void );
+
+
+// not yet sorted
+void EEreadEnergyAlloc( void );
+void EEreadTotals( void );
+void EEreadPowerUsed( void );
+//void EEreadHL( void );
+void EEreadRelay( void );
+
+/****************
+ CODE
+ ****************/
 void EEreadAll( void )
 {
     EEreadPassword( );
-    EEreadPowerAlloc( );
+    EEreadEnergyAlloc( );
     //    EEreadDate();
     EEreadEmerButton( );
     EEreadResetTime( );
     EEreadAlarm( );
     EEreadTotals( );
     EEreadPowerUsed( );
-    EEreadHL( );
+    //    EEreadHL( );
     EEreadRelay( );
 }
 
@@ -36,27 +108,27 @@ void EEreadPassword( void )
 
     TBLPAG = __builtin_tblpage( &EEpassword0 );
     unsigned int offset = __builtin_tbloffset( &EEpassword0 );
-    passwordSet[0] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[0] = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEpassword1 );
     offset = __builtin_tbloffset( &EEpassword1 );
-    passwordSet[1] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[1] = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEpassword2 );
     offset = __builtin_tbloffset( &EEpassword2 );
-    passwordSet[2] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[2] = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEpassword3 );
     offset = __builtin_tbloffset( &EEpassword3 );
-    passwordSet[3] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[3] = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEpassword4 );
     offset = __builtin_tbloffset( &EEpassword4 );
-    passwordSet[4] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[4] = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEpassword5 );
     offset = __builtin_tbloffset( &EEpassword5 );
-    passwordSet[5] = ( char ) __builtin_tblrdl( offset );
+    passwordSet[5] = (char) __builtin_tblrdl( offset );
 }
 
 void EEwritePassword( void )
@@ -70,7 +142,7 @@ void EEwritePassword( void )
     unsigned int offset = __builtin_tbloffset( &EEpassword0 );
     __builtin_tblwtl( offset, passwordSet[0] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
     // char 1
@@ -81,7 +153,7 @@ void EEwritePassword( void )
     offset = __builtin_tbloffset( &EEpassword1 );
     __builtin_tblwtl( offset, passwordSet[1] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
     // char 2
@@ -92,7 +164,7 @@ void EEwritePassword( void )
     offset = __builtin_tbloffset( &EEpassword2 );
     __builtin_tblwtl( offset, passwordSet[2] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
     // char 3
@@ -103,7 +175,7 @@ void EEwritePassword( void )
     offset = __builtin_tbloffset( &EEpassword3 );
     __builtin_tblwtl( offset, passwordSet[3] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
     // char 4
@@ -114,7 +186,7 @@ void EEwritePassword( void )
     offset = __builtin_tbloffset( &EEpassword4 );
     __builtin_tblwtl( offset, passwordSet[4] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
     // char 5
@@ -125,29 +197,28 @@ void EEwritePassword( void )
     offset = __builtin_tbloffset( &EEpassword5 );
     __builtin_tblwtl( offset, passwordSet[5] );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
-void EEreadPowerAlloc( void )
+void EEreadEnergyAlloc( void )
 {
     while( _WR ) continue;
 
     TBLPAG = __builtin_tblpage( &EEpowerAlloc );
     unsigned int offset = __builtin_tbloffset( &EEpowerAlloc );
     //    powerAllocated = ( unsigned long ) __builtin_tblrdl( offset );
-    tba_energyAllocation = ( unsigned long ) __builtin_tblrdl( offset );
+    tba_energyAllocation = (long) __builtin_tblrdl( offset );
 
 }
 
-void EEwritePowerAlloc( void )
+void EEwriteEnergyAlloc( void )
 {
-
     unsigned int tempEnergyAllocation;
 
     // explicitly show the down casting to int
     // this does not hide the fact that allocation is a long that we are storing as an int
-    tempEnergyAllocation = ( unsigned int ) tba_energyAllocation;
+    tempEnergyAllocation = (int) tba_energyAllocation;
 
     while( _WR ) continue;
     NVMCON = 0x4004;
@@ -157,7 +228,7 @@ void EEwritePowerAlloc( void )
     //    __builtin_tblwtl(offset, powerAllocated);
     __builtin_tblwtl( offset, tempEnergyAllocation );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -223,12 +294,12 @@ void EEreadEmerButton( )
     if( tempEmerAlloc )
     {
 	emerButtonEnable = 1;
-	emerButtonAlloc = tempEmerAlloc;
+	emerButtonEnergyAllocate = tempEmerAlloc;
     }
     else
     {
 	emerButtonEnable = 0;
-	emerButtonAlloc = 0;
+	emerButtonEnergyAllocate = 0;
     }
 }
 
@@ -239,9 +310,9 @@ void EEwriteEmerButton( )
 
     TBLPAG = __builtin_tblpage( &EEemerButton );
     unsigned int offset = __builtin_tbloffset( &EEemerButton );
-    __builtin_tblwtl( offset, emerButtonAlloc );
+    __builtin_tblwtl( offset, emerButtonEnergyAllocate );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -253,8 +324,8 @@ void EEreadResetTime( )
     unsigned int offset = __builtin_tbloffset( &EEresetTime );
     unsigned int tempResetTime = __builtin_tblrdl( offset );
 
-    resetMinute = tempResetTime % 100;
-    resetHour = tempResetTime / 100;
+    resetTimeMinute = tempResetTime % 100;
+    resetTimeHour = tempResetTime / 100;
 }
 
 void EEwriteResetTime( )
@@ -262,13 +333,13 @@ void EEwriteResetTime( )
     while( _WR ) continue;
     NVMCON = 0x4004;
 
-    unsigned int tempResetTime = resetMinute + ( 100 * resetHour );
+    unsigned int tempResetTime = resetTimeMinute + (100 * resetTimeHour);
 
     TBLPAG = __builtin_tblpage( &EEresetTime );
     unsigned int offset = __builtin_tbloffset( &EEresetTime );
     __builtin_tblwtl( offset, tempResetTime );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -278,25 +349,25 @@ void EEreadAlarm( )
 
     TBLPAG = __builtin_tblpage( &EEaudibleAlarm );
     unsigned int offset = __builtin_tbloffset( &EEaudibleAlarm );
-    audibleAlarm = ( char ) __builtin_tblrdl( offset );
+    audibleAlarm = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEalarmOnePower );
     offset = __builtin_tbloffset( &EEalarmOnePower );
-    alarmOnePower = ( char ) __builtin_tblrdl( offset );
+    alarm1Energy = (char) __builtin_tblrdl( offset );
 
     TBLPAG = __builtin_tblpage( &EEalarmTwoPower );
     offset = __builtin_tbloffset( &EEalarmTwoPower );
-    alarmTwoPower = ( char ) __builtin_tblrdl( offset );
+    alarm2Energy = (char) __builtin_tblrdl( offset );
 
-    if( alarmOnePower )
-	alarmOneEnabled = 1;
+    if( alarm1Energy )
+	alarm1Enabled = 1;
     else
-	alarmOneEnabled = 0;
+	alarm1Enabled = 0;
 
-    if( alarmTwoPower )
-	alarmTwoEnabled = 1;
+    if( alarm2Energy )
+	alarm2Enabled = 1;
     else
-	alarmTwoEnabled = 0;
+	alarm2Enabled = 0;
 }
 
 void EEwriteAlarm( )
@@ -308,7 +379,7 @@ void EEwriteAlarm( )
     unsigned int offset = __builtin_tbloffset( &EEaudibleAlarm );
     __builtin_tblwtl( offset, audibleAlarm );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
 
@@ -317,9 +388,9 @@ void EEwriteAlarm( )
 
     TBLPAG = __builtin_tblpage( &EEalarmOnePower );
     offset = __builtin_tbloffset( &EEalarmOnePower );
-    __builtin_tblwtl( offset, alarmOnePower );
+    __builtin_tblwtl( offset, alarm1Energy );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
 
@@ -328,9 +399,9 @@ void EEwriteAlarm( )
 
     TBLPAG = __builtin_tblpage( &EEalarmTwoPower );
     offset = __builtin_tbloffset( &EEalarmTwoPower );
-    __builtin_tblwtl( offset, alarmTwoPower );
+    __builtin_tblwtl( offset, alarm2Energy );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -360,8 +431,8 @@ void EEreadTotals( )
     offset = __builtin_tbloffset( &EEpreviousDayUsedL );
     tempPreviousDayUsedL = __builtin_tblrdl( offset );
 
-    tba_energyUsedLastDayReset = ( ( ( unsigned long ) tempTotalUsedH ) << 16 ) + tempTotalUsedL;
-    tba_energyUsedPreviousDay = ( ( ( unsigned long ) tempPreviousDayUsedH ) << 16 ) + tempPreviousDayUsedL;
+    tba_energyUsedLastDayReset = (((unsigned long) tempTotalUsedH) << 16) + tempTotalUsedL;
+    tba_energyUsedPreviousDay = (((unsigned long) tempPreviousDayUsedH) << 16) + tempPreviousDayUsedL;
     //    totalUsed = ( ( ( unsigned long ) tempTotalUsedH ) << 16 ) + tempTotalUsedL;
     //    previousDayUsed = ( ( ( unsigned long ) tempPreviousDayUsedH ) << 16 ) + tempPreviousDayUsedL;
 }
@@ -387,7 +458,7 @@ void EEwriteTotals( )
     unsigned int offset = __builtin_tbloffset( &EEtotalUsedH );
     __builtin_tblwtl( offset, tempTotalUsedH );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
 
@@ -398,7 +469,7 @@ void EEwriteTotals( )
     offset = __builtin_tbloffset( &EEtotalUsedL );
     __builtin_tblwtl( offset, tempTotalUsedL );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
 
@@ -409,7 +480,7 @@ void EEwriteTotals( )
     offset = __builtin_tbloffset( &EEpreviousDayUsedH );
     __builtin_tblwtl( offset, tempPreviousDayUsedH );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 
 
@@ -420,7 +491,7 @@ void EEwriteTotals( )
     offset = __builtin_tbloffset( &EEpreviousDayUsedL );
     __builtin_tblwtl( offset, tempPreviousDayUsedL );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -515,10 +586,10 @@ void EEreadPowerUsed( )
     }
 
     //    powerUsedMW = ( ( ( unsigned long ) tempPowerH ) << 16 ) + tempPowerL;
-    tba_energyUsedLifetime = ( ( ( unsigned long ) tempPowerH ) << 16 ) + tempPowerL;
+    tba_energyUsedLifetime = (((unsigned long) tempPowerH) << 16) + tempPowerL;
 }
 
-void EEwritePowerUsed( )
+void EEwriteEnergyUsed( )
 {
     unsigned int offset;
     unsigned int tempPowerH = tba_energyUsedLifetime >> 16;
@@ -535,21 +606,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed1H );
 	offset = __builtin_tbloffset( &EEpowerUsed1H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed1L );
 	offset = __builtin_tbloffset( &EEpowerUsed1L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed2H );
 	offset = __builtin_tbloffset( &EEpowerUsed2H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -559,21 +630,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed2H );
 	offset = __builtin_tbloffset( &EEpowerUsed2H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed2L );
 	offset = __builtin_tbloffset( &EEpowerUsed2L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed3H );
 	offset = __builtin_tbloffset( &EEpowerUsed3H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -583,21 +654,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed3H );
 	offset = __builtin_tbloffset( &EEpowerUsed3H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed3L );
 	offset = __builtin_tbloffset( &EEpowerUsed3L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed4H );
 	offset = __builtin_tbloffset( &EEpowerUsed4H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -607,21 +678,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed4H );
 	offset = __builtin_tbloffset( &EEpowerUsed4H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed4L );
 	offset = __builtin_tbloffset( &EEpowerUsed4L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed5H );
 	offset = __builtin_tbloffset( &EEpowerUsed5H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -631,21 +702,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed5H );
 	offset = __builtin_tbloffset( &EEpowerUsed5H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed5L );
 	offset = __builtin_tbloffset( &EEpowerUsed5L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed6H );
 	offset = __builtin_tbloffset( &EEpowerUsed6H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -655,21 +726,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed6H );
 	offset = __builtin_tbloffset( &EEpowerUsed6H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed6L );
 	offset = __builtin_tbloffset( &EEpowerUsed6L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed7H );
 	offset = __builtin_tbloffset( &EEpowerUsed7H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -679,21 +750,21 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed7H );
 	offset = __builtin_tbloffset( &EEpowerUsed7H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed7L );
 	offset = __builtin_tbloffset( &EEpowerUsed7L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed8H );
 	offset = __builtin_tbloffset( &EEpowerUsed8H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	break;
 
@@ -703,46 +774,46 @@ void EEwritePowerUsed( )
 	TBLPAG = __builtin_tblpage( &EEpowerUsed8H );
 	offset = __builtin_tbloffset( &EEpowerUsed8H );
 	__builtin_tblwtl( offset, tempPowerH );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed8L );
 	offset = __builtin_tbloffset( &EEpowerUsed8L );
 	__builtin_tblwtl( offset, tempPowerL );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
 	while( _WR ) continue;
 	NVMCON = 0x4004;
 	TBLPAG = __builtin_tblpage( &EEpowerUsed1H );
 	offset = __builtin_tbloffset( &EEpowerUsed1H );
 	__builtin_tblwtl( offset, 0xFFFF );
-	asm volatile ("disi #5" );
+	asm volatile ("disi #5");
 	__builtin_write_NVM( );
     }
 }
 
-void EEreadHL( )
-{
-    while( _WR ) continue;
-
-    TBLPAG = __builtin_tblpage( &EEhighLow );
-    unsigned int offset = __builtin_tbloffset( &EEhighLow );
-    isHigh = ( char ) __builtin_tblrdl( offset );
-}
-
-void EEwriteHL( )
-{
-    while( _WR ) continue;
-    NVMCON = 0x4004;
-
-    TBLPAG = __builtin_tblpage( &EEhighLow );
-    unsigned int offset = __builtin_tbloffset( &EEhighLow );
-    __builtin_tblwtl( offset, isHigh );
-
-    asm volatile ("disi #5" );
-    __builtin_write_NVM( );
-}
+//void EEreadHL( )
+//{
+//    while( _WR ) continue;
+//
+//    TBLPAG = __builtin_tblpage( &EEhighLow );
+//    unsigned int offset = __builtin_tbloffset( &EEhighLow );
+//    isHigh = (char) __builtin_tblrdl( offset );
+//}
+//
+//void EEwriteHL( )
+//{
+//    while( _WR ) continue;
+//    NVMCON = 0x4004;
+//
+//    TBLPAG = __builtin_tblpage( &EEhighLow );
+//    unsigned int offset = __builtin_tbloffset( &EEhighLow );
+//    __builtin_tblwtl( offset, isHigh );
+//
+//    asm volatile ("disi #5");
+//    __builtin_write_NVM( );
+//}
 
 void EEreadRelay( )
 {
@@ -750,7 +821,7 @@ void EEreadRelay( )
 
     TBLPAG = __builtin_tblpage( &EErelay );
     unsigned int offset = __builtin_tbloffset( &EErelay );
-    relayActive = ( char ) __builtin_tblrdl( offset );
+    relayActive = (char) __builtin_tblrdl( offset );
 }
 
 void EEwriteRelay( )
@@ -762,7 +833,7 @@ void EEwriteRelay( )
     unsigned int offset = __builtin_tbloffset( &EErelay );
     __builtin_tblwtl( offset, relayActive );
 
-    asm volatile ("disi #5" );
+    asm volatile ("disi #5");
     __builtin_write_NVM( );
 }
 
@@ -868,6 +939,6 @@ unsigned char findPowerToRead( )
 unsigned char findPowerToWrite( )
 {
     unsigned char temp = findPowerToRead( );
-    temp = ( temp % 8 ) + 1;
+    temp = (temp % 8) + 1;
     return temp;
 }

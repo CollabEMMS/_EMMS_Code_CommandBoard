@@ -1,105 +1,120 @@
-#include <xc.h>
-#include <p24FV32KA302.h>
-#include "ExternSharedDefinitions.h"
-#include "ExternPowerDefinitions.h"
+/****************
+ INCLUDES
+ only include the header files that are required
+ ****************/
+#include "common.h"
+#include "I2C_RTCC.h"
+#include "MasterComm.h"
 
-#define LED1_DIR TRISAbits.TRISA2
-#define LED2_DIR TRISAbits.TRISA3
-#define LED3_DIR TRISBbits.TRISB4
-#define LED4_DIR TRISAbits.TRISA4
+/****************
+ MACROS
+ ****************/
 
-#define LED1 LATAbits.LATA2
-#define LED2 LATAbits.LATA3
-#define LED3 LATBbits.LATB4
-#define LED4 LATAbits.LATA4
+/****************
+ VARIABLES
+ these are the globals required by only this c file
+ there should be as few of these as possible to help keep things clean
+ variables required by other c functions should be here and also in the header .h file
+ as external
+ ****************/
+// external
+// internal only
 
-#define LED1_READ PORTAbits.RA2
-#define LED2_READ PORTAbits.RA3
-#define LED3_READ PORTBbits.RB4
-#define LED4_READ PORTAbits.RA4
 
+/****************
+ FUNCTION PROTOTYPES
+ only include functions called from within this code
+ external functions should be in the header
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally (prototype here and in the .h file)
+     should be marked
+ ****************/
 
-extern unsigned long tba_energyAllocation;
-extern unsigned long tba_energyUsedLifetime;
-extern unsigned long tba_energyUsedLastDayReset;
+/****************
+ CODE
+ ****************/
 
-void updateLEDs(void)
+void updateLEDs( void )
 {
 
     int percent;
 
     unsigned long tempPowerUsed;
 
-    tempPowerUsed = (tba_energyUsedLifetime - tba_energyUsedLastDayReset);
-    if (tba_energyAllocation > tempPowerUsed)
+    if( LEDS_FOR_TESTING != true )
     {
-        percent = (100 * (tba_energyAllocation - tempPowerUsed)) / tba_energyAllocation;
-    }
-    else
-    {
-        percent = 0;
-    }
-
-    //    percent = (100 * (powerAllocated - powerUsed)) / powerAllocated;
-
-    // Update the 4 LEDs to show power remaining
-    if (percent > 75)
-    {
-        LED1 = 1;
-        LED2 = 1;
-        LED3 = 1;
-        LED4 = 1;
-    }
-    else if (percent > 50)
-    {
-        LED1 = 1;
-        LED2 = 1;
-        LED3 = 1;
-        LED4 = 0;
-    }
-    else if (percent > 25)
-    {
-        LED1 = 1;
-        LED2 = 1;
-        LED3 = 0;
-        LED4 = 0;
-    }
-    else if (percent > 5)
-    {
-        LED1 = 1;
-        LED2 = 0;
-        LED3 = 0;
-        LED4 = 0;
-    }
-    else if (tba_energyAllocation > tempPowerUsed)
-    {
-        static unsigned char lastTime = 255;
-
-        if (lastTime != timeSecond)
-        {
-            if (LED1_READ == 1)
-            {
-                LED1 = 0;
-            }
-            else
-            {
-                LED1 = 1;
-            }
-            lastTime = timeSecond;
-        }
-
-        LED2 = 0;
-        LED3 = 0;
-        LED4 = 0;
-    }
-    else
-    {
-        LED1 = 0;
-        LED2 = 0;
-        LED3 = 0;
-        LED4 = 0;
-    }
 
 
+	tempPowerUsed = (tba_energyUsedLifetime - tba_energyUsedLastDayReset);
+	if( tba_energyAllocation > tempPowerUsed )
+	{
+	    percent = (100 * (tba_energyAllocation - tempPowerUsed)) / tba_energyAllocation;
+	}
+	else
+	{
+	    percent = 0;
+	}
+
+	//    percent = (100 * (powerAllocated - powerUsed)) / powerAllocated;
+
+	// Update the 4 LEDs to show power remaining
+	if( percent > 75 )
+	{
+	    LED1_SET = 1;
+	    LED2_SET = 1;
+	    LED3_SET = 1;
+	    LED4_SET = 1;
+	}
+	else if( percent > 50 )
+	{
+	    LED1_SET = 1;
+	    LED2_SET = 1;
+	    LED3_SET = 1;
+	    LED4_SET = 0;
+	}
+	else if( percent > 25 )
+	{
+	    LED1_SET = 1;
+	    LED2_SET = 1;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	}
+	else if( percent > 5 )
+	{
+	    LED1_SET = 1;
+	    LED2_SET = 0;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	}
+	else if( tba_energyAllocation > tempPowerUsed )
+	{
+	    static unsigned char lastTime = 255;
+
+	    if( lastTime != timeSecond )
+	    {
+		if( LED1_READ == 1 )
+		{
+		    LED1_SET = 0;
+		}
+		else
+		{
+		    LED1_SET = 1;
+		}
+		lastTime = timeSecond;
+	    }
+
+	    LED2_SET = 0;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	}
+	else
+	{
+	    LED1_SET = 0;
+	    LED2_SET = 0;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	}
+
+    }
     return;
 }

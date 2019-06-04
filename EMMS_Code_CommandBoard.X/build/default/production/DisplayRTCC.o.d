@@ -1,3 +1,5 @@
 build/default/production/DisplayRTCC.o:  \
 DisplayRTCC.c  \
- ExternSharedDefinitions.h 
+common.h  \
+ GenericTypeDefs.h  \
+I2C_RTCC.h 

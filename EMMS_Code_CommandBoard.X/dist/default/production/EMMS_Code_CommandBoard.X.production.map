@@ -21,12 +21,12 @@ Command:
   build/default/production/EEPROM.o \
   build/default/production/Power.o \
   build/default/production/PowerUART.o \
-  build/default/production/PowerSurvive.o \
   build/default/production/I2C_RTCC.o \
   build/default/production/OC_PWM.o \
   build/default/production/Delays.o \
   build/default/production/MasterComm.o \
   build/default/production/DisplayRTCC.o \
+  build/default/production/REMOVE_PowerSurvive.o \
   --defsym=__MPLAB_BUILD=1 \
   -Tp24FV32KA302.gld.00 \
   --stack=16 \
@@ -60,16 +60,16 @@ c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(dat
                               c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o) (__data_init_standard)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt_start_mode_normal.eo)
                               (__crt_start_mode_normal)
-c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
-                              build/default/production/OC_PWM.o (___udivsi3)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atoi.eo)
-                              build/default/production/PowerMain.o (_atoi)
+                              build/default/production/MasterComm.o (_atoi)
+c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atol.eo)
+                              build/default/production/MasterComm.o (_atol)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
-                              build/default/production/PowerMain.o (_itoa)
+                              build/default/production/MasterComm.o (_itoa)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
-                              build/default/production/PowerMain.o (_ultoa)
+                              build/default/production/MasterComm.o (_ultoa)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
-                              build/default/production/PowerMain.o (_strtoul)
+                              build/default/production/MasterComm.o (_strtoul)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(errno.elo)
                               c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo) (_errno)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isalpha.eso)
@@ -78,10 +78,12 @@ c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isspace
                               c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo) (_isspace)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(toupper.eso)
                               c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo) (_toupper)
+c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
+                              c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo) (___udivsi3)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(umodsi3.eo)
                               c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo) (___umodsi3)
 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(mulsi3.eo)
-                              c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo) (___mulsi3)
+                              c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atol.eo) (___mulsi3)
 
 
 Selected CodeGuard Options:
@@ -112,21 +114,19 @@ Program Memory  [Origin = 0x200, Length = 0x5600]
 
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
-.text                        0x200               0x55a           0x807  (2055)
-.const                       0x75a               0x116           0x1a1  (417)
-.text                        0x870              0x309e          0x48ed  (18669)
-.dinit                      0x390e                0x3a            0x57  (87)
-.text                       0x3948                0x5e            0x8d  (141)
+.text                        0x200               0x444           0x666  (1638)
+.const                       0x644                0x72            0xab  (171)
+.text                        0x6b6              0x3078          0x48b4  (18612)
+.dinit                      0x372e                0x46            0x69  (105)
+.text                       0x3774                0x82            0xc3  (195)
 
-                 Total program memory used (bytes):         0x5379  (21369) 64%
+                 Total program memory used (bytes):         0x50f1  (20721) 62%
 
 
 Ivt Memory  [Origin = 0x4, Length = 0xfc]
 
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
-.ivt._U1RXInterrupt           0x2a                 0x2             0x3  (3)
-.ivt._CNInterrupt             0x3a                 0x2             0x3  (3)
 .ivt._U2RXInterrupt           0x50                 0x2             0x3  (3)
 .ivt._U1ErrInterrupt          0x96                 0x2             0x3  (3)
 .ivt._U2ErrInterrupt          0x98                 0x2             0x3  (3)
@@ -145,13 +145,15 @@ Data Memory  [Origin = 0x800, Length = 0x800]
 
 section                    address      alignment gaps    total length  (dec)
 -------                    -------      --------------    -------------------
-.nbss                        0x800                   0           0x4a2  (1186)
-.ndata                       0xca2                   0             0x6  (6)
-.nbss                        0xca8                   0             0x2  (2)
-.ndata                       0xcaa                   0             0x2  (2)
-.bss                         0xcac                   0             0x2  (2)
+.nbss                        0x800                   0           0x166  (358)
+.ndata                       0x966                   0             0xc  (12)
+.nbss                        0x972                   0             0x6  (6)
+.ndata                       0x978                   0             0x4  (4)
+.nbss                        0x97c                   0             0x2  (2)
+.ndata                       0x97e                   0             0x2  (2)
+.bss                         0x980                   0             0x2  (2)
 
-                 Total data memory used (bytes):          0x4ae  (1198) 58%
+                 Total data memory used (bytes):          0x182  (386) 18%
 
 
 Dynamic Memory Usage
@@ -159,210 +161,88 @@ Dynamic Memory Usage
 region                     address                      maximum length  (dec)
 ------                     -------                      ---------------------
 heap                             0                                   0  (0)
-stack                        0xcae                               0x352  (850)
+stack                        0x982                               0x67e  (1662)
 
-                 Maximum dynamic memory (bytes):          0x352  (850)
+                 Maximum dynamic memory (bytes):          0x67e  (1662)
 
 
 External Symbols in Data Memory (by address):
 
-                    0x0800                  _resetHour
-                    0x0801                  _resetMinute
-                    0x0802                  _highAlloc
-                    0x0806                  _lowAlloc
-                    0x080a                  _isHigh
-                    0x080b                  _relayActive
-                    0x080c                  _passwordSet
-                    0x0812                  _emerButtonEnable
-                    0x0814                  _emerButtonAlloc
-                    0x0816                  _audibleAlarm
-                    0x0817                  _alarmOnePower
-                    0x0818                  _alarmTwoPower
-                    0x0819                  _alarmOneEnabled
-                    0x081a                  _alarmTwoEnabled
-                    0x081b                  _lastSendSec
-                    0x081c                  _sendBuffer1
-                    0x0844                  _sendBuffer2
-                    0x086c                  _sendBuffer3
-                    0x0894                  _sendBuffer4
-                    0x08bc                  _sendBuffer5
-                    0x08e4                  _sendBlackHole
-                    0x090c                  _receivedToProcess
-                    0x0935                  _receiveBuffer1
-                    0x095e                  _receiveBuffer2
-                    0x0987                  _receiveBuffer3
-                    0x09b0                  _receiveBuffer4
-                    0x09d9                  _receiveBuffer5
-                    0x0a02                  _receiveBlackHole
-                    0x0a2b                  _receivedCommand
-                    0x0a5d                  _receivedAttribute
-                    0x0a8f                  _receivedValue
-                    0x0ac1                  _sendBuffer1Used
-                    0x0ac2                  _sendBuffer2Used
-                    0x0ac3                  _sendBuffer3Used
-                    0x0ac4                  _sendBuffer4Used
-                    0x0ac5                  _sendBuffer5Used
-                    0x0ac6                  _receiveBuffer1Used
-                    0x0ac7                  _receiveBuffer2Used
-                    0x0ac8                  _receiveBuffer3Used
-                    0x0ac9                  _receiveBuffer4Used
-                    0x0aca                  _receiveBuffer5Used
-                    0x0acb                  _readyToProcess
-                    0x0acc                  _newSendData
-                    0x0acd                  _newReceiveData
-                    0x0ace                  _commError
-                    0x0acf                  _commErrorTime
-                    0x0ad0                  _emerAllocNow
-                    0x0ad2                  _emerAllocSend
-                    0x0ad4                  _powerDownTime
-                    0x0ae0                  _powerUpTime
-                    0x0aec                  _newSendDataU2
-                    0x0aee                  _sendIndexU2
-                    0x0af0                  _receiveIndexU2
-                    0x0af2                  _stringToSendU2
-                    0x0b1a                  _receiveBufferU2
-                    0x0b43                  _newSendDataU1
-                    0x0b44                  _sendIndexU1
-                    0x0b46                  _receiveIndexU1
-                    0x0b48                  _stringToSendU1
-                    0x0b70                  _receiveBufferU1
-                    0x0b99                  _timeYear
-                    0x0b9a                  _timeMonth
-                    0x0b9b                  _timeDay
-                    0x0b9c                  _timeWeekday
-                    0x0b9d                  _timeHour
-                    0x0b9e                  _timeMinute
-                    0x0b9f                  _timeSecond
-                    0x0ba0                  _tempHour
-                    0x0ba1                  _tempMin
-                    0x0ba2                  _tempMonth
-                    0x0ba3                  _tempDay
-                    0x0ba4                  _tempYear
-                    0x0ba5                  _buffer1
-                    0x0bb1                  _buffer2
-                    0x0bbd                  _buffer3
-                    0x0bc9                  _buffer4
-                    0x0bd5                  _buffer5
-                    0x0be1                  _buffer6
-                    0x0bed                  _buffer7
-                    0x0bf9                  _buffer8
-                    0x0c06                  _powerBoxCodeVersion
-                    0x0c0a                  _displayBoxCodeVersion
-                    0x0c0e                  _powerBoxCodeVersionString
-                    0x0c18                  _tba_energyAllocation
-                    0x0c1c                  _tba_energyUsedLifetime
-                    0x0c20                  _tba_energyUsedLastDayReset
-                    0x0c24                  _tba_powerWatts
-                    0x0c28                  _tba_energyUsedPreviousDay
-                    0x0c9a                  _powerDownMinute
-                    0x0c9b                  _powerDownHour
-                    0x0c9c                  _powerDownDay
-                    0x0c9d                  _powerDownMonth
-                    0x0c9e                  _powerUpMinute
-                    0x0c9f                  _powerUpHour
-                    0x0ca0                  _powerUpDay
-                    0x0ca1                  _powerUpMonth
-                    0x0cac                  _errno
+                    0x0800                  _tba_energyAllocation
+                    0x0804                  _tba_energyUsedLifetime
+                    0x0808                  _tba_energyUsedLastDayReset
+                    0x080c                  _tba_powerWatts
+                    0x0810                  _tba_energyUsedPreviousDay
+                    0x0814                  _audibleAlarm
+                    0x0815                  _alarm1Enabled
+                    0x0816                  _alarm2Enabled
+                    0x0817                  _alarm1Energy
+                    0x0818                  _alarm2Energy
+                    0x093e                  _highAlloc
+                    0x0942                  _lowAlloc
+                    0x0946                  _emerButtonEnable
+                    0x0948                  _emerButtonEnergyAllocate
+                    0x094a                  _resetTimeHour
+                    0x094b                  _resetTimeMinute
+                    0x094c                  _relayActive
+                    0x0956                  _timeYear
+                    0x0957                  _timeMonth
+                    0x0958                  _timeDay
+                    0x0959                  _timeWeekday
+                    0x095a                  _timeHour
+                    0x095b                  _timeMinute
+                    0x095c                  _timeSecond
+                    0x095d                  _powerFailTimeMinute
+                    0x095e                  _powerFailTimeHour
+                    0x095f                  _powerFailTimeDay
+                    0x0960                  _powerFailTimeMonth
+                    0x0961                  _powerRestoreTimeMinute
+                    0x0962                  _powerRestoreTimeHour
+                    0x0963                  _powerRestoreTimeDay
+                    0x0964                  _powerRestoreTimeMonth
+                    0x0966                  _powerBoxCodeVersion
+                    0x096f                  _isHigh
+                    0x0972                  _passwordSet
+                    0x0980                  _errno
 
 External Symbols in Data Memory (by name):
 
-                    0x0819                  _alarmOneEnabled
-                    0x0817                  _alarmOnePower
-                    0x081a                  _alarmTwoEnabled
-                    0x0818                  _alarmTwoPower
-                    0x0816                  _audibleAlarm
-                    0x0ba5                  _buffer1
-                    0x0bb1                  _buffer2
-                    0x0bbd                  _buffer3
-                    0x0bc9                  _buffer4
-                    0x0bd5                  _buffer5
-                    0x0be1                  _buffer6
-                    0x0bed                  _buffer7
-                    0x0bf9                  _buffer8
-                    0x0ace                  _commError
-                    0x0acf                  _commErrorTime
-                    0x0c0a                  _displayBoxCodeVersion
-                    0x0ad0                  _emerAllocNow
-                    0x0ad2                  _emerAllocSend
-                    0x0814                  _emerButtonAlloc
-                    0x0812                  _emerButtonEnable
-                    0x0cac                  _errno
-                    0x0802                  _highAlloc
-                    0x080a                  _isHigh
-                    0x081b                  _lastSendSec
-                    0x0806                  _lowAlloc
-                    0x0acd                  _newReceiveData
-                    0x0acc                  _newSendData
-                    0x0b43                  _newSendDataU1
-                    0x0aec                  _newSendDataU2
-                    0x080c                  _passwordSet
-                    0x0c06                  _powerBoxCodeVersion
-                    0x0c0e                  _powerBoxCodeVersionString
-                    0x0c9c                  _powerDownDay
-                    0x0c9b                  _powerDownHour
-                    0x0c9a                  _powerDownMinute
-                    0x0c9d                  _powerDownMonth
-                    0x0ad4                  _powerDownTime
-                    0x0ca0                  _powerUpDay
-                    0x0c9f                  _powerUpHour
-                    0x0c9e                  _powerUpMinute
-                    0x0ca1                  _powerUpMonth
-                    0x0ae0                  _powerUpTime
-                    0x0acb                  _readyToProcess
-                    0x0a02                  _receiveBlackHole
-                    0x0935                  _receiveBuffer1
-                    0x0ac6                  _receiveBuffer1Used
-                    0x095e                  _receiveBuffer2
-                    0x0ac7                  _receiveBuffer2Used
-                    0x0987                  _receiveBuffer3
-                    0x0ac8                  _receiveBuffer3Used
-                    0x09b0                  _receiveBuffer4
-                    0x0ac9                  _receiveBuffer4Used
-                    0x09d9                  _receiveBuffer5
-                    0x0aca                  _receiveBuffer5Used
-                    0x0b70                  _receiveBufferU1
-                    0x0b1a                  _receiveBufferU2
-                    0x0b46                  _receiveIndexU1
-                    0x0af0                  _receiveIndexU2
-                    0x0a5d                  _receivedAttribute
-                    0x0a2b                  _receivedCommand
-                    0x090c                  _receivedToProcess
-                    0x0a8f                  _receivedValue
-                    0x080b                  _relayActive
-                    0x0800                  _resetHour
-                    0x0801                  _resetMinute
-                    0x08e4                  _sendBlackHole
-                    0x081c                  _sendBuffer1
-                    0x0ac1                  _sendBuffer1Used
-                    0x0844                  _sendBuffer2
-                    0x0ac2                  _sendBuffer2Used
-                    0x086c                  _sendBuffer3
-                    0x0ac3                  _sendBuffer3Used
-                    0x0894                  _sendBuffer4
-                    0x0ac4                  _sendBuffer4Used
-                    0x08bc                  _sendBuffer5
-                    0x0ac5                  _sendBuffer5Used
-                    0x0b44                  _sendIndexU1
-                    0x0aee                  _sendIndexU2
-                    0x0b48                  _stringToSendU1
-                    0x0af2                  _stringToSendU2
-                    0x0c18                  _tba_energyAllocation
-                    0x0c20                  _tba_energyUsedLastDayReset
-                    0x0c1c                  _tba_energyUsedLifetime
-                    0x0c28                  _tba_energyUsedPreviousDay
-                    0x0c24                  _tba_powerWatts
-                    0x0ba3                  _tempDay
-                    0x0ba0                  _tempHour
-                    0x0ba1                  _tempMin
-                    0x0ba2                  _tempMonth
-                    0x0ba4                  _tempYear
-                    0x0b9b                  _timeDay
-                    0x0b9d                  _timeHour
-                    0x0b9e                  _timeMinute
-                    0x0b9a                  _timeMonth
-                    0x0b9f                  _timeSecond
-                    0x0b9c                  _timeWeekday
-                    0x0b99                  _timeYear
+                    0x0815                  _alarm1Enabled
+                    0x0817                  _alarm1Energy
+                    0x0816                  _alarm2Enabled
+                    0x0818                  _alarm2Energy
+                    0x0814                  _audibleAlarm
+                    0x0946                  _emerButtonEnable
+                    0x0948                  _emerButtonEnergyAllocate
+                    0x0980                  _errno
+                    0x093e                  _highAlloc
+                    0x096f                  _isHigh
+                    0x0942                  _lowAlloc
+                    0x0972                  _passwordSet
+                    0x0966                  _powerBoxCodeVersion
+                    0x095f                  _powerFailTimeDay
+                    0x095e                  _powerFailTimeHour
+                    0x095d                  _powerFailTimeMinute
+                    0x0960                  _powerFailTimeMonth
+                    0x0963                  _powerRestoreTimeDay
+                    0x0962                  _powerRestoreTimeHour
+                    0x0961                  _powerRestoreTimeMinute
+                    0x0964                  _powerRestoreTimeMonth
+                    0x094c                  _relayActive
+                    0x094a                  _resetTimeHour
+                    0x094b                  _resetTimeMinute
+                    0x0800                  _tba_energyAllocation
+                    0x0808                  _tba_energyUsedLastDayReset
+                    0x0804                  _tba_energyUsedLifetime
+                    0x0810                  _tba_energyUsedPreviousDay
+                    0x080c                  _tba_powerWatts
+                    0x0958                  _timeDay
+                    0x095a                  _timeHour
+                    0x095b                  _timeMinute
+                    0x0957                  _timeMonth
+                    0x095c                  _timeSecond
+                    0x0959                  _timeWeekday
+                    0x0956                  _timeYear
 
 External Symbols in Data EEPROM (by address):
 
@@ -445,318 +325,262 @@ External Symbols in Program Memory (by address):
                   0x000252                  __data_init
                   0x000252                  __data_init_standard
                   0x0002c8                  __U2RXInterrupt
-                  0x000368                  __U2ErrInterrupt
-                  0x00037a                  __U1RXInterrupt
-                  0x00041a                  __U1ErrInterrupt
-                  0x00042c                  __CNInterrupt
-                  0x000462                  __DefaultInterrupt
-                  0x000466                  _isalpha
-                  0x00047a                  _isspace
-                  0x00048a                  _toupper
-                  0x00049a                  ___udivsi3
-                  0x0004ba                  _atoi
-                  0x0004f8                  _utoa
-                  0x00052c                  _itoa
-                  0x000548                  _ultoa
-                  0x000594                  _ltoa
-                  0x0005b4                  _strtoul
-                  0x0006b8                  _strtol
-                  0x000748                  ___umodsi3
-                  0x00074e                  ___mulp32peds3
-                  0x00074e                  ___mulsi3
-                  0x00074e                  ___mulp32eds3
-                  0x000870                  _commInit
-                  0x0008ac                  _commFunctions
-                  0x0008b6                  _splitReceivedCommand
-                  0x000b16                  _sendCommands
-                  0x000c7c                  _sendBuffer
-                  0x000cca                  _receiveBuffer
-                  0x000d18                  _flushBuffer
-                  0x000d3c                  _stringCopy
-                  0x000d74                  _stringConcat
-                  0x000db6                  _stringCompare
-                  0x000dfa                  _stringLength
-                  0x000e20                  _commandBuilder1
-                  0x000e64                  _commandBuilder2
-                  0x000e96                  _commandBuilder3
-                  0x000ecc                  _commandBuilder4
-                  0x000f06                  _commandBuilder5
-                  0x000f44                  _commandExpander
-                  0x000fd8                  _processReceivedCommand
-                  0x0012d2                  _setRemoteTime
-                  0x0013d6                  _setRemotePower
-                  0x00142a                  _setRemoteAlarm
-                  0x001486                  _setRemotePassword
-                  0x0014b4                  _setRemoteEmergency
-                  0x0014ec                  _setRemoteVersion
-                  0x0014fa                  _setRemotePowerDownUpTime
-                  0x001510                  _setRemoteResetTime
-                  0x00153c                  _setRemoteRelay
-                  0x00155a                  _setRemoteStats
-                  0x001580                  _setRemoteHL
-                  0x00159e                  _doReset
-                  0x0015ac                  _sendUpdate
-                  0x0015b4                  _readRemoteTime
-                  0x0015c2                  _readRemotePower
-                  0x0015d0                  _readRemoteAlarm
-                  0x0015de                  _readRemotePassword
-                  0x0015ec                  _readRemoteEmergency
-                  0x0015fa                  _readRemoteVersion
-                  0x001608                  _readRemoteResetTime
-                  0x001616                  _readRemoteRelay
-                  0x001624                  _readRemoteStats
-                  0x001632                  _readRemoteHL
-                  0x001640                  _readRemotePowerDownUpTime
-                  0x00164e                  _readUpdate
-                  0x00165c                  _main
-                  0x00186e                  _init
-                  0x001894                  _initVars
-                  0x0018e0                  _setClock
-                  0x001ba6                  _dailyResetCheck
-                  0x001bd2                  _dailyReset
-                  0x001bf8                  _initPorts
-                  0x001c28                  _enablePullDownResistors
-                  0x001c30                  _enableInterrupts
-                  0x001c3c                  _disableInterrupts
-                  0x001c4a                  _readButton
-                  0x001c94                  _storeToEE
-                  0x001cca                  _setHighLow
-                  0x001ce8                  _initRTCCDisplay
-                  0x001d04                  _EEreadAll
-                  0x001d1c                  _EEreadPassword
-                  0x001d9e                  _EEwritePassword
-                  0x001ee8                  _EEreadPowerAlloc
-                  0x001f12                  _EEwritePowerAlloc
-                  0x001f50                  _EEreadEmerButton
-                  0x001f8a                  _EEwriteEmerButton
-                  0x001fc6                  _EEreadResetTime
-                  0x00200a                  _EEwriteResetTime
-                  0x002054                  _EEreadAlarm
-                  0x0020bc                  _EEwriteAlarm
-                  0x002164                  _EEreadTotals
-                  0x0021e2                  _EEwriteTotals
-                  0x0022d2                  _EEreadPowerUsed
-                  0x00243e                  _EEwritePowerUsed
-                  0x002960                  _EEreadHL
-                  0x002988                  _EEwriteHL
-                  0x0029c4                  _EEreadRelay
-                  0x0029ec                  _EEwriteRelay
-                  0x002a28                  _findPowerToRead
-                  0x002b14                  _findPowerToWrite
-                  0x002b26                  _communications
-                  0x002bf0                  _set_current_port
-                  0x002c48                  _receive_data
-                  0x002ccc                  _process_data
-                  0x002ce6                  _process_data_parameterize
-                  0x002dc4                  _process_data_parameters
-                  0x002eba                  _command_builder1
-                  0x002edc                  _command_builder2
-                  0x002f0c                  _command_builder3
-                  0x002f4a                  _command_builder4
-                  0x002f96                  _command_builder_add_char
-                  0x002fc6                  _command_builder_add_string
-                  0x002ff2                  _send_data
-                  0x00303c                  _strmatch
-                  0x003066                  _strcmp2
-                  0x003108                  _SPI_receive_data
-                  0x00312a                  _SPI_send_data
-                  0x00314a                  _send_end_of_transmission
-                  0x003158                  _SPIMasterInit
-                  0x0031c4                  _readTimeI2C
-                  0x0031d8                  _readI2CTime
-                  0x003252                  _setI2CTime
-                  0x0032e6                  _startClock
-                  0x00332e                  _BeginSequentialReadI2C
-                  0x003354                  _SequentialReadI2C
-                  0x003378                  _ReadI2CRegister
-                  0x00339a                  _readI2CPowerTimes
-                  0x003478                  _IdleI2C
-                  0x00348a                  _StartI2C
-                  0x00349c                  _StopI2C
-                  0x0034ae                  _RestartI2C
-                  0x0034c0                  _NackI2C
-                  0x0034d4                  _AckI2C
-                  0x0034e8                  _initI2C
-                  0x0034fa                  _WriteI2C
-                  0x00351c                  _ReadI2C
-                  0x00354a                  _BcdToDecI2C
-                  0x00357a                  _DecToBcdI2C
-                  0x0035ac                  _readTime
-                  0x00360c                  _writeTime
-                  0x0036d8                  _BcdToDec
-                  0x0036f8                  _DecToBcd
-                  0x003732                  _updateLEDs
-                  0x003802                  _initUART
-                  0x00380c                  _initUART2
-                  0x00385e                  _initUART1
-                  0x0038b0                  _delayFourUS
-                  0x0038c8                  _delayMS
-                  0x0038f4                  _commDelay
-                  0x003948                  _relayControl
-                  0x003980                  _initPowerLossDetection
-                  0x00398c                  _goToSleep
+                  0x0002d2                  __U2ErrInterrupt
+                  0x0002e4                  __U1ErrInterrupt
+                  0x0002f6                  __DefaultInterrupt
+                  0x0002fa                  _isalpha
+                  0x00030e                  _isspace
+                  0x00031e                  _toupper
+                  0x00032e                  _atoi
+                  0x00036c                  _atol
+                  0x0003c2                  _utoa
+                  0x0003f6                  _itoa
+                  0x000412                  _ultoa
+                  0x00045e                  _ltoa
+                  0x00047e                  _strtoul
+                  0x000582                  _strtol
+                  0x000612                  ___udivsi3
+                  0x000632                  ___umodsi3
+                  0x000638                  ___mulp32peds3
+                  0x000638                  ___mulsi3
+                  0x000638                  ___mulp32eds3
+                  0x0006b6                  _communications
+                  0x0006ca                  _communicationsSPI
+                  0x00079a                  _communicationsUART1
+                  0x0007f8                  _communicationsUART2
+                  0x000850                  _communicationsRecv
+                  0x000910                  _communicationsSend
+                  0x000998                  _set_current_port
+                  0x0009f0                  _receive_data
+                  0x000a92                  _process_data
+                  0x000aac                  _process_data_parameterize
+                  0x000b90                  _process_data_parameters
+                  0x0012ca                  _command_builder1
+                  0x0012ec                  _command_builder2
+                  0x00131c                  _command_builder3
+                  0x00135a                  _command_builder4
+                  0x0013a6                  _command_builder5
+                  0x001406                  _command_builder6
+                  0x001474                  _command_builder7
+                  0x0014f0                  _command_builder_add_char
+                  0x001522                  _command_builder_add_string
+                  0x00154e                  _strmatch
+                  0x001578                  _strcmp2
+                  0x00161a                  _fillOnOff
+                  0x001660                  _checkOnOff
+                  0x00168c                  _SPI_receive_data_char
+                  0x0016ae                  _SPI_send_data_char
+                  0x0016ce                  _UART1_receive_data_char
+                  0x0016f0                  _UART1_send_data_char
+                  0x001712                  _UART2_receive_data_char
+                  0x001734                  _UART2_send_data_char
+                  0x001756                  _send_end_of_transmission
+                  0x001764                  _SPIMasterInit
+                  0x0017d0                  _EEreadAll
+                  0x0017e6                  _EEreadPassword
+                  0x001868                  _EEwritePassword
+                  0x0019b2                  _EEreadEnergyAlloc
+                  0x0019dc                  _EEwriteEnergyAlloc
+                  0x001a1a                  _EEreadEmerButton
+                  0x001a54                  _EEwriteEmerButton
+                  0x001a90                  _EEreadResetTime
+                  0x001ad4                  _EEwriteResetTime
+                  0x001b1e                  _EEreadAlarm
+                  0x001b86                  _EEwriteAlarm
+                  0x001c2e                  _EEreadTotals
+                  0x001cac                  _EEwriteTotals
+                  0x001da0                  _EEreadPowerUsed
+                  0x001f0c                  _EEwriteEnergyUsed
+                  0x002430                  _EEreadRelay
+                  0x002458                  _EEwriteRelay
+                  0x002494                  _findPowerToRead
+                  0x002580                  _findPowerToWrite
+                  0x002592                  _LEDrunup
+                  0x0025d6                  _LEDrundown
+                  0x00261a                  _LEDrun
+                  0x00262a                  _main
+                  0x00299a                  _init
+                  0x0029b0                  _initVars
+                  0x002a0c                  _setClock
+                  0x002cd2                  _dailyResetPowerOnCheck
+                  0x002e78                  _dailyResetCheck
+                  0x002ea4                  _dailyReset
+                  0x002ec8                  _initPorts
+                  0x002f00                  _enablePullDownResistors
+                  0x002f08                  _enableInterrupts
+                  0x002f14                  _disableInterrupts
+                  0x002f22                  _readButton
+                  0x002f6c                  _storeToEE
+                  0x002f88                  _setHighLow
+                  0x002fa6                  _initRTCCDisplay
+                  0x002fc2                  _debugLEDSet
+                  0x003056                  _debugLEDRotateA
+                  0x003098                  _debugLEDRotateB
+                  0x0030da                  _debugLEDToggle
+                  0x0031a8                  _readTimeI2C
+                  0x0031bc                  _readI2CTime
+                  0x003236                  _setI2CTime
+                  0x0032ca                  _startClock
+                  0x003312                  _BeginSequentialReadI2C
+                  0x003338                  _SequentialReadI2C
+                  0x00335c                  _ReadI2CRegister
+                  0x00337e                  _readI2CPowerTimes
+                  0x0033ba                  _IdleI2C
+                  0x0033cc                  _StartI2C
+                  0x0033de                  _StopI2C
+                  0x0033f0                  _RestartI2C
+                  0x003402                  _NackI2C
+                  0x003416                  _AckI2C
+                  0x00342a                  _initI2C
+                  0x00343c                  _WriteI2C
+                  0x00345e                  _ReadI2C
+                  0x00348c                  _BcdToDecI2C
+                  0x0034bc                  _DecToBcdI2C
+                  0x0034ee                  _readTime
+                  0x00354e                  _writeTime
+                  0x00361a                  _BcdToDec
+                  0x00363a                  _DecToBcd
+                  0x003674                  _initUART
+                  0x00367e                  _initUART2
+                  0x0036d6                  _initUART1
+                  0x003774                  _delayFourUS
+                  0x00378c                  _delayMS
+                  0x0037b8                  _relayControl
+                  0x0037f0                  _updateLEDs
                   0xf80000                  __FBS.sec
                   0xf80004                  __FGS.sec
 
 External Symbols in Program Memory (by name):
 
-                  0x0034d4                  _AckI2C
-                  0x0036d8                  _BcdToDec
-                  0x00354a                  _BcdToDecI2C
-                  0x00332e                  _BeginSequentialReadI2C
-                  0x0036f8                  _DecToBcd
-                  0x00357a                  _DecToBcdI2C
-                  0x002054                  _EEreadAlarm
-                  0x001d04                  _EEreadAll
-                  0x001f50                  _EEreadEmerButton
-                  0x002960                  _EEreadHL
-                  0x001d1c                  _EEreadPassword
-                  0x001ee8                  _EEreadPowerAlloc
-                  0x0022d2                  _EEreadPowerUsed
-                  0x0029c4                  _EEreadRelay
-                  0x001fc6                  _EEreadResetTime
-                  0x002164                  _EEreadTotals
-                  0x0020bc                  _EEwriteAlarm
-                  0x001f8a                  _EEwriteEmerButton
-                  0x002988                  _EEwriteHL
-                  0x001d9e                  _EEwritePassword
-                  0x001f12                  _EEwritePowerAlloc
-                  0x00243e                  _EEwritePowerUsed
-                  0x0029ec                  _EEwriteRelay
-                  0x00200a                  _EEwriteResetTime
-                  0x0021e2                  _EEwriteTotals
-                  0x003478                  _IdleI2C
-                  0x0034c0                  _NackI2C
-                  0x00351c                  _ReadI2C
-                  0x003378                  _ReadI2CRegister
-                  0x0034ae                  _RestartI2C
-                  0x003158                  _SPIMasterInit
-                  0x003108                  _SPI_receive_data
-                  0x00312a                  _SPI_send_data
-                  0x003354                  _SequentialReadI2C
-                  0x00348a                  _StartI2C
-                  0x00349c                  _StopI2C
-                  0x0034fa                  _WriteI2C
-                  0x00042c                  __CNInterrupt
-                  0x000462                  __DefaultInterrupt
+                  0x003416                  _AckI2C
+                  0x00361a                  _BcdToDec
+                  0x00348c                  _BcdToDecI2C
+                  0x003312                  _BeginSequentialReadI2C
+                  0x00363a                  _DecToBcd
+                  0x0034bc                  _DecToBcdI2C
+                  0x001b1e                  _EEreadAlarm
+                  0x0017d0                  _EEreadAll
+                  0x001a1a                  _EEreadEmerButton
+                  0x0019b2                  _EEreadEnergyAlloc
+                  0x0017e6                  _EEreadPassword
+                  0x001da0                  _EEreadPowerUsed
+                  0x002430                  _EEreadRelay
+                  0x001a90                  _EEreadResetTime
+                  0x001c2e                  _EEreadTotals
+                  0x001b86                  _EEwriteAlarm
+                  0x001a54                  _EEwriteEmerButton
+                  0x0019dc                  _EEwriteEnergyAlloc
+                  0x001f0c                  _EEwriteEnergyUsed
+                  0x001868                  _EEwritePassword
+                  0x002458                  _EEwriteRelay
+                  0x001ad4                  _EEwriteResetTime
+                  0x001cac                  _EEwriteTotals
+                  0x0033ba                  _IdleI2C
+                  0x00261a                  _LEDrun
+                  0x0025d6                  _LEDrundown
+                  0x002592                  _LEDrunup
+                  0x003402                  _NackI2C
+                  0x00345e                  _ReadI2C
+                  0x00335c                  _ReadI2CRegister
+                  0x0033f0                  _RestartI2C
+                  0x001764                  _SPIMasterInit
+                  0x00168c                  _SPI_receive_data_char
+                  0x0016ae                  _SPI_send_data_char
+                  0x003338                  _SequentialReadI2C
+                  0x0033cc                  _StartI2C
+                  0x0033de                  _StopI2C
+                  0x0016ce                  _UART1_receive_data_char
+                  0x0016f0                  _UART1_send_data_char
+                  0x001712                  _UART2_receive_data_char
+                  0x001734                  _UART2_send_data_char
+                  0x00343c                  _WriteI2C
+                  0x0002f6                  __DefaultInterrupt
                   0xf80000                  __FBS.sec
                   0xf80004                  __FGS.sec
-                  0x00041a                  __U1ErrInterrupt
-                  0x00037a                  __U1RXInterrupt
-                  0x000368                  __U2ErrInterrupt
+                  0x0002e4                  __U1ErrInterrupt
+                  0x0002d2                  __U2ErrInterrupt
                   0x0002c8                  __U2RXInterrupt
-                  0x00074e                  ___mulp32eds3
-                  0x00074e                  ___mulp32peds3
-                  0x00074e                  ___mulsi3
-                  0x00049a                  ___udivsi3
-                  0x000748                  ___umodsi3
+                  0x000638                  ___mulp32eds3
+                  0x000638                  ___mulp32peds3
+                  0x000638                  ___mulsi3
+                  0x000612                  ___udivsi3
+                  0x000632                  ___umodsi3
                   0x000252                  __data_init
                   0x000252                  __data_init_standard
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
-                  0x0004ba                  _atoi
-                  0x0038f4                  _commDelay
-                  0x0008ac                  _commFunctions
-                  0x000870                  _commInit
-                  0x000e20                  _commandBuilder1
-                  0x000e64                  _commandBuilder2
-                  0x000e96                  _commandBuilder3
-                  0x000ecc                  _commandBuilder4
-                  0x000f06                  _commandBuilder5
-                  0x000f44                  _commandExpander
-                  0x002eba                  _command_builder1
-                  0x002edc                  _command_builder2
-                  0x002f0c                  _command_builder3
-                  0x002f4a                  _command_builder4
-                  0x002f96                  _command_builder_add_char
-                  0x002fc6                  _command_builder_add_string
-                  0x002b26                  _communications
-                  0x001bd2                  _dailyReset
-                  0x001ba6                  _dailyResetCheck
-                  0x0038b0                  _delayFourUS
-                  0x0038c8                  _delayMS
-                  0x001c3c                  _disableInterrupts
-                  0x00159e                  _doReset
-                  0x001c30                  _enableInterrupts
-                  0x001c28                  _enablePullDownResistors
-                  0x002a28                  _findPowerToRead
-                  0x002b14                  _findPowerToWrite
-                  0x000d18                  _flushBuffer
-                  0x00398c                  _goToSleep
-                  0x00186e                  _init
-                  0x0034e8                  _initI2C
-                  0x001bf8                  _initPorts
-                  0x003980                  _initPowerLossDetection
-                  0x001ce8                  _initRTCCDisplay
-                  0x003802                  _initUART
-                  0x00385e                  _initUART1
-                  0x00380c                  _initUART2
-                  0x001894                  _initVars
-                  0x000466                  _isalpha
-                  0x00047a                  _isspace
-                  0x00052c                  _itoa
-                  0x000594                  _ltoa
-                  0x00165c                  _main
-                  0x000fd8                  _processReceivedCommand
-                  0x002ccc                  _process_data
-                  0x002ce6                  _process_data_parameterize
-                  0x002dc4                  _process_data_parameters
-                  0x001c4a                  _readButton
-                  0x00339a                  _readI2CPowerTimes
-                  0x0031d8                  _readI2CTime
-                  0x0015d0                  _readRemoteAlarm
-                  0x0015ec                  _readRemoteEmergency
-                  0x001632                  _readRemoteHL
-                  0x0015de                  _readRemotePassword
-                  0x0015c2                  _readRemotePower
-                  0x001640                  _readRemotePowerDownUpTime
-                  0x001616                  _readRemoteRelay
-                  0x001608                  _readRemoteResetTime
-                  0x001624                  _readRemoteStats
-                  0x0015b4                  _readRemoteTime
-                  0x0015fa                  _readRemoteVersion
-                  0x0035ac                  _readTime
-                  0x0031c4                  _readTimeI2C
-                  0x00164e                  _readUpdate
-                  0x000cca                  _receiveBuffer
-                  0x002c48                  _receive_data
-                  0x003948                  _relayControl
-                  0x000c7c                  _sendBuffer
-                  0x000b16                  _sendCommands
-                  0x0015ac                  _sendUpdate
-                  0x002ff2                  _send_data
-                  0x00314a                  _send_end_of_transmission
-                  0x0018e0                  _setClock
-                  0x001cca                  _setHighLow
-                  0x003252                  _setI2CTime
-                  0x00142a                  _setRemoteAlarm
-                  0x0014b4                  _setRemoteEmergency
-                  0x001580                  _setRemoteHL
-                  0x001486                  _setRemotePassword
-                  0x0013d6                  _setRemotePower
-                  0x0014fa                  _setRemotePowerDownUpTime
-                  0x00153c                  _setRemoteRelay
-                  0x001510                  _setRemoteResetTime
-                  0x00155a                  _setRemoteStats
-                  0x0012d2                  _setRemoteTime
-                  0x0014ec                  _setRemoteVersion
-                  0x002bf0                  _set_current_port
-                  0x0008b6                  _splitReceivedCommand
-                  0x0032e6                  _startClock
-                  0x001c94                  _storeToEE
-                  0x003066                  _strcmp2
-                  0x000db6                  _stringCompare
-                  0x000d74                  _stringConcat
-                  0x000d3c                  _stringCopy
-                  0x000dfa                  _stringLength
-                  0x00303c                  _strmatch
-                  0x0006b8                  _strtol
-                  0x0005b4                  _strtoul
-                  0x00048a                  _toupper
-                  0x000548                  _ultoa
-                  0x003732                  _updateLEDs
-                  0x0004f8                  _utoa
-                  0x00360c                  _writeTime
+                  0x00032e                  _atoi
+                  0x00036c                  _atol
+                  0x001660                  _checkOnOff
+                  0x0012ca                  _command_builder1
+                  0x0012ec                  _command_builder2
+                  0x00131c                  _command_builder3
+                  0x00135a                  _command_builder4
+                  0x0013a6                  _command_builder5
+                  0x001406                  _command_builder6
+                  0x001474                  _command_builder7
+                  0x0014f0                  _command_builder_add_char
+                  0x001522                  _command_builder_add_string
+                  0x0006b6                  _communications
+                  0x000850                  _communicationsRecv
+                  0x0006ca                  _communicationsSPI
+                  0x000910                  _communicationsSend
+                  0x00079a                  _communicationsUART1
+                  0x0007f8                  _communicationsUART2
+                  0x002ea4                  _dailyReset
+                  0x002e78                  _dailyResetCheck
+                  0x002cd2                  _dailyResetPowerOnCheck
+                  0x003056                  _debugLEDRotateA
+                  0x003098                  _debugLEDRotateB
+                  0x002fc2                  _debugLEDSet
+                  0x0030da                  _debugLEDToggle
+                  0x003774                  _delayFourUS
+                  0x00378c                  _delayMS
+                  0x002f14                  _disableInterrupts
+                  0x002f08                  _enableInterrupts
+                  0x002f00                  _enablePullDownResistors
+                  0x00161a                  _fillOnOff
+                  0x002494                  _findPowerToRead
+                  0x002580                  _findPowerToWrite
+                  0x00299a                  _init
+                  0x00342a                  _initI2C
+                  0x002ec8                  _initPorts
+                  0x002fa6                  _initRTCCDisplay
+                  0x003674                  _initUART
+                  0x0036d6                  _initUART1
+                  0x00367e                  _initUART2
+                  0x0029b0                  _initVars
+                  0x0002fa                  _isalpha
+                  0x00030e                  _isspace
+                  0x0003f6                  _itoa
+                  0x00045e                  _ltoa
+                  0x00262a                  _main
+                  0x000a92                  _process_data
+                  0x000aac                  _process_data_parameterize
+                  0x000b90                  _process_data_parameters
+                  0x002f22                  _readButton
+                  0x00337e                  _readI2CPowerTimes
+                  0x0031bc                  _readI2CTime
+                  0x0034ee                  _readTime
+                  0x0031a8                  _readTimeI2C
+                  0x0009f0                  _receive_data
+                  0x0037b8                  _relayControl
+                  0x001756                  _send_end_of_transmission
+                  0x002a0c                  _setClock
+                  0x002f88                  _setHighLow
+                  0x003236                  _setI2CTime
+                  0x000998                  _set_current_port
+                  0x0032ca                  _startClock
+                  0x002f6c                  _storeToEE
+                  0x001578                  _strcmp2
+                  0x00154e                  _strmatch
+                  0x000582                  _strtol
+                  0x00047e                  _strtoul
+                  0x00031e                  _toupper
+                  0x000412                  _ultoa
+                  0x0037f0                  _updateLEDs
+                  0x0003c2                  _utoa
+                  0x00354e                  _writeTime
 
 Memory Configuration
 
@@ -785,12 +609,12 @@ LOAD build/default/production/PowerConfiguration.o
 LOAD build/default/production/EEPROM.o
 LOAD build/default/production/Power.o
 LOAD build/default/production/PowerUART.o
-LOAD build/default/production/PowerSurvive.o
 LOAD build/default/production/I2C_RTCC.o
 LOAD build/default/production/OC_PWM.o
 LOAD build/default/production/Delays.o
 LOAD build/default/production/MasterComm.o
 LOAD build/default/production/DisplayRTCC.o
+LOAD build/default/production/REMOVE_PowerSurvive.o
                     0x0001                  __MPLAB_BUILD = 0x1
 LOAD pPIC24Fxxx
 LOAD c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libfx-elf.a
@@ -816,7 +640,7 @@ LOAD c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libfx-elf.a
                   0x000002          0x2 SHORT 0x0 ((ABSOLUTE (__reset) >> 0x10) & 0x7f)
                   0x000003          0x2 SHORT 0x0
 
-.text             0x000200        0x55a
+.text             0x000200        0x444
  *(.init)
  .init            0x000200         0x4c c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o)
                   0x000200                  __resetPRI
@@ -828,51 +652,50 @@ LOAD c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libfx-elf.a
  *(.user_init)
  *(.handle)
  *(.isr*)
- .isr.text        0x0002c8        0x164 build/default/production/PowerUART.o
+ .isr.text        0x0002c8         0x2e build/default/production/PowerUART.o
                   0x0002c8                  __U2RXInterrupt
-                  0x000368                  __U2ErrInterrupt
-                  0x00037a                  __U1RXInterrupt
-                  0x00041a                  __U1ErrInterrupt
- .isr.text        0x00042c         0x36 build/default/production/PowerSurvive.o
-                  0x00042c                  __CNInterrupt
- .isr             0x000462          0x4 default_isr
-                  0x000462                  __DefaultInterrupt
+                  0x0002d2                  __U2ErrInterrupt
+                  0x0002e4                  __U1ErrInterrupt
+ .isr             0x0002f6          0x4 default_isr
+                  0x0002f6                  __DefaultInterrupt
  *(.libc)
- .libc            0x000466         0x14 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isalpha.eso)
-                  0x000466                  _isalpha
- .libc            0x00047a         0x10 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isspace.eso)
-                  0x00047a                  _isspace
- .libc            0x00048a          0xe c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(toupper.eso)
-                  0x00048a                  _toupper
+ .libc            0x0002fa         0x14 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isalpha.eso)
+                  0x0002fa                  _isalpha
+ .libc            0x00030e         0x10 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(isspace.eso)
+                  0x00030e                  _isspace
+ .libc            0x00031e          0xe c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(toupper.eso)
+                  0x00031e                  _toupper
  *(.libm)
  *(.libdsp)
  *(.lib*)
  .libpic30_crt_start_mode
-                  0x000498          0x2 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt_start_mode_normal.eo)
-                  0x000498                  __crt_start_mode
-                  0x000498                  __crt_start_mode_normal
- .libm.udivsi3    0x00049a         0x20 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
-                  0x00049a                  ___udivsi3
- .libc.atoi       0x0004ba         0x3e c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atoi.eo)
-                  0x0004ba                  _atoi
- .libc.utoa       0x0004f8         0x34 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
-                  0x0004f8                  _utoa
- .libc.itoa       0x00052c         0x1c c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
-                  0x00052c                  _itoa
- .libc.ultoa      0x000548         0x4c c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
-                  0x000548                  _ultoa
- .libc.ltoa       0x000594         0x20 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
-                  0x000594                  _ltoa
- .libc.strtoul    0x0005b4        0x104 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
-                  0x0005b4                  _strtoul
- .libc.strtol     0x0006b8         0x90 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
-                  0x0006b8                  _strtol
- .libm.umodsi3    0x000748          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(umodsi3.eo)
-                  0x000748                  ___umodsi3
- .libm.mulsi3     0x00074e          0xc c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(mulsi3.eo)
-                  0x00074e                  ___mulp32peds3
-                  0x00074e                  ___mulsi3
-                  0x00074e                  ___mulp32eds3
+                  0x00032c          0x2 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt_start_mode_normal.eo)
+                  0x00032c                  __crt_start_mode
+                  0x00032c                  __crt_start_mode_normal
+ .libc.atoi       0x00032e         0x3e c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atoi.eo)
+                  0x00032e                  _atoi
+ .libc.atol       0x00036c         0x56 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atol.eo)
+                  0x00036c                  _atol
+ .libc.utoa       0x0003c2         0x34 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
+                  0x0003c2                  _utoa
+ .libc.itoa       0x0003f6         0x1c c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
+                  0x0003f6                  _itoa
+ .libc.ultoa      0x000412         0x4c c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
+                  0x000412                  _ultoa
+ .libc.ltoa       0x00045e         0x20 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
+                  0x00045e                  _ltoa
+ .libc.strtoul    0x00047e        0x104 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
+                  0x00047e                  _strtoul
+ .libc.strtol     0x000582         0x90 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
+                  0x000582                  _strtol
+ .libm.udivsi3    0x000612         0x20 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
+                  0x000612                  ___udivsi3
+ .libm.umodsi3    0x000632          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(umodsi3.eo)
+                  0x000632                  ___umodsi3
+ .libm.mulsi3     0x000638          0xc c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(mulsi3.eo)
+                  0x000638                  ___mulp32peds3
+                  0x000638                  ___mulsi3
+                  0x000638                  ___mulp32eds3
 
 usercode
  *(usercode)
@@ -908,72 +731,69 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x8ec4
+.debug_info       0x000000       0x7dfd
  *(.debug_info)
- .debug_info      0x000000       0x2f30 build/default/production/PowerMain.o
- .debug_info      0x002f30        0xe63 build/default/production/EEPROM.o
- .debug_info      0x003d93        0x3a4 build/default/production/Power.o
- .debug_info      0x004137       0x144f build/default/production/PowerUART.o
- .debug_info      0x005586        0xce9 build/default/production/PowerSurvive.o
- .debug_info      0x00626f        0xaad build/default/production/I2C_RTCC.o
- .debug_info      0x006d1c        0x548 build/default/production/OC_PWM.o
- .debug_info      0x007264        0x15d build/default/production/Delays.o
- .debug_info      0x0073c1       0x1504 build/default/production/MasterComm.o
- .debug_info      0x0088c5        0x5ff build/default/production/DisplayRTCC.o
+ .debug_info      0x000000       0x1905 build/default/production/PowerMain.o
+ .debug_info      0x001905        0xe95 build/default/production/EEPROM.o
+ .debug_info      0x00279a        0x3a4 build/default/production/Power.o
+ .debug_info      0x002b3e       0x1332 build/default/production/PowerUART.o
+ .debug_info      0x003e70        0xaa3 build/default/production/I2C_RTCC.o
+ .debug_info      0x004913        0x522 build/default/production/OC_PWM.o
+ .debug_info      0x004e35        0x1c5 build/default/production/Delays.o
+ .debug_info      0x004ffa       0x27e1 build/default/production/MasterComm.o
+ .debug_info      0x0077db        0x622 build/default/production/DisplayRTCC.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000        0xc53
+.debug_abbrev     0x000000        0xb4f
  *(.debug_abbrev)
- .debug_abbrev    0x000000        0x248 build/default/production/PowerMain.o
- .debug_abbrev    0x000248          0x1 build/default/production/PowerConfiguration.o
- .debug_abbrev    0x000249        0x185 build/default/production/EEPROM.o
- .debug_abbrev    0x0003ce         0xac build/default/production/Power.o
- .debug_abbrev    0x00047a        0x123 build/default/production/PowerUART.o
- .debug_abbrev    0x00059d         0xe3 build/default/production/PowerSurvive.o
- .debug_abbrev    0x000680        0x1c8 build/default/production/I2C_RTCC.o
- .debug_abbrev    0x000848         0xb5 build/default/production/OC_PWM.o
- .debug_abbrev    0x0008fd         0x69 build/default/production/Delays.o
- .debug_abbrev    0x000966        0x1cd build/default/production/MasterComm.o
- .debug_abbrev    0x000b33        0x120 build/default/production/DisplayRTCC.o
+ .debug_abbrev    0x000000        0x1d6 build/default/production/PowerMain.o
+ .debug_abbrev    0x0001d6          0x1 build/default/production/PowerConfiguration.o
+ .debug_abbrev    0x0001d7        0x1bc build/default/production/EEPROM.o
+ .debug_abbrev    0x000393         0xac build/default/production/Power.o
+ .debug_abbrev    0x00043f         0xef build/default/production/PowerUART.o
+ .debug_abbrev    0x00052e        0x1c7 build/default/production/I2C_RTCC.o
+ .debug_abbrev    0x0006f5         0xaa build/default/production/OC_PWM.o
+ .debug_abbrev    0x00079f         0x69 build/default/production/Delays.o
+ .debug_abbrev    0x000808        0x226 build/default/production/MasterComm.o
+ .debug_abbrev    0x000a2e        0x120 build/default/production/DisplayRTCC.o
+ .debug_abbrev    0x000b4e          0x1 build/default/production/REMOVE_PowerSurvive.o
 
-.debug_line       0x000000       0x124a
+.debug_line       0x000000       0x10d5
  *(.debug_line)
- .debug_line      0x000000        0x49c build/default/production/PowerMain.o
- .debug_line      0x00049c         0x1a build/default/production/PowerConfiguration.o
- .debug_line      0x0004b6        0x346 build/default/production/EEPROM.o
- .debug_line      0x0007fc        0x123 build/default/production/Power.o
- .debug_line      0x00091f        0x188 build/default/production/PowerUART.o
- .debug_line      0x000aa7        0x108 build/default/production/PowerSurvive.o
- .debug_line      0x000baf        0x1bc build/default/production/I2C_RTCC.o
- .debug_line      0x000d6b        0x126 build/default/production/OC_PWM.o
- .debug_line      0x000e91         0x42 build/default/production/Delays.o
- .debug_line      0x000ed3        0x230 build/default/production/MasterComm.o
- .debug_line      0x001103        0x147 build/default/production/DisplayRTCC.o
+ .debug_line      0x000000        0x329 build/default/production/PowerMain.o
+ .debug_line      0x000329         0x1a build/default/production/PowerConfiguration.o
+ .debug_line      0x000343        0x31f build/default/production/EEPROM.o
+ .debug_line      0x000662        0x117 build/default/production/Power.o
+ .debug_line      0x000779        0x144 build/default/production/PowerUART.o
+ .debug_line      0x0008bd        0x191 build/default/production/I2C_RTCC.o
+ .debug_line      0x000a4e        0x102 build/default/production/OC_PWM.o
+ .debug_line      0x000b50         0x3d build/default/production/Delays.o
+ .debug_line      0x000b8d        0x3f6 build/default/production/MasterComm.o
+ .debug_line      0x000f83        0x138 build/default/production/DisplayRTCC.o
+ .debug_line      0x0010bb         0x1a build/default/production/REMOVE_PowerSurvive.o
 
-.debug_frame      0x000000       0x100e
+.debug_frame      0x000000        0xc68
  *(.debug_frame)
- .debug_frame     0x000000        0x650 build/default/production/PowerMain.o
- .debug_frame     0x000650        0x260 build/default/production/EEPROM.o
- .debug_frame     0x0008b0         0x30 build/default/production/Power.o
- .debug_frame     0x0008e0        0x130 build/default/production/PowerUART.o
- .debug_frame     0x000a10         0x8c build/default/production/PowerSurvive.o
- .debug_frame     0x000a9c        0x228 build/default/production/I2C_RTCC.o
- .debug_frame     0x000cc4         0x30 build/default/production/OC_PWM.o
- .debug_frame     0x000cf4         0x68 build/default/production/Delays.o
- .debug_frame     0x000d5c        0x228 build/default/production/MasterComm.o
- .debug_frame     0x000f84         0x8a build/default/production/DisplayRTCC.o
+ .debug_frame     0x000000        0x282 build/default/production/PowerMain.o
+ .debug_frame     0x000282        0x228 build/default/production/EEPROM.o
+ .debug_frame     0x0004aa         0x30 build/default/production/Power.o
+ .debug_frame     0x0004da         0xcc build/default/production/PowerUART.o
+ .debug_frame     0x0005a6        0x228 build/default/production/I2C_RTCC.o
+ .debug_frame     0x0007ce         0x30 build/default/production/OC_PWM.o
+ .debug_frame     0x0007fe         0x4c build/default/production/Delays.o
+ .debug_frame     0x00084a        0x394 build/default/production/MasterComm.o
+ .debug_frame     0x000bde         0x8a build/default/production/DisplayRTCC.o
 
-.debug_str        0x000000        0xbe8
+.debug_str        0x000000        0xb83
  *(.debug_str)
- .debug_str       0x000000        0x474 build/default/production/PowerMain.o
- .debug_str       0x000474        0x34c build/default/production/EEPROM.o
- .debug_str       0x0007c0         0x68 build/default/production/Power.o
- .debug_str       0x000828         0xec build/default/production/PowerUART.o
- .debug_str       0x000914         0x58 build/default/production/PowerSurvive.o
- .debug_str       0x00096c         0xee build/default/production/I2C_RTCC.o
- .debug_str       0x000a5a         0x6e build/default/production/OC_PWM.o
- .debug_str       0x000ac8         0xe2 build/default/production/MasterComm.o
- .debug_str       0x000baa         0x3e build/default/production/DisplayRTCC.o
+ .debug_str       0x000000        0x1f3 build/default/production/PowerMain.o
+ .debug_str       0x0001f3        0x34d build/default/production/EEPROM.o
+ .debug_str       0x000540         0x68 build/default/production/Power.o
+ .debug_str       0x0005a8         0x96 build/default/production/PowerUART.o
+ .debug_str       0x00063e        0x108 build/default/production/I2C_RTCC.o
+ .debug_str       0x000746         0x6e build/default/production/OC_PWM.o
+ .debug_str       0x0007b4        0x391 build/default/production/MasterComm.o
+ .debug_str       0x000b45         0x3e build/default/production/DisplayRTCC.o
 
 .debug_loc
  *(.debug_loc)
@@ -982,33 +802,31 @@ __FDS
  *(.debug_macinfo)
 
 .debug_pubnames
-                  0x000000       0x135a
+                  0x000000        0xd50
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000        0xcbc build/default/production/PowerMain.o
+                  0x000000        0x229 build/default/production/PowerMain.o
  .debug_pubnames
-                  0x000cbc        0x198 build/default/production/EEPROM.o
+                  0x000229        0x3e7 build/default/production/EEPROM.o
  .debug_pubnames
-                  0x000e54         0x23 build/default/production/Power.o
+                  0x000610         0x23 build/default/production/Power.o
  .debug_pubnames
-                  0x000e77         0x89 build/default/production/PowerUART.o
+                  0x000633         0x76 build/default/production/PowerUART.o
  .debug_pubnames
-                  0x000f00         0x4c build/default/production/PowerSurvive.o
+                  0x0006a9        0x25d build/default/production/I2C_RTCC.o
  .debug_pubnames
-                  0x000f4c        0x1c7 build/default/production/I2C_RTCC.o
+                  0x000906         0x21 build/default/production/OC_PWM.o
  .debug_pubnames
-                  0x001113         0x21 build/default/production/OC_PWM.o
+                  0x000927         0x2e build/default/production/Delays.o
  .debug_pubnames
-                  0x001134         0x3c build/default/production/Delays.o
+                  0x000955        0x3b4 build/default/production/MasterComm.o
  .debug_pubnames
-                  0x001170        0x1a3 build/default/production/MasterComm.o
- .debug_pubnames
-                  0x001313         0x47 build/default/production/DisplayRTCC.o
+                  0x000d09         0x47 build/default/production/DisplayRTCC.o
 
 .debug_ranges
  *(.debug_ranges)
 
-.debug_aranges    0x000000         0xf0
+.debug_aranges    0x000000         0xd8
  *(.debug_aranges)
  .debug_aranges
                   0x000000         0x18 build/default/production/PowerMain.o
@@ -1019,17 +837,15 @@ __FDS
  .debug_aranges
                   0x000048         0x18 build/default/production/PowerUART.o
  .debug_aranges
-                  0x000060         0x18 build/default/production/PowerSurvive.o
+                  0x000060         0x18 build/default/production/I2C_RTCC.o
  .debug_aranges
-                  0x000078         0x18 build/default/production/I2C_RTCC.o
+                  0x000078         0x18 build/default/production/OC_PWM.o
  .debug_aranges
-                  0x000090         0x18 build/default/production/OC_PWM.o
+                  0x000090         0x18 build/default/production/Delays.o
  .debug_aranges
-                  0x0000a8         0x18 build/default/production/Delays.o
+                  0x0000a8         0x18 build/default/production/MasterComm.o
  .debug_aranges
-                  0x0000c0         0x18 build/default/production/MasterComm.o
- .debug_aranges
-                  0x0000d8         0x18 build/default/production/DisplayRTCC.o
+                  0x0000c0         0x18 build/default/production/DisplayRTCC.o
                     0x0000                  WREG0 = 0x0
                     0x0000                  _WREG0 = 0x0
                     0x0002                  WREG1 = 0x2
@@ -1651,185 +1467,131 @@ LOAD default_isr
 LOAD data_init
 
 .debug_pubtypes
-                  0x0000f0        0x6db
+                  0x0000d8        0x5f7
  .debug_pubtypes
-                  0x0000f0        0x153 build/default/production/PowerMain.o
+                  0x0000d8        0x134 build/default/production/PowerMain.o
  .debug_pubtypes
-                  0x000243         0x4c build/default/production/EEPROM.o
+                  0x00020c         0x4c build/default/production/EEPROM.o
  .debug_pubtypes
-                  0x00028f         0x3e build/default/production/Power.o
+                  0x000258         0x3e build/default/production/Power.o
  .debug_pubtypes
-                  0x0002cd        0x187 build/default/production/PowerUART.o
+                  0x000296        0x187 build/default/production/PowerUART.o
  .debug_pubtypes
-                  0x000454        0x132 build/default/production/PowerSurvive.o
+                  0x00041d         0x67 build/default/production/I2C_RTCC.o
  .debug_pubtypes
-                  0x000586         0x67 build/default/production/I2C_RTCC.o
+                  0x000484         0x78 build/default/production/OC_PWM.o
  .debug_pubtypes
-                  0x0005ed         0x78 build/default/production/OC_PWM.o
+                  0x0004fc         0x12 build/default/production/Delays.o
  .debug_pubtypes
-                  0x000665        0x124 build/default/production/MasterComm.o
+                  0x00050e        0x17f build/default/production/MasterComm.o
  .debug_pubtypes
-                  0x000789         0x42 build/default/production/DisplayRTCC.o
+                  0x00068d         0x42 build/default/production/DisplayRTCC.o
 
 __c30_signature
-                  0x0007cb         0x7e
+                  0x0006cf         0x84
  __c30_signature
-                  0x0007cb          0x6 build/default/production/PowerMain.o
+                  0x0006cf          0x6 build/default/production/PowerMain.o
  __c30_signature
-                  0x0007d1          0x6 build/default/production/PowerConfiguration.o
+                  0x0006d5          0x6 build/default/production/PowerConfiguration.o
  __c30_signature
-                  0x0007d7          0x6 build/default/production/EEPROM.o
+                  0x0006db          0x6 build/default/production/EEPROM.o
  __c30_signature
-                  0x0007dd          0x6 build/default/production/Power.o
+                  0x0006e1          0x6 build/default/production/Power.o
  __c30_signature
-                  0x0007e3          0x6 build/default/production/PowerUART.o
+                  0x0006e7          0x6 build/default/production/PowerUART.o
  __c30_signature
-                  0x0007e9          0x6 build/default/production/PowerSurvive.o
+                  0x0006ed          0x6 build/default/production/I2C_RTCC.o
  __c30_signature
-                  0x0007ef          0x6 build/default/production/I2C_RTCC.o
+                  0x0006f3          0x6 build/default/production/OC_PWM.o
  __c30_signature
-                  0x0007f5          0x6 build/default/production/OC_PWM.o
+                  0x0006f9          0x6 build/default/production/Delays.o
  __c30_signature
-                  0x0007fb          0x6 build/default/production/Delays.o
+                  0x0006ff          0x6 build/default/production/MasterComm.o
  __c30_signature
-                  0x000801          0x6 build/default/production/MasterComm.o
+                  0x000705          0x6 build/default/production/DisplayRTCC.o
  __c30_signature
-                  0x000807          0x6 build/default/production/DisplayRTCC.o
+                  0x00070b          0x6 build/default/production/REMOVE_PowerSurvive.o
  __c30_signature
-                  0x00080d          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o)
+                  0x000711          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o)
  __c30_signature
-                  0x000813          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(data_init_standard.o)
+                  0x000717          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libpic30-elf.a(data_init_standard.o)
  __c30_signature
-                  0x000819          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
+                  0x00071d          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atoi.eo)
  __c30_signature
-                  0x00081f          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atoi.eo)
+                  0x000723          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(atol.eo)
  __c30_signature
-                  0x000825          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
+                  0x000729          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(itoa.eo)
  __c30_signature
-                  0x00082b          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
+                  0x00072f          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(ltoa.eo)
  __c30_signature
-                  0x000831          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
+                  0x000735          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(strtol.eo)
  __c30_signature
-                  0x000837          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(errno.elo)
+                  0x00073b          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(errno.elo)
  __c30_signature
-                  0x00083d          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(umodsi3.eo)
+                  0x000741          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(udivsi3.eo)
  __c30_signature
-                  0x000843          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(mulsi3.eo)
+                  0x000747          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(umodsi3.eo)
+ __c30_signature
+                  0x00074d          0x6 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libm-elf.a(mulsi3.eo)
 
-.nbss               0x0800        0x4a2
- .nbss              0x0800        0x462 build/default/production/PowerMain.o
-                    0x0800                  _resetHour
-                    0x0801                  _resetMinute
-                    0x0802                  _highAlloc
-                    0x0806                  _lowAlloc
-                    0x080a                  _isHigh
-                    0x080b                  _relayActive
-                    0x080c                  _passwordSet
-                    0x0812                  _emerButtonEnable
-                    0x0814                  _emerButtonAlloc
-                    0x0816                  _audibleAlarm
-                    0x0817                  _alarmOnePower
-                    0x0818                  _alarmTwoPower
-                    0x0819                  _alarmOneEnabled
-                    0x081a                  _alarmTwoEnabled
-                    0x081b                  _lastSendSec
-                    0x081c                  _sendBuffer1
-                    0x0844                  _sendBuffer2
-                    0x086c                  _sendBuffer3
-                    0x0894                  _sendBuffer4
-                    0x08bc                  _sendBuffer5
-                    0x08e4                  _sendBlackHole
-                    0x090c                  _receivedToProcess
-                    0x0935                  _receiveBuffer1
-                    0x095e                  _receiveBuffer2
-                    0x0987                  _receiveBuffer3
-                    0x09b0                  _receiveBuffer4
-                    0x09d9                  _receiveBuffer5
-                    0x0a02                  _receiveBlackHole
-                    0x0a2b                  _receivedCommand
-                    0x0a5d                  _receivedAttribute
-                    0x0a8f                  _receivedValue
-                    0x0ac1                  _sendBuffer1Used
-                    0x0ac2                  _sendBuffer2Used
-                    0x0ac3                  _sendBuffer3Used
-                    0x0ac4                  _sendBuffer4Used
-                    0x0ac5                  _sendBuffer5Used
-                    0x0ac6                  _receiveBuffer1Used
-                    0x0ac7                  _receiveBuffer2Used
-                    0x0ac8                  _receiveBuffer3Used
-                    0x0ac9                  _receiveBuffer4Used
-                    0x0aca                  _receiveBuffer5Used
-                    0x0acb                  _readyToProcess
-                    0x0acc                  _newSendData
-                    0x0acd                  _newReceiveData
-                    0x0ace                  _commError
-                    0x0acf                  _commErrorTime
-                    0x0ad0                  _emerAllocNow
-                    0x0ad2                  _emerAllocSend
-                    0x0ad4                  _powerDownTime
-                    0x0ae0                  _powerUpTime
-                    0x0aec                  _newSendDataU2
-                    0x0aee                  _sendIndexU2
-                    0x0af0                  _receiveIndexU2
-                    0x0af2                  _stringToSendU2
-                    0x0b1a                  _receiveBufferU2
-                    0x0b43                  _newSendDataU1
-                    0x0b44                  _sendIndexU1
-                    0x0b46                  _receiveIndexU1
-                    0x0b48                  _stringToSendU1
-                    0x0b70                  _receiveBufferU1
-                    0x0b99                  _timeYear
-                    0x0b9a                  _timeMonth
-                    0x0b9b                  _timeDay
-                    0x0b9c                  _timeWeekday
-                    0x0b9d                  _timeHour
-                    0x0b9e                  _timeMinute
-                    0x0b9f                  _timeSecond
-                    0x0ba0                  _tempHour
-                    0x0ba1                  _tempMin
-                    0x0ba2                  _tempMonth
-                    0x0ba3                  _tempDay
-                    0x0ba4                  _tempYear
-                    0x0ba5                  _buffer1
-                    0x0bb1                  _buffer2
-                    0x0bbd                  _buffer3
-                    0x0bc9                  _buffer4
-                    0x0bd5                  _buffer5
-                    0x0be1                  _buffer6
-                    0x0bed                  _buffer7
-                    0x0bf9                  _buffer8
-                    0x0c06                  _powerBoxCodeVersion
-                    0x0c0a                  _displayBoxCodeVersion
-                    0x0c0e                  _powerBoxCodeVersionString
-                    0x0c18                  _tba_energyAllocation
-                    0x0c1c                  _tba_energyUsedLifetime
-                    0x0c20                  _tba_energyUsedLastDayReset
-                    0x0c24                  _tba_powerWatts
-                    0x0c28                  _tba_energyUsedPreviousDay
- .nbss              0x0c62         0x38 build/default/production/MasterComm.o
- .nbss              0x0c9a          0x8 build/default/production/I2C_RTCC.o
-                    0x0c9a                  _powerDownMinute
-                    0x0c9b                  _powerDownHour
-                    0x0c9c                  _powerDownDay
-                    0x0c9d                  _powerDownMonth
-                    0x0c9e                  _powerUpMinute
-                    0x0c9f                  _powerUpHour
-                    0x0ca0                  _powerUpDay
-                    0x0ca1                  _powerUpMonth
+.nbss               0x0800        0x166
+ .nbss              0x0800        0x13e build/default/production/MasterComm.o
+                    0x0800                  _tba_energyAllocation
+                    0x0804                  _tba_energyUsedLifetime
+                    0x0808                  _tba_energyUsedLastDayReset
+                    0x080c                  _tba_powerWatts
+                    0x0810                  _tba_energyUsedPreviousDay
+                    0x0814                  _audibleAlarm
+                    0x0815                  _alarm1Enabled
+                    0x0816                  _alarm2Enabled
+                    0x0817                  _alarm1Energy
+                    0x0818                  _alarm2Energy
+ .nbss              0x093e         0x18 build/default/production/PowerMain.o
+                    0x093e                  _highAlloc
+                    0x0942                  _lowAlloc
+                    0x0946                  _emerButtonEnable
+                    0x0948                  _emerButtonEnergyAllocate
+                    0x094a                  _resetTimeHour
+                    0x094b                  _resetTimeMinute
+                    0x094c                  _relayActive
+ .nbss              0x0956         0x10 build/default/production/I2C_RTCC.o
+                    0x0956                  _timeYear
+                    0x0957                  _timeMonth
+                    0x0958                  _timeDay
+                    0x0959                  _timeWeekday
+                    0x095a                  _timeHour
+                    0x095b                  _timeMinute
+                    0x095c                  _timeSecond
+                    0x095d                  _powerFailTimeMinute
+                    0x095e                  _powerFailTimeHour
+                    0x095f                  _powerFailTimeDay
+                    0x0960                  _powerFailTimeMonth
+                    0x0961                  _powerRestoreTimeMinute
+                    0x0962                  _powerRestoreTimeHour
+                    0x0963                  _powerRestoreTimeDay
+                    0x0964                  _powerRestoreTimeMonth
 
-.ndata              0x0ca2          0x6
- .ndata             0x0ca2          0x4 build/default/production/MasterComm.o
- .ndata             0x0ca6          0x2 build/default/production/PowerMain.o
+.ndata              0x0966          0xc
+ .ndata             0x0966          0xc build/default/production/PowerMain.o
+                    0x0966                  _powerBoxCodeVersion
+                    0x096f                  _isHigh
 
-.nbss               0x0ca8          0x2
- .nbss              0x0ca8          0x2 build/default/production/Power.o
+.nbss               0x0972          0x6
+ .nbss              0x0972          0x6 build/default/production/EEPROM.o
+                    0x0972                  _passwordSet
 
-.ndata              0x0caa          0x2
- .ndata             0x0caa          0x2 build/default/production/OC_PWM.o
+.ndata              0x0978          0x4
+ .ndata             0x0978          0x4 build/default/production/MasterComm.o
 
-.bss                0x0cac          0x2
- .bss               0x0cac          0x2 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(errno.elo)
-                    0x0cac                  _errno
+.nbss               0x097c          0x2
+ .nbss              0x097c          0x2 build/default/production/Power.o
+
+.ndata              0x097e          0x2
+ .ndata             0x097e          0x2 build/default/production/OC_PWM.o
+
+.bss                0x0980          0x2
+ .bss               0x0980          0x2 c:/program files (x86)/microchip/xc16/v1.33/bin/bin/../../lib\libc-elf.a(errno.elo)
+                    0x0980                  _errno
 
 .config_DSWDTEN
                   0xf80010          0x2
@@ -1862,176 +1624,135 @@ __c30_signature
  .ivt._U2ErrInterrupt
                   0x000098          0x2 build/default/production/PowerUART.o
 
-.ivt._U1RXInterrupt
-                  0x00002a          0x2
- .ivt._U1RXInterrupt
-                  0x00002a          0x2 build/default/production/PowerUART.o
-
 .ivt._U1ErrInterrupt
                   0x000096          0x2
  .ivt._U1ErrInterrupt
                   0x000096          0x2 build/default/production/PowerUART.o
 
-.ivt._CNInterrupt
-                  0x00003a          0x2
- .ivt._CNInterrupt
-                  0x00003a          0x2 build/default/production/PowerSurvive.o
+.const              0x8644         0x72 load address 0x000644  
+ .const             0x8644         0x72 build/default/production/MasterComm.o
 
-.const              0x875a        0x116 load address 0x00075a  
- .const             0x875a         0xce build/default/production/PowerMain.o
- .const             0x8828         0x2a build/default/production/MasterComm.o
- .const             0x8852         0x12 build/default/production/PowerSurvive.o
- .const             0x8864          0xc build/default/production/I2C_RTCC.o
+.text             0x0006b6       0x3078
+ .text            0x0006b6       0x111a build/default/production/MasterComm.o
+                  0x0006b6                  _communications
+                  0x0006ca                  _communicationsSPI
+                  0x00079a                  _communicationsUART1
+                  0x0007f8                  _communicationsUART2
+                  0x000850                  _communicationsRecv
+                  0x000910                  _communicationsSend
+                  0x000998                  _set_current_port
+                  0x0009f0                  _receive_data
+                  0x000a92                  _process_data
+                  0x000aac                  _process_data_parameterize
+                  0x000b90                  _process_data_parameters
+                  0x0012ca                  _command_builder1
+                  0x0012ec                  _command_builder2
+                  0x00131c                  _command_builder3
+                  0x00135a                  _command_builder4
+                  0x0013a6                  _command_builder5
+                  0x001406                  _command_builder6
+                  0x001474                  _command_builder7
+                  0x0014f0                  _command_builder_add_char
+                  0x001522                  _command_builder_add_string
+                  0x00154e                  _strmatch
+                  0x001578                  _strcmp2
+                  0x00161a                  _fillOnOff
+                  0x001660                  _checkOnOff
+                  0x00168c                  _SPI_receive_data_char
+                  0x0016ae                  _SPI_send_data_char
+                  0x0016ce                  _UART1_receive_data_char
+                  0x0016f0                  _UART1_send_data_char
+                  0x001712                  _UART2_receive_data_char
+                  0x001734                  _UART2_send_data_char
+                  0x001756                  _send_end_of_transmission
+                  0x001764                  _SPIMasterInit
+ .text            0x0017d0        0xdc2 build/default/production/EEPROM.o
+                  0x0017d0                  _EEreadAll
+                  0x0017e6                  _EEreadPassword
+                  0x001868                  _EEwritePassword
+                  0x0019b2                  _EEreadEnergyAlloc
+                  0x0019dc                  _EEwriteEnergyAlloc
+                  0x001a1a                  _EEreadEmerButton
+                  0x001a54                  _EEwriteEmerButton
+                  0x001a90                  _EEreadResetTime
+                  0x001ad4                  _EEwriteResetTime
+                  0x001b1e                  _EEreadAlarm
+                  0x001b86                  _EEwriteAlarm
+                  0x001c2e                  _EEreadTotals
+                  0x001cac                  _EEwriteTotals
+                  0x001da0                  _EEreadPowerUsed
+                  0x001f0c                  _EEwriteEnergyUsed
+                  0x002430                  _EEreadRelay
+                  0x002458                  _EEwriteRelay
+                  0x002494                  _findPowerToRead
+                  0x002580                  _findPowerToWrite
+ .text            0x002592        0xc16 build/default/production/PowerMain.o
+                  0x002592                  _LEDrunup
+                  0x0025d6                  _LEDrundown
+                  0x00261a                  _LEDrun
+                  0x00262a                  _main
+                  0x00299a                  _init
+                  0x0029b0                  _initVars
+                  0x002a0c                  _setClock
+                  0x002cd2                  _dailyResetPowerOnCheck
+                  0x002e78                  _dailyResetCheck
+                  0x002ea4                  _dailyReset
+                  0x002ec8                  _initPorts
+                  0x002f00                  _enablePullDownResistors
+                  0x002f08                  _enableInterrupts
+                  0x002f14                  _disableInterrupts
+                  0x002f22                  _readButton
+                  0x002f6c                  _storeToEE
+                  0x002f88                  _setHighLow
+                  0x002fa6                  _initRTCCDisplay
+                  0x002fc2                  _debugLEDSet
+                  0x003056                  _debugLEDRotateA
+                  0x003098                  _debugLEDRotateB
+                  0x0030da                  _debugLEDToggle
+ .text            0x0031a8        0x346 build/default/production/I2C_RTCC.o
+                  0x0031a8                  _readTimeI2C
+                  0x0031bc                  _readI2CTime
+                  0x003236                  _setI2CTime
+                  0x0032ca                  _startClock
+                  0x003312                  _BeginSequentialReadI2C
+                  0x003338                  _SequentialReadI2C
+                  0x00335c                  _ReadI2CRegister
+                  0x00337e                  _readI2CPowerTimes
+                  0x0033ba                  _IdleI2C
+                  0x0033cc                  _StartI2C
+                  0x0033de                  _StopI2C
+                  0x0033f0                  _RestartI2C
+                  0x003402                  _NackI2C
+                  0x003416                  _AckI2C
+                  0x00342a                  _initI2C
+                  0x00343c                  _WriteI2C
+                  0x00345e                  _ReadI2C
+                  0x00348c                  _BcdToDecI2C
+                  0x0034bc                  _DecToBcdI2C
+ .text            0x0034ee        0x186 build/default/production/DisplayRTCC.o
+                  0x0034ee                  _readTime
+                  0x00354e                  _writeTime
+                  0x00361a                  _BcdToDec
+                  0x00363a                  _DecToBcd
+ .text            0x003674         0xba build/default/production/PowerUART.o
+                  0x003674                  _initUART
+                  0x00367e                  _initUART2
+                  0x0036d6                  _initUART1
 
-.text             0x000870       0x309e
- .text            0x000870       0x1494 build/default/production/PowerMain.o
-                  0x000870                  _commInit
-                  0x0008ac                  _commFunctions
-                  0x0008b6                  _splitReceivedCommand
-                  0x000b16                  _sendCommands
-                  0x000c7c                  _sendBuffer
-                  0x000cca                  _receiveBuffer
-                  0x000d18                  _flushBuffer
-                  0x000d3c                  _stringCopy
-                  0x000d74                  _stringConcat
-                  0x000db6                  _stringCompare
-                  0x000dfa                  _stringLength
-                  0x000e20                  _commandBuilder1
-                  0x000e64                  _commandBuilder2
-                  0x000e96                  _commandBuilder3
-                  0x000ecc                  _commandBuilder4
-                  0x000f06                  _commandBuilder5
-                  0x000f44                  _commandExpander
-                  0x000fd8                  _processReceivedCommand
-                  0x0012d2                  _setRemoteTime
-                  0x0013d6                  _setRemotePower
-                  0x00142a                  _setRemoteAlarm
-                  0x001486                  _setRemotePassword
-                  0x0014b4                  _setRemoteEmergency
-                  0x0014ec                  _setRemoteVersion
-                  0x0014fa                  _setRemotePowerDownUpTime
-                  0x001510                  _setRemoteResetTime
-                  0x00153c                  _setRemoteRelay
-                  0x00155a                  _setRemoteStats
-                  0x001580                  _setRemoteHL
-                  0x00159e                  _doReset
-                  0x0015ac                  _sendUpdate
-                  0x0015b4                  _readRemoteTime
-                  0x0015c2                  _readRemotePower
-                  0x0015d0                  _readRemoteAlarm
-                  0x0015de                  _readRemotePassword
-                  0x0015ec                  _readRemoteEmergency
-                  0x0015fa                  _readRemoteVersion
-                  0x001608                  _readRemoteResetTime
-                  0x001616                  _readRemoteRelay
-                  0x001624                  _readRemoteStats
-                  0x001632                  _readRemoteHL
-                  0x001640                  _readRemotePowerDownUpTime
-                  0x00164e                  _readUpdate
-                  0x00165c                  _main
-                  0x00186e                  _init
-                  0x001894                  _initVars
-                  0x0018e0                  _setClock
-                  0x001ba6                  _dailyResetCheck
-                  0x001bd2                  _dailyReset
-                  0x001bf8                  _initPorts
-                  0x001c28                  _enablePullDownResistors
-                  0x001c30                  _enableInterrupts
-                  0x001c3c                  _disableInterrupts
-                  0x001c4a                  _readButton
-                  0x001c94                  _storeToEE
-                  0x001cca                  _setHighLow
-                  0x001ce8                  _initRTCCDisplay
- .text            0x001d04        0xe22 build/default/production/EEPROM.o
-                  0x001d04                  _EEreadAll
-                  0x001d1c                  _EEreadPassword
-                  0x001d9e                  _EEwritePassword
-                  0x001ee8                  _EEreadPowerAlloc
-                  0x001f12                  _EEwritePowerAlloc
-                  0x001f50                  _EEreadEmerButton
-                  0x001f8a                  _EEwriteEmerButton
-                  0x001fc6                  _EEreadResetTime
-                  0x00200a                  _EEwriteResetTime
-                  0x002054                  _EEreadAlarm
-                  0x0020bc                  _EEwriteAlarm
-                  0x002164                  _EEreadTotals
-                  0x0021e2                  _EEwriteTotals
-                  0x0022d2                  _EEreadPowerUsed
-                  0x00243e                  _EEwritePowerUsed
-                  0x002960                  _EEreadHL
-                  0x002988                  _EEwriteHL
-                  0x0029c4                  _EEreadRelay
-                  0x0029ec                  _EEwriteRelay
-                  0x002a28                  _findPowerToRead
-                  0x002b14                  _findPowerToWrite
- .text            0x002b26        0x69e build/default/production/MasterComm.o
-                  0x002b26                  _communications
-                  0x002bf0                  _set_current_port
-                  0x002c48                  _receive_data
-                  0x002ccc                  _process_data
-                  0x002ce6                  _process_data_parameterize
-                  0x002dc4                  _process_data_parameters
-                  0x002eba                  _command_builder1
-                  0x002edc                  _command_builder2
-                  0x002f0c                  _command_builder3
-                  0x002f4a                  _command_builder4
-                  0x002f96                  _command_builder_add_char
-                  0x002fc6                  _command_builder_add_string
-                  0x002ff2                  _send_data
-                  0x00303c                  _strmatch
-                  0x003066                  _strcmp2
-                  0x003108                  _SPI_receive_data
-                  0x00312a                  _SPI_send_data
-                  0x00314a                  _send_end_of_transmission
-                  0x003158                  _SPIMasterInit
- .text            0x0031c4        0x3e8 build/default/production/I2C_RTCC.o
-                  0x0031c4                  _readTimeI2C
-                  0x0031d8                  _readI2CTime
-                  0x003252                  _setI2CTime
-                  0x0032e6                  _startClock
-                  0x00332e                  _BeginSequentialReadI2C
-                  0x003354                  _SequentialReadI2C
-                  0x003378                  _ReadI2CRegister
-                  0x00339a                  _readI2CPowerTimes
-                  0x003478                  _IdleI2C
-                  0x00348a                  _StartI2C
-                  0x00349c                  _StopI2C
-                  0x0034ae                  _RestartI2C
-                  0x0034c0                  _NackI2C
-                  0x0034d4                  _AckI2C
-                  0x0034e8                  _initI2C
-                  0x0034fa                  _WriteI2C
-                  0x00351c                  _ReadI2C
-                  0x00354a                  _BcdToDecI2C
-                  0x00357a                  _DecToBcdI2C
- .text            0x0035ac        0x186 build/default/production/DisplayRTCC.o
-                  0x0035ac                  _readTime
-                  0x00360c                  _writeTime
-                  0x0036d8                  _BcdToDec
-                  0x0036f8                  _DecToBcd
- .text            0x003732         0xd0 build/default/production/OC_PWM.o
-                  0x003732                  _updateLEDs
- .text            0x003802         0xae build/default/production/PowerUART.o
-                  0x003802                  _initUART
-                  0x00380c                  _initUART2
-                  0x00385e                  _initUART1
- .text            0x0038b0         0x5e build/default/production/Delays.o
-                  0x0038b0                  _delayFourUS
-                  0x0038c8                  _delayMS
-                  0x0038f4                  _commDelay
+.dinit            0x00372e         0x46
+ .dinit           0x00372e         0x46 data_init
 
-.dinit            0x00390e         0x3a
- .dinit           0x00390e         0x3a data_init
-
-.text             0x003948         0x5e
- .text            0x003948         0x38 build/default/production/Power.o
-                  0x003948                  _relayControl
- .text            0x003980         0x26 build/default/production/PowerSurvive.o
-                  0x003980                  _initPowerLossDetection
-                  0x00398c                  _goToSleep
+.text             0x003774         0x82
+ .text            0x003774         0x44 build/default/production/Delays.o
+                  0x003774                  _delayFourUS
+                  0x00378c                  _delayMS
+ .text            0x0037b8         0x38 build/default/production/Power.o
+                  0x0037b8                  _relayControl
+ .text            0x0037f0          0x6 build/default/production/OC_PWM.o
+                  0x0037f0                  _updateLEDs
 
 .eedata             0xfe00         0x44 load address 0x7ffe00  
- .eedata            0xfe00         0x44 build/default/production/PowerMain.o
+ .eedata            0xfe00         0x44 build/default/production/EEPROM.o
                     0xfe00                  _EEpassword0
                     0xfe02                  _EEpassword1
                     0xfe04                  _EEpassword2

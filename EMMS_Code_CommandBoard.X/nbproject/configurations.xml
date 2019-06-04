@@ -4,12 +4,20 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>PowerDefinitions.h</itemPath>
-      <itemPath>ExternPowerDefinitions.h</itemPath>
-      <itemPath>PowerPinDefinitions.h</itemPath>
-      <itemPath>ExternSharedDefinitions.h</itemPath>
-      <itemPath>SharedDefinitions.h</itemPath>
       <itemPath>Communications.h</itemPath>
+      <itemPath>common.h</itemPath>
+      <itemPath>I2C_RTCC.h</itemPath>
+      <itemPath>REMOVE_SharedDefinitions.h</itemPath>
+      <itemPath>Delays.h</itemPath>
+      <itemPath>MasterComm.h</itemPath>
+      <itemPath>PowerUART.h</itemPath>
+      <itemPath>REMOVE_ExternSharedDefinitions.h</itemPath>
+      <itemPath>PowerMain.h</itemPath>
+      <itemPath>OC_PWM.h</itemPath>
+      <itemPath>EEPROM.h</itemPath>
+      <itemPath>REMOVE_PowerDefinitions.h</itemPath>
+      <itemPath>REMOVE_ExternPowerDefinitions.h</itemPath>
+      <itemPath>REMOVE_PowerPinDefinitions.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -23,14 +31,14 @@
       <itemPath>EEPROM.c</itemPath>
       <itemPath>Power.c</itemPath>
       <itemPath>PowerUART.c</itemPath>
-      <itemPath>PowerSurvive.c</itemPath>
       <itemPath>I2C_RTCC.c</itemPath>
       <itemPath>OC_PWM.c</itemPath>
       <itemPath>Delays.c</itemPath>
-      <itemPath>SharedCommunication.c</itemPath>
       <itemPath>MasterComm.c</itemPath>
       <itemPath>DisplayRTCC.c</itemPath>
       <itemPath>-CL_CommandBoard.txt</itemPath>
+      <itemPath>REMOVE_PowerSurvive.c</itemPath>
+      <itemPath>REMOVE_SharedCommunication.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -50,7 +58,7 @@
         <targetDevice>PIC24FV32KA302</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>pk4hybrid</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>3</platform>
@@ -271,7 +279,7 @@
         <property key="programoptions.uselvpprogramming" value="false"/>
         <property key="voltagevalue" value="5.0"/>
       </PICkit3PlatformTool>
-      <item path="PowerSurvive.c" ex="false" overriding="false">
+      <item path="REMOVE_PowerSurvive.c" ex="false" overriding="false">
         <C30>
         </C30>
         <C30-AR>
@@ -283,7 +291,7 @@
         <C30Global>
         </C30Global>
       </item>
-      <item path="SharedCommunication.c" ex="true" overriding="false">
+      <item path="REMOVE_SharedCommunication.c" ex="true" overriding="false">
         <C30>
         </C30>
         <C30-AR>
@@ -627,6 +635,76 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <pk4hybrid>
+        <property key="ADC 1" value="true"/>
+        <property key="AutoSelectMemRanges" value="auto"/>
+        <property key="CLOCK CONTROL LVDCON" value="true"/>
+        <property key="CLOCK CONTROL REFOCON" value="true"/>
+        <property key="COMPARATOR" value="true"/>
+        <property key="CRC" value="true"/>
+        <property key="CTMU" value="true"/>
+        <property key="Freeze All Other Peripherals" value="true"/>
+        <property key="I2C1" value="true"/>
+        <property key="I2C2" value="true"/>
+        <property key="INPUT CAPTURE 1" value="true"/>
+        <property key="INPUT CAPTURE 2" value="true"/>
+        <property key="INPUT CAPTURE 3" value="true"/>
+        <property key="OUTPUT COMPARE 1" value="true"/>
+        <property key="OUTPUT COMPARE 2" value="true"/>
+        <property key="OUTPUT COMPARE 3" value="true"/>
+        <property key="RTCC" value="true"/>
+        <property key="SPI 1" value="true"/>
+        <property key="SPI 2" value="true"/>
+        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
+        <property key="TIMER1" value="true"/>
+        <property key="TIMER2" value="true"/>
+        <property key="TIMER3" value="true"/>
+        <property key="TIMER4" value="true"/>
+        <property key="TIMER5" value="true"/>
+        <property key="ToolFirmwareFilePath"
+                  value="Press to browse for a specific firmware version"/>
+        <property key="ToolFirmwareOption.UpdateOptions"
+                  value="ToolFirmwareOption.UseLatest"/>
+        <property key="UART 1" value="true"/>
+        <property key="UART 2" value="true"/>
+        <property key="communication.interface"
+                  value="${communication.interface.default}"/>
+        <property key="communication.speed" value="${communication.speed.default}"/>
+        <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="memories.aux" value="false"/>
+        <property key="memories.bootflash" value="true"/>
+        <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.configurationmemory2" value="true"/>
+        <property key="memories.dataflash" value="true"/>
+        <property key="memories.eeprom" value="true"/>
+        <property key="memories.exclude.configurationmemory" value="true"/>
+        <property key="memories.flashdata" value="true"/>
+        <property key="memories.id" value="true"/>
+        <property key="memories.instruction.ram.ranges"
+                  value="${memories.instruction.ram.ranges}"/>
+        <property key="memories.programmemory" value="true"/>
+        <property key="memories.programmemory.ranges" value="0-57ff"/>
+        <property key="poweroptions.powerenable" value="false"/>
+        <property key="programoptions.donoteraseauxmem" value="false"/>
+        <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.ledbrightness" value="5"/>
+        <property key="programoptions.pgcconfig" value="pull down"/>
+        <property key="programoptions.pgcresistor.value" value="4.7"/>
+        <property key="programoptions.pgdconfig" value="pull down"/>
+        <property key="programoptions.pgdresistor.value" value="4.7"/>
+        <property key="programoptions.pgmentry.voltage" value="high"/>
+        <property key="programoptions.pgmspeed" value="Med"/>
+        <property key="programoptions.preservedataflash" value="false"/>
+        <property key="programoptions.preserveeeprom" value="false"/>
+        <property key="programoptions.preserveeeprom.ranges" value="7ffe00-7fffff"/>
+        <property key="programoptions.preserveprogram.ranges" value=""/>
+        <property key="programoptions.preserveprogramrange" value="false"/>
+        <property key="programoptions.preserveuserid" value="false"/>
+        <property key="programoptions.programcalmem" value="false"/>
+        <property key="programoptions.programuserotp" value="false"/>
+        <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
+        <property key="voltagevalue" value="5.0"/>
+      </pk4hybrid>
     </conf>
   </confs>
 </configurationDescriptor>
