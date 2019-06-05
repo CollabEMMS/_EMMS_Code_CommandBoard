@@ -3,8 +3,10 @@
  only include the header files that are required
  ****************/
 #include "common.h"
+#include "PowerMain.h"
 #include "I2C_RTCC.h"
 #include "MasterComm.h"
+
 
 /****************
  MACROS
@@ -36,15 +38,12 @@
 
 void updateLEDs( void )
 {
-
     int percent;
 
     unsigned long tempPowerUsed;
 
-    if( LEDS_FOR_TESTING != true )
+    if( (LEDS_FOR_TESTING != true) && (lightsModeActive == false) )
     {
-
-
 	tempPowerUsed = (tba_energyUsedLifetime - tba_energyUsedLastDayReset);
 	if( tba_energyAllocation > tempPowerUsed )
 	{

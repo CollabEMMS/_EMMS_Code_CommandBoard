@@ -128,6 +128,7 @@ void strcpy2( char* rcv, char* source );
 void fillOnOff( char *buf, int checkValue );
 bool checkOnOff( char *toCheck );
 
+void zeroPad_itoa( char *output, int num, int minDigits );
 
 
 void send_end_of_transmission( struct buffer *send_buffer );
@@ -369,10 +370,6 @@ void communicationsUART1( bool initialize )
     case enum_receive_status_in_command:
 	break;
     case enum_receive_status_end_command:
-	if( send_buffer.port == enum_port_commUART1 )
-	{
-	    debugLEDToggle( 1 );
-	}
 
 	if( process_data( &receive_buffer, &send_buffer ) == true )
 	{
@@ -844,7 +841,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     // it's not very clean to call the command builder functions from here
     // especially if there is some processing to do, like setting a clock or something
 
-
     if( strmatch( parameters[0], "END" ) == true )
     {
 
@@ -1042,6 +1038,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    command_builder2( send_buffer, "Conf", "Relay" );
 
 	}
+	    //	else if( strmatch( parameters[1], "DebugMode" ) )
+
 	else if( strmatch( parameters[1], "Watts" ) == true )
 	{
 	    tba_powerWatts = atol( parameters[2] );
@@ -1081,6 +1079,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    }
 
 	}
+	else if( strmatch( parameters[1], "Lights" ) == true )
+	{
+
+	    lightsModeActive = checkOnOff( parameters[2] );
+
+	    command_builder2( send_buffer, "Conf", "Lights" );
+
+	}
 	    //	else if( strmatch( parameters[1], "Volts" ) == true )
 	    //	{
 	    //	    powerVolts = atoi( parameters[2] );
@@ -1095,6 +1101,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    command_builder2( send_buffer, "Conf", "PSVersion" );
 	}
+
 
 	//	else if( strmatch( parameters[1], "LED" ) == true )
 	//	{
@@ -1130,8 +1137,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	if( strmatch( parameters[1], "Time" ) == true )
 	{
-
-
 	    char timeDateBuf[9]; //	"DD-MM-YY"
 	    char timeTimeBuf[9]; //	"HH:MM:SS"
 
@@ -1143,13 +1148,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char timeTimeMMBuf[BUF_SIZE_INT];
 	    char timeTimeSSBuf[BUF_SIZE_INT];
 
-	    itoa( timeDateDDBuf, timeDay, 10 );
-	    itoa( timeDateMMBuf, timeMonth, 10 );
-	    itoa( timeDateYYBuf, timeYear, 10 );
-	    itoa( timeTimeHHBuf, timeHour, 10 );
-	    itoa( timeTimeMMBuf, timeMinute, 10 );
-	    itoa( timeTimeSSBuf, timeSecond, 10 );
 
+	    zeroPad_itoa( timeDateDDBuf, timeDay, 2 );
+	    zeroPad_itoa( timeDateMMBuf, timeMonth, 2 );
+	    zeroPad_itoa( timeDateYYBuf, timeYear, 2 );
+	    zeroPad_itoa( timeTimeHHBuf, timeHour, 2 );
+	    zeroPad_itoa( timeTimeMMBuf, timeMinute, 2 );
+	    zeroPad_itoa( timeTimeSSBuf, timeSecond, 2 );
 
 	    timeDateBuf[0] = timeDateDDBuf[0];
 	    timeDateBuf[1] = timeDateDDBuf[1];
@@ -1341,8 +1346,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    long energyUsedTemp;
 
-	    debugLEDRotateA( 2, 4 );
-
 	    energyUsedTemp = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
 
 	    char energyAllocationBuf[BUF_SIZE_LONG];
@@ -1352,10 +1355,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    ltoa( energyAllocationBuf, tba_energyAllocation, 10 );
 	    ltoa( energyUsedBuf, energyUsedTemp, 10 );
 	    ltoa( powerWattsBuf, tba_powerWatts, 10 );
-
-	    tba_energyAllocation = 0;
-	    tba_energyUsedLifetime = 0;
-	    tba_powerWatts = 0;
 
 	    command_builder5( send_buffer, "Set", "PwrData", energyAllocationBuf, energyUsedBuf, powerWattsBuf );
 
@@ -1643,6 +1642,46 @@ bool checkOnOff( char *toCheck )
     return isOn;
 }
 
+void zeroPad_itoa( char *output, int num, int minDigits )
+{
+    char temp[BUF_SIZE_INT];
+
+    int rawLen;
+
+    itoa( temp, num, 10 );
+
+    rawLen = 0;
+    while( temp[rawLen] != CHAR_NULL )
+    {
+	rawLen++;
+    }
+
+    // rawLen now contains the length of the converted number
+
+    int padding;
+
+    padding = minDigits - rawLen;
+
+    int inxOutput;
+    for( inxOutput = 0; inxOutput < padding; inxOutput++ )
+    {
+	output[inxOutput] = '0';
+    }
+
+    int inxTemp;
+    inxTemp = 0;
+    while( temp[inxTemp] != CHAR_NULL )
+    {
+	output[inxOutput] = temp[inxTemp];
+	inxOutput++;
+	inxTemp++;
+    }
+    output[inxOutput ] = CHAR_NULL;
+
+
+    return;
+}
+
 bool SPI_receive_data_char( char *data )
 {
     bool recvGood = false;
@@ -1677,9 +1716,6 @@ bool UART1_receive_data_char( char *data )
     {
 	*data = U1RXREG;
 	recvGood = true;
-
-
-
     }
 
     return recvGood;
@@ -1689,7 +1725,7 @@ bool UART1_send_data_char( char data )
 {
     bool sendGood = false;
 
-    if( U1STAbits.TRMT == 1 )
+    if( U1STAbits.UTXBF == 0 )
     {
 	U1TXREG = data;
 	sendGood = true;
@@ -1716,7 +1752,7 @@ bool UART2_send_data_char( char data )
 {
     bool sendGood = false;
 
-    if( U2STAbits.TRMT == 1 )
+    if( U2STAbits.UTXBF == 0 )
     {
 	U2TXREG = data;
 	sendGood = true;

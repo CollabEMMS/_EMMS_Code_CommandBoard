@@ -24,7 +24,7 @@
 
 // LEDs for power remaining indicator
 // can also be used for testing
-#define LEDS_FOR_TESTING true
+#define LEDS_FOR_TESTING false
 // set this to 'true' to turn off the LED graph for testing purposes
 
 #define LED1_DIR TRISAbits.TRISA2

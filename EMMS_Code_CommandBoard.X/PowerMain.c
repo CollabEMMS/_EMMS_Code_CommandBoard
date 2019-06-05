@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 #include "common.h"
-#include "Communications.h"
+//#include "Communications.h"
 #include "I2C_RTCC.h"
 #include "MasterComm.h"
 #include "Delays.h"
@@ -93,6 +93,11 @@
 // external
 // internal only
 
+
+//exernal & internal
+bool lightsModeActive = false;
+
+
 //FIX = this is clunky and may not work
 char powerBoxCodeVersion[9] = "20190603";
 
@@ -119,6 +124,7 @@ char relayActive;
  ****************/
 
 void dailyResetPowerOnCheck( void );
+void lightsMode( void );
 
 
 // internal and external
@@ -364,6 +370,7 @@ int main( void )
     unsigned int timerCounterLowPriority = 0;
     unsigned int timerCounterReadI2CRTCC = 0;
     unsigned int timerCounterReadIntRTCC = 0;
+    unsigned int timerCounterLightsMode = 0;
 
     unsigned int timerCounterCommunicationsUART = 0;
 
@@ -372,17 +379,18 @@ int main( void )
     bool runLowPriority = false;
     bool runReadI2CRTCC = false;
     bool runReadIntRTCC = false;
+    bool runLightsMode = false;
 
     bool runCommunicationsUART = false;
 
 #define TIMER_MS_COUNT		    2000    // timer count for one ms to pass (2000 - 1ms))
 #define TIMER_HALF_MS_COUNT	    1000    // timer count for one half ms to pass (2000 - 1ms))
-#define TIMER_DELAY_COMMUNICATIONS  8 //4	    // time in ms to run function
+#define TIMER_DELAY_COMMUNICATIONS  0 //4	    // time in ms to run function
 #define TIMER_DELAY_LOW_PRIORITY    2000 //1000	    // time in ms to run function
 #define TIMER_DELAY_READ_I2C_RTCC   120000 //60000   // time in ms to run function
 #define TIMER_DELAY_READ_INT_RTCC   2000 //1000	    // time in ms to run function
 #define TIMER_DELAY_COM_FUNCTIONS   2 //1 	    // time in ms to run function
-
+#define TIMER_DELAY_LIGHTS_MODE	    50 // time in ms to run function
 #define TIMER_DELAY_COMMUNICATIONS_UART	    1	// half ms	    // time in ms to run function
 
 
@@ -404,6 +412,7 @@ int main( void )
 	    timerCounterLowPriority++;
 	    timerCounterReadI2CRTCC++;
 	    timerCounterReadIntRTCC++;
+	    timerCounterLightsMode++;
 
 	    timerCounterCommunicationsUART++;
 	}
@@ -438,6 +447,12 @@ int main( void )
 	    timerCounterReadIntRTCC = 0;
 	}
 
+	if( timerCounterLightsMode >= TIMER_DELAY_LIGHTS_MODE )
+	{
+	    runLightsMode = true;
+	    timerCounterLightsMode = 0;
+	}
+
 	if( timerCounterCommunicationsUART >= TIMER_DELAY_COMMUNICATIONS_UART )
 	{
 	    runCommunicationsUART = true;
@@ -452,6 +467,12 @@ int main( void )
 	//	    communicationsUART( );
 	//	    runCommunicationsUART = false;
 	//	}
+
+	if( runLightsMode == true )
+	{
+	    lightsMode( );
+	    runLightsMode = false;
+	}
 
 	if( runCommunications == true )
 	{
@@ -1045,6 +1066,65 @@ void initRTCCDisplay( void )
     _RTCEN = 1;
 
     _RTCWREN = 0; // Disable Writing
+}
+
+void lightsMode( )
+{
+    static int status = 0;
+
+    if( (LEDS_FOR_TESTING != true) && (lightsModeActive == true) )
+    {
+	switch( status )
+	{
+	case 0:
+	    LED1_SET = 1;
+	    LED2_SET = 0;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	    status++;
+	    break;
+	case 1:
+	    LED1_SET = 0;
+	    LED2_SET = 1;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	    status++;
+	    break;
+	case 2:
+	    LED1_SET = 0;
+	    LED2_SET = 0;
+	    LED3_SET = 1;
+	    LED4_SET = 0;
+	    status++;
+	    break;
+	case 3:
+	    LED1_SET = 0;
+	    LED2_SET = 0;
+	    LED3_SET = 0;
+	    LED4_SET = 1;
+	    status++;
+	    break;
+	case 4:
+	    LED1_SET = 0;
+	    LED2_SET = 0;
+	    LED3_SET = 1;
+	    LED4_SET = 0;
+	    status++;
+	    break;
+	case 5:
+	    LED1_SET = 0;
+	    LED2_SET = 1;
+	    LED3_SET = 0;
+	    LED4_SET = 0;
+	    status = 0;
+
+	    break;
+	default:
+	    status = 0;
+	    break;
+
+	}
+    }
 }
 
 void debugLEDSet( int LEDNum, bool On )

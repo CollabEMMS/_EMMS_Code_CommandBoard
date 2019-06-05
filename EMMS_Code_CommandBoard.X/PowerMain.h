@@ -22,6 +22,7 @@ extern char  alarm2Enabled;
 extern char isHigh;
 extern char relayActive;
 
+extern bool lightsModeActive;
 
 //FIX = this is clunky and may not work
 extern  char powerBoxCodeVersion[9];

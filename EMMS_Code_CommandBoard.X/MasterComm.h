@@ -21,5 +21,9 @@ extern char alarm1Energy;
 extern char alarm2Energy;
 
 
+
+void communications( bool init);
+void SPIMasterInit(void);
+
 #endif	/* MASTERCOMM_H */
 
