@@ -118,7 +118,7 @@ void relayControl( void )
     {
 	if( relayActive )
 	{
-	    if( tempEnergyUsed < tba_energyAllocation )
+	    if( tempEnergyUsed < (tba_energyAllocation + emerAllocation) )
 	    {
 		RELAY = 1;
 	    }

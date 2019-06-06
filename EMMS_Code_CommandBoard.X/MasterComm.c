@@ -64,6 +64,7 @@ char alarm2Enabled;
 char alarm1Energy;
 char alarm2Energy;
 
+int emerAllocation = 0;
 
 // internal only
 
@@ -519,6 +520,7 @@ bool communicationsSend( struct buffer *send_buffer, enum communications_port_en
 	}
 	if( data_sent == true )
 	{
+	    delayMSTenths( 5 );
 	    send_buffer->read_position++;
 	    if( send_buffer->read_position >= BUFFER_LENGTH )
 	    {
@@ -659,7 +661,6 @@ bool set_current_port( unsigned char *current_port )
 	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
 	//	LED4___SET = 0;
-
     }
     else
     {
@@ -668,7 +669,6 @@ bool set_current_port( unsigned char *current_port )
 	{
 	    *current_port = 0;
 	}
-
 	switch( *current_port )
 	{
 	case 0:
@@ -678,6 +678,7 @@ bool set_current_port( unsigned char *current_port )
 	case 1:
 	    // set correct DO the chip select here
 	    SPI_PORT_1 = 0;
+
 	    //	    LED4___SET = 1;
 
 	    break;
@@ -694,66 +695,66 @@ bool set_current_port( unsigned char *current_port )
     return enabledSPI;
 }
 
-enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received, enum communications_port_enum communicationsPort )
-{
-    char data;
-
-    static enum receive_status my_status = enum_receive_status_waiting;
-
-    if( my_status == enum_receive_status_end_command )
-    {
-	my_status = enum_receive_status_waiting;
-    }
-
-    *data_received = false;
-
-    bool gotSomething = false;
-
-    switch( communicationsPort )
-    {
-    case enum_port_commSPI:
-	gotSomething = SPI_receive_data_char( &data );
-	break;
-    case enum_port_commUART1:
-	//	gotSomething = UART1_receive_data( &data );
-	break;
-    case enum_port_commUART2:
-	//	gotSomething = UART2_receive_data( &data );
-	break;
-    }
-
-    //    if( SPI_receive_data( &data ) == true )
-    if( gotSomething == true )
-    {
-	*data_received = true;
-
-	if( (data == COMMAND_START_CHAR) && (my_status != enum_receive_status_in_command) )
-	{
-
-	    my_status = enum_receive_status_in_command;
-	    receive_buffer->read_position = 0;
-	    receive_buffer->write_position = 0;
-	}
-
-	if( my_status == enum_receive_status_in_command )
-	{
-	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-
-	    receive_buffer->write_position++;
-	    if( receive_buffer->write_position >= BUFFER_LENGTH )
-	    {
-		receive_buffer->write_position = (BUFFER_LENGTH - 1);
-	    }
-	}
-
-	if( (my_status == enum_receive_status_in_command) && (data == COMMAND_END_CHAR) )
-	{
-	    my_status = enum_receive_status_end_command;
-	}
-    }
-
-    return my_status;
-}
+//enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received, enum communications_port_enum communicationsPort )
+//{
+//    char data;
+//
+//    static enum receive_status my_status = enum_receive_status_waiting;
+//
+//    if( my_status == enum_receive_status_end_command )
+//    {
+//	my_status = enum_receive_status_waiting;
+//    }
+//
+//    *data_received = false;
+//
+//    bool gotSomething = false;
+//
+//    switch( communicationsPort )
+//    {
+//    case enum_port_commSPI:
+//	gotSomething = SPI_receive_data_char( &data );
+//	break;
+//    case enum_port_commUART1:
+//	//	gotSomething = UART1_receive_data( &data );
+//	break;
+//    case enum_port_commUART2:
+//	//	gotSomething = UART2_receive_data( &data );
+//	break;
+//    }
+//
+//    //    if( SPI_receive_data( &data ) == true )
+//    if( gotSomething == true )
+//    {
+//	*data_received = true;
+//
+//	if( (data == COMMAND_START_CHAR) && (my_status != enum_receive_status_in_command) )
+//	{
+//
+//	    my_status = enum_receive_status_in_command;
+//	    receive_buffer->read_position = 0;
+//	    receive_buffer->write_position = 0;
+//	}
+//
+//	if( my_status == enum_receive_status_in_command )
+//	{
+//	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
+//
+//	    receive_buffer->write_position++;
+//	    if( receive_buffer->write_position >= BUFFER_LENGTH )
+//	    {
+//		receive_buffer->write_position = (BUFFER_LENGTH - 1);
+//	    }
+//	}
+//
+//	if( (my_status == enum_receive_status_in_command) && (data == COMMAND_END_CHAR) )
+//	{
+//	    my_status = enum_receive_status_end_command;
+//	}
+//    }
+//
+//    return my_status;
+//}
 
 bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer )
 {
@@ -996,12 +997,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    emerButtonEnergyAllocate = atoi( parameters[3] );
 
 
-	    // the following might have a problem with disabling the emer button
-	    // the allocation must be 0 to disable the button
-	    // this might not be what we want or waht is expected
-
-	    EEwriteEmerButton( );
-
 
 	    command_builder2( send_buffer, "Conf", "Emer" );
 
@@ -1009,16 +1004,18 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	else if( strmatch( parameters[1], "RstTim" ) == true )
 	{
 
-	    int resetTimeHourTemp;
-	    int resetTimeMinuteTemp;
 
-	    resetTimeHourTemp = atoi( parameters[2] );
-	    resetTimeMinuteTemp = atoi( parameters[3] );
+	    resetTimeHour = atoi( parameters[2] );
+	    resetTimeMinute = atoi( parameters[3] );
 
+	    char rsh[20];
+	    char rsm[20];
 
+	    itoa( rsh, resetTimeHour, 10 );
+	    itoa( rsm, resetTimeMinute, 10 );
 	    EEwriteResetTime( );
 
-	    command_builder2( send_buffer, "Conf", "RstTim" );
+	    command_builder4( send_buffer, "Conf", "RstTim", rsh, rsm );
 
 	}
 	else if( strmatch( parameters[1], "Relay" ) == true )
@@ -1085,6 +1082,16 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    lightsModeActive = checkOnOff( parameters[2] );
 
 	    command_builder2( send_buffer, "Conf", "Lights" );
+
+	}
+	else if( strmatch( parameters[1], "AllAdd" ) == true )
+	{
+	    emerAllocation = atoi( parameters[2] );
+
+	    char buf[BUF_SIZE_INT];
+	    itoa( buf, emerAllocation, 10 );
+
+	    command_builder3( send_buffer, "Conf", "AllAdd", buf );
 
 	}
 	    //	else if( strmatch( parameters[1], "Volts" ) == true )
@@ -1243,14 +1250,10 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	}
 	else if( strmatch( parameters[1], "RstTim" ) == true )
 	{
-	    int resetTimeHourTemp;
-	    int resetTimeMinuteTemp;
 
 	    char resetTimeHourBuf[BUF_SIZE_INT];
 	    char resetTimeMinuteBuf[BUF_SIZE_INT];
 
-	    resetTimeHourTemp = resetTimeHour;
-	    resetTimeMinuteTemp = resetTimeMinute;
 
 	    itoa( resetTimeHourBuf, resetTimeHour, 10 );
 	    itoa( resetTimeMinuteBuf, resetTimeMinute, 10 );
@@ -1352,7 +1355,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char energyUsedBuf[BUF_SIZE_LONG];
 	    char powerWattsBuf[BUF_SIZE_LONG];
 
-	    ltoa( energyAllocationBuf, tba_energyAllocation, 10 );
+	    ltoa( energyAllocationBuf, (tba_energyAllocation + emerAllocation), 10 );
 	    ltoa( energyUsedBuf, energyUsedTemp, 10 );
 	    ltoa( powerWattsBuf, tba_powerWatts, 10 );
 

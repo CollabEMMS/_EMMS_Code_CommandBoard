@@ -57,6 +57,15 @@ void delayMS( unsigned int a )
 	for( j = 0; j < 250; j++ ); // delay for 1ms
 }
 
+void delayMSTenths( unsigned int a )
+{
+    unsigned int i, j;
+
+    for( i = 0; i < a; i++ )
+	for( j = 0; j < 25; j++ ); // delay for 1ms
+}
+
+
 //void commDelay(unsigned int a) {
 //    unsigned int i;
 //

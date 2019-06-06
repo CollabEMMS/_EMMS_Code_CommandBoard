@@ -10,6 +10,8 @@
 
 void delayFourUS( unsigned int a );
 void delayMS( unsigned int a );
+void delayMSTenths( unsigned int a );
+
 
 #endif	/* DELAYS_H */
 

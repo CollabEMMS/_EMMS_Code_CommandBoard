@@ -107,8 +107,8 @@ long lowAlloc;
 char emerButtonEnable;
 int emerButtonEnergyAllocate;
 
-unsigned char resetTimeHour;
-unsigned char resetTimeMinute;
+int resetTimeHour;
+int resetTimeMinute;
 
 char isHigh = 0xFF;
 char relayActive;
@@ -740,12 +740,14 @@ void dailyResetPowerOnCheck( void )
 
 void dailyResetCheck( void )
 {
+
     static bool resetComplete = false;
 
     if( (timeMinute == resetTimeMinute) && (timeHour == resetTimeHour) )
     {
 	if( resetComplete == false )
 	{
+
 	    dailyReset( );
 	    resetComplete = true;
 	}
@@ -769,6 +771,7 @@ void dailyReset( void )
     //        {
     tba_energyUsedPreviousDay = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
     tba_energyUsedLastDayReset = tba_energyUsedLifetime;
+    emerAllocation = 0;
 
     EEwriteTotals( );
     EEwriteEnergyUsed( );

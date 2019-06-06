@@ -20,6 +20,7 @@ extern char alarm2Enabled;
 extern char alarm1Energy;
 extern char alarm2Energy;
 
+extern	    int emerAllocation;
 
 
 void communications( bool init);

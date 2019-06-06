@@ -10,8 +10,8 @@
 
 extern char emerButtonEnable;
 extern int emerButtonEnergyAllocate;
-extern unsigned char resetTimeHour;
-extern unsigned char resetTimeMinute;
+extern int resetTimeHour;
+extern int resetTimeMinute;
 
 extern char audibleAlarm;
 extern char  alarm1Energy;
