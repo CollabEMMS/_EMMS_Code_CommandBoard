@@ -2,40 +2,65 @@
 #define	EEPROM_H
 
 
-extern char passwordSet[6];
+/****************
+ MACROS
+ these are the macros that are required by external c files
+ do not include macros that are only used internally within this module
+ ****************/
 
-void EEwriteEnergyAlloc( void );
-void EEwriteAlarm( void );
-void EEwritePassword( void );
-void EEwriteEmerButton( void );
-void EEwriteResetTime( void );
-void EEwriteRelay( void );
-
-
-
-
-// not sorted yet
-void EEreadEnergyAlloc( void);
-void EEwriteTotals(void);
-void EEwriteEnergyUsed(void);
-void EEreadAll(void);
+/****************
+ VARIABLES
+ these are the globals required by external c files
+ there should be as few of these as possible to help keep things clean
+ these are all 'extern' and require that the variable is declared in the c file
+  ****************/
 
 
+/****************
+ FUNCTION PROTOTYPES
+ only include functions required by external c files
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally must have the prototype in both the c and h files and should be marked
+ 
+ *****************/
 
-//void EEreadPassword( void );
-//void EEreadDate(void);
-//void EEwriteDate(void);
-//void EEreadEmerButton( void );
-//void EEreadResetTime( void );
-//void EEwriteResetTime( void );
-//void EEreadAlarm( void );
-//void EEreadTotals( void );
-//void EEwriteTotals( void );
-//void EEreadPowerUsed( void );
-//void EEwriteEnergyUsed( void );
-//void EEreadHL( void );
-//void EEwriteHL( void );
-//void EEreadRelay( void );
+
+// external and internal
+
+// external only
+
+
+//extern char passwordSet[6];
+
+
+void eeReadPasswordNew( char* password );
+void eeWritePasswordNew( char* password );
+
+long eeReadEnergyCycleAllocationNew( void );
+void eeWriteEnergyAllocNew( long energyAllocation );
+
+struct emergency_button eeReadEmergencyButtonNew( void );
+void eeWriteEmerButtonNew( struct emergency_button  emergencyButton );
+
+struct alarm_info eeReadAlarmNew( void );
+void eeWriteAlarmNew( struct alarm_info alarms );
+
+struct reset_time eeReadResetTimeNew( void );
+void eeWriteResetTimeNew( int resetHour, int resetMinute );
+
+struct energy_info eeReadTotalsNew( void );
+void eeWriteEnergyTotalsNew( struct energy_info energyData );
+
+unsigned long eeReadEnergyUsedNew( );
+void eeWriteEnergyLifetimeNew( unsigned long energyUsedLifetime );
+
+bool eeReadRelayNew( );
+void eeWriteRelayNew( bool relay );
+
+bool eeReadRTCCIsSet( );
+void eeWriteRTCCIsSet( bool rtccIsSet );
+
+
 
 
 #endif	/* EEPROM_H */

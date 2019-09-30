@@ -1,62 +1,31 @@
-/*
- TODO
-
- DONE
- fix NULL_CHAR
- ----make CHAR_NULL universally available somehow
-
-
- DONE - needs tested
- add UART handling
- ----first try - read from uart in recv function
- --------remove UART interrupt
- ----second try - leave uart interrupt - flag that char is available
- --------make sure interval is quick enough to catch all characters at 9600
- ----third try - have interrupt build receive buffer
- --------this sucks because of volatile
-
- --MAYBE incorporate uart large buffer as in UI code.
-
-
- fix UI communications
- ----must remove existing due to poor buffer bounds handling in the SharedCOmmunications
- --------grrr
-
- ---- need to rework how the UI updates all of its data
- --------maybe periodic full refresh
- --------are we able to send a trigger from the CommandBoard?
- ------------research this at least a little
-
-
-
- */
-
 /****************
  INCLUDES
  only include the header files that are required
  ****************/
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "common.h"
-//#include "Communications.h"
-#include "I2C_RTCC.h"
+
+#include "ResetReport.h"
+#include "RTCC.h"
 #include "MasterComm.h"
-#include "Delays.h"
-#include "PowerUART.h"
-#include "OC_PWM.h"
+#include "LEDControl.h"
 #include "EEPROM.h"
+
 
 /****************
  MACROS
  ****************/
+
+#define PORT_WRITE_RELAY PORTBbits.RB6    // Pin 15: RB6
+#define PORT_READ_BUTTON_EMERGENCY LATAbits.LATA0//  PORTAbits.RA0    // Pin 2:  RA0
+
+
 /*
  The following section sets a macros with the build date and time
  This eventually gets displayed on the UI and the power box version
  */
 
-//#define POWER_BOX_CODE_VERSION "20190602a"
-
+// below pulls the build date time into something that can be used
 // Build date: __DATE__ -> "Mar  2 2015"
 // Build time: __TIME__ -> "14:05:00"
 #define BUILD_YEAR  (((__DATE__ [9] - 48) * 10) + (__DATE__ [10] - 48))
@@ -81,7 +50,16 @@
 
 #define CODE_REVISION 1
 
-#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
+// the below line is commented out because we just hardcode a version for right now
+//#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
+
+// TODO - come up with a good versioning plan for the command board
+#define POWER_BOX_CODE_VERSION "20190929"   // 7 characters show on the UI
+
+
+
+
+
 
 /****************
  VARIABLES
@@ -91,27 +69,25 @@
  as external
  ****************/
 // external
+unsigned long powerWatts_global;
+
 // internal only
+volatile unsigned long msTimer_module; // toggles to 1 every ms, resets to 0 at about the 0.5ms time
 
+//external & internal
+struct energy_info energyUsed_global; // energy status of the system
+struct date_time dateTime_global; // the current date time - periodically pulled from RTCC
+struct alarm_info alarms_global; // alarms
+int energyAdd_global; // how much energy has been added to this cycle
+unsigned long energyCycleAllocation_global; // how much energy is allocated per cycle
+struct reset_time resetTime_global; // hour and minute of the cycle reset
+bool relayActive_global; // is the relay active
+struct emergency_button emergencyButton_global; // emergency button enabled and allocation amount
 
-//exernal & internal
-bool lightsModeActive = false;
+// TODO set version
+// replace this with versioning plan
+char powerBoxCodeVersion_global[9] = POWER_BOX_CODE_VERSION;
 
-
-//FIX = this is clunky and may not work
-char powerBoxCodeVersion[9] = "20190603";
-
-long highAlloc;
-long lowAlloc;
-
-char emerButtonEnable;
-int emerButtonEnergyAllocate;
-
-int resetTimeHour;
-int resetTimeMinute;
-
-char isHigh = 0xFF;
-char relayActive;
 
 
 /****************
@@ -123,614 +99,462 @@ char relayActive;
      should be marked
  ****************/
 
-void dailyResetPowerOnCheck( void );
-void lightsMode( void );
+// internal only
+void initOscillator( void );
+void init( void );
+void initPorts( void );
+void initReadGlobalsFromEEPROM( void );
+void powerOnCheckForAllocationReset( void );
+void dailyResetCheck( void );
+void dailyReset( void );
+void readEmergencyButton( void );
+void storeToEE( void );
+void relayControl( void );
+void initTimer( void );
+
+
 
 
 // internal and external
-void debugLEDSet( int LEDNum, bool On );
-void debugLEDRotateA( int minLED, int maxLED );
-void debugLEDRotateB( int minLED, int maxLED );
-void debugLEDToggle( int LEDNum );
 
 /****************
  CODE
  ****************/
 
-
-/* Includes *******************************************************************/
-
-
-
-
-
-
-
-
-//#define LEDS_FOR_DEBUG  // comment this line for normal operation (LEDS show power remaining)
-// uncomment for using the LEDS for debugging
-
-
-/* Main ***********************************************************************/
-
-/* main
- * Initializes and runs through the main code that is repetitively called
- */
-
-//unsigned long powerWatts = 0;
-//unsigned long powerVolts = 0;
-//unsigned long powerAmps = 0;
-
-void init( void );
-void initRTCCDisplay( void );
-void initVars( void );
-void setClock( void );
-void dailyResetCheck( void );
-void dailyReset( void );
-void initPorts( void );
-void enableInterrupts( void );
-void readButton( void );
-void relayControl( void );
-void storeToEE( void );
-void setHighLow( void );
-
-void LEDrunup( int LEDrundelay )
-{
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 1;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 1;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 1;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 1;
-    delayMS( LEDrundelay );
-
-}
-
-void LEDrundown( int LEDrundelay )
-{
-
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 1;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 1;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 1;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 1;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 0;
-    delayMS( LEDrundelay );
-
-}
-
-void LEDrun( int LEDrundelay )
-{
-    LEDrunup( LEDrundelay );
-    LEDrundown( LEDrundelay );
-}
-
 int main( void )
 {
+    // capture reset code first before something overwrites the register
+    resetCodeCapture( );
 
-    //    powerBoxCodeVersion[0] = '2';
-    //    powerBoxCodeVersion[1] = '0';
-    //    powerBoxCodeVersion[2] = '1';
-    //    powerBoxCodeVersion[3] = '9';
-    //    powerBoxCodeVersion[4] = '0';
-    //    powerBoxCodeVersion[5] = '6';
-    //    powerBoxCodeVersion[6] = '0';
-    //    powerBoxCodeVersion[7] = '3';
-    //    powerBoxCodeVersion[8] = CHAR_NULL;
+    initOscillator( );
 
-    int reset_bits;
-    reset_bits = RCON;
-    RCON = 0;
+    //disable all analog ports
+    // if one is needed it must be individually activated
+    // this is done here so that the LEDS will work correctly
+    // if the analog ports are not explicitly disabled, they might be active
+    //    which masks the port and makes it difficult to figure out what is wrong
+    ANSA = 0b0000000000000000;
+    ANSB = 0b0000000000000000;
 
-    bool b[16];
-    //    reset_bits = 0b10000100;
+    // set all ports as input by default
+    TRISA = 0xFFFF; // this is equivalent to setting all of the individual bits
+    TRISB = 0xFFFF; // 0b1111111111111111 = 0xFFFF
 
-    for( int j = 0; j < 16; ++j )
-    {
-	b [j] = 0 != (reset_bits & (1 << j));
-    }
+    // set all ports to low by default to start
+    PORTA = 0; // this is equivalent to setting all of the individual bits
+    PORTB = 0; // 0b0000000000000000 = 0
 
-    LED1_DIR = 0;
-    LED2_DIR = 0;
-    LED3_DIR = 0;
-    LED4_DIR = 0;
+    ledInit( );
 
-    for( int inx = 0; inx < 0; inx++ )
-    {
-	LEDrun( 100 );
+    resetReportDisplay( );
 
-	LEDrunup( 25 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 250 );
-	LED1_SET = b[0];
-	LED2_SET = b[1];
-	LED3_SET = b[2];
-	LED4_SET = b[3];
-	delayMS( 1000 );
-	LEDrunup( 25 );
-	LED1_SET = b[4];
-	LED2_SET = b[5];
-	LED3_SET = b[6];
-	LED4_SET = b[7];
-	delayMS( 1000 );
-	LEDrunup( 25 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 250 );
-
-	LED1_SET = b[8];
-	LED2_SET = b[9];
-	LED3_SET = b[10];
-	LED4_SET = b[11];
-	delayMS( 1000 );
-	LEDrunup( 25 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 250 );
-
-	LED1_SET = b[12];
-	LED2_SET = b[13];
-	LED3_SET = b[14];
-	LED4_SET = b[15];
-	delayMS( 1000 );
-	LEDrunup( 25 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 250 );
-    }
-
-    for( int inx = 0; inx < 5; inx++ )
-    {
-	LED1_SET = 1;
-	LED2_SET = 1;
-	LED3_SET = 1;
-	LED4_SET = 1;
-	delayMS( 100 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 100 );
-    }
+    ledSetAllOff( );
 
     init( );
-    initRTCCDisplay( );
-    SPIMasterInit( );
+    ledSetAll( 1, 0, 0, 0 );
 
+    // read in the EEPROM values that are used as global
+    initReadGlobalsFromEEPROM( );
+    ledSetAll( 1, 0, 0, 1 );
+
+    powerOnCheckForAllocationReset( );
+    ledSetAll( 1, 0, 1, 0 );
+
+    commInit( );
+    ledSetAll( 1, 0, 1, 1 );
+
+
+    // all good - send the all good signal
     for( int inx = 0; inx < 5; inx++ )
     {
-	LED1_SET = 1;
-	LED2_SET = 1;
-	LED3_SET = 1;
-	LED4_SET = 1;
-	delayMS( 10 );
-	LED1_SET = 0;
-	LED2_SET = 0;
-	LED3_SET = 0;
-	LED4_SET = 0;
-	delayMS( 10 );
+	ledSetAllOn( );
+	__delay_ms( 10 );
+	ledSetAllOff( );
+	__delay_ms( 10 );
     }
 
-    LED1_SET = 0;
-    LED2_SET = 0;
-    LED3_SET = 0;
-    LED4_SET = 0;
+    ledSetAllOff( );
 
-    communications( true );
-    dailyResetPowerOnCheck( );
+    rtccCopyI2CTime( );
 
-
-    unsigned int timerCounterCommunications = 0;
-    unsigned int timerCounterComFunctions = 0;
-    unsigned int timerCounterLowPriority = 0;
-    unsigned int timerCounterReadI2CRTCC = 0;
-    unsigned int timerCounterReadIntRTCC = 0;
-    unsigned int timerCounterLightsMode = 0;
-
-    unsigned int timerCounterCommunicationsUART = 0;
-
-    bool runCommunications = false;
-    bool runComFunctions = false;
-    bool runLowPriority = false;
-    bool runReadI2CRTCC = false;
-    bool runReadIntRTCC = false;
-    bool runLightsMode = false;
-
-    bool runCommunicationsUART = false;
-
-#define TIMER_MS_COUNT		    2000    // timer count for one ms to pass (2000 - 1ms))
-#define TIMER_HALF_MS_COUNT	    1000    // timer count for one half ms to pass (2000 - 1ms))
-#define TIMER_DELAY_COMMUNICATIONS  0 //4	    // time in ms to run function
-#define TIMER_DELAY_LOW_PRIORITY    2000 //1000	    // time in ms to run function
-#define TIMER_DELAY_READ_I2C_RTCC   120000 //60000   // time in ms to run function
-#define TIMER_DELAY_READ_INT_RTCC   2000 //1000	    // time in ms to run function
-#define TIMER_DELAY_COM_FUNCTIONS   2 //1 	    // time in ms to run function
-#define TIMER_DELAY_LIGHTS_MODE	    50 // time in ms to run function
-#define TIMER_DELAY_COMMUNICATIONS_UART	    1	// half ms	    // time in ms to run function
-
-
-    readTimeI2C( );
-    writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
-
-    // check if we lost power over a reset time
-
-
-    bool enabledSPI = false;
-
-    while( 1 )
+    while( true )
     {
-	if( TMR1 > TIMER_MS_COUNT )
+
+	commRunRoutine( );
+	ledSetFrontEnergyRemain( );
+	readEmergencyButton( );
+	dailyResetCheck( );
+	relayControl( );
+
+	// in the following, code blocks {} are used
+	// to encapsulate the oneShot variable
+	// why
+	// - otherwise we would need to declare separately named
+	// one shots before the infinite for loop
+	// the oneShot variables are local to each block
+	// and self contained which makes the code leaner
+
+	// oneShot
 	{
-	    TMR1 = 0;
-	    timerCounterCommunications++;
-	    timerCounterComFunctions++;
-	    timerCounterLowPriority++;
-	    timerCounterReadI2CRTCC++;
-	    timerCounterReadIntRTCC++;
-	    timerCounterLightsMode++;
+	    static bool oneShot = false;
 
-	    timerCounterCommunicationsUART++;
-	}
-
-	if( timerCounterCommunications >= TIMER_DELAY_COMMUNICATIONS )
-	{
-	    runCommunications = true;
-	    timerCounterCommunications = 0;
-	}
-
-	if( timerCounterComFunctions >= TIMER_DELAY_COM_FUNCTIONS )
-	{
-	    runComFunctions = true;
-	    timerCounterComFunctions = 0;
-	}
-
-	if( timerCounterLowPriority >= TIMER_DELAY_LOW_PRIORITY )
-	{
-	    runLowPriority = true;
-	    timerCounterLowPriority = 0;
-	}
-
-	if( timerCounterReadI2CRTCC >= TIMER_DELAY_READ_I2C_RTCC )
-	{
-	    runReadI2CRTCC = true;
-	    timerCounterReadI2CRTCC = 0;
-	}
-
-	if( timerCounterReadIntRTCC >= TIMER_DELAY_READ_INT_RTCC )
-	{
-	    runReadIntRTCC = true;
-	    timerCounterReadIntRTCC = 0;
-	}
-
-	if( timerCounterLightsMode >= TIMER_DELAY_LIGHTS_MODE )
-	{
-	    runLightsMode = true;
-	    timerCounterLightsMode = 0;
-	}
-
-	if( timerCounterCommunicationsUART >= TIMER_DELAY_COMMUNICATIONS_UART )
-	{
-	    runCommunicationsUART = true;
-	    timerCounterCommunicationsUART = 0;
-	}
-
-
-
-
-	//	if( runCommunicationsUART == true )
-	//	{
-	//	    communicationsUART( );
-	//	    runCommunicationsUART = false;
-	//	}
-
-	if( runLightsMode == true )
-	{
-	    lightsMode( );
-	    runLightsMode = false;
-	}
-
-	if( runCommunications == true )
-	{
-	    timerCounterCommunications = 0;
-	    //	    enabledSPI = communications( false );
-	    communications( false );
-	    runCommunications = false;
-	    //enabledSPI = false;
-	}
-
-	if( enabledSPI == false )
-	{
-	    readButton( );
-	    storeToEE( );
-
-
-	    // FIX LIKELY DONE
-	    // i think this just needs to go away
-	    // it is not commented right now so the counter is zeroed
-	    // no change needed to make this work - this is just extra code right now
-	    if( runComFunctions == true )
+	    if( (msTimer_module % 500) == 0 )
 	    {
-		timerCounterComFunctions = 0;
-		//		commFunctions( ); //UART processing
-		runComFunctions = false;
+		if( oneShot == false )
+		{
+		    rtccReadTime( &dateTime_global );
+		    oneShot = true;
+		}
 	    }
-
-	    if( runLowPriority == true )
+	    else
 	    {
-		timerCounterLowPriority = 0;
-
-		updateLEDs( );
-		dailyResetCheck( );
-		relayControl( );
-
-		runLowPriority = false;
-	    }
-
-	    if( runReadIntRTCC == true )
-	    {
-		timerCounterReadIntRTCC = 0;
-		readTime( );
-		runReadIntRTCC = false;
-	    }
-
-	    if( runReadI2CRTCC == true )
-	    {
-		timerCounterReadI2CRTCC = 0;
-		readTimeI2C( );
-		writeTime( timeYear, timeMonth, timeDay, timeHour, timeMinute, timeSecond );
-		runReadI2CRTCC = false;
+		oneShot = false;
 	    }
 	}
-    }
+
+	// oneShot
+	{
+	    static bool oneShot = false;
+
+	    if( (msTimer_module % 60000) == 0 )
+	    {
+		if( oneShot == false )
+		{
+		    rtccCopyI2CTime( );
+		    oneShot = true;
+		}
+	    }
+	    else
+	    {
+		oneShot = false;
+	    }
+
+	} //oneShot block
+
+	// oneShot
+	{
+	    static bool oneShot = false;
+
+	    if( (msTimer_module % 120000) == 0 )
+	    {
+		if( oneShot == false )
+		{
+		    storeToEE( );
+		    oneShot = true;
+		}
+	    }
+	    else
+	    {
+		oneShot = false;
+	    }
+
+	} // oneShot block
+
+	// oneShot
+	{
+	    static bool oneShot = false;
+
+	    if( (msTimer_module % 50) == 0 )
+	    {
+		if( oneShot == false )
+		{
+		    ledSetFrontFindMe( );
+		    oneShot = true;
+		}
+	    }
+	    else
+	    {
+		oneShot = false;
+	    }
+
+	} // oneShot block
+
+    } //while (true)
 
 }
 
+void initOscillator( void )
+{
+    // set clock to fastest available - 16MHz
 
-/* Functions ******************************************************************/
+    // unlock the OSCON high byte
+    OSCCON = 0x78; //0x78 = 0111 1000
+    OSCCON = 0x9A; // 0x9A = 1001 1010
+    // set bits in the OSCCON high byte
+    OSCCONbits.NOSC = 0b001; // set fast RC OSC
 
-/* init
- * Calls each individual initialization method
- */
+
+    // unlock sequence for the OSCCON low byte
+    OSCCON = 0x46; // 0x46 = 0100 0110
+    OSCCON = 0x57; // 0x58 = 0101 0111
+    // set bits in the OSCCON low byte
+    // set the clock switch bit - this must be done immediately after the unlock sequence
+    OSCCONbits.OSWEN = 1;
+
+    // set clock divider to 1:1
+    CLKDIVbits.RCDIV = 0b000;
+
+    return;
+}
+
 void init( void )
 {
-    initI2C( );
-    startClock( );
-    setClock( );
+
+
+    // the LEDs help determine if we get stuck someplace during init
+    // the I2C for rtcc is blocking and if something goes wrong there it could freeze
+
+
+    ledSetAll( 0, 0, 0, 1 );
     initPorts( );
-    initVars( );
-    readI2CPowerTimes( );
-    //    initPWMeasurement( );
-    initUART( );
-    //    initOC_PWM();
-    enableInterrupts( );
+    ledSetAll( 0, 0, 1, 0 );
+    initTimer( );
+    ledSetAll( 0, 0, 1, 1 );
+    rtccInit( );
+    ledSetAll( 0, 1, 0, 0 );
+    ledSetAll( 0, 1, 0, 1 );
+    ledSetAll( 0, 1, 1, 0 );
+    ledSetAll( 0, 1, 1, 1 );
 
-
-    // FIX NEEDS IMPLEMENTED
-    // need to figure out ow to issue commands from outside communications
-    // we make a function that is exposed that we can call
-    // commCommandRebootNow( );
-
-
-
-    //    commandBuilder1( "Reboot", "Now", "0" );
-    //    commandBuilder1( "Reboot", "Now", "0" );
+    return;
 }
 
-/* initVars
- * Initializes variables to their starting values (usually 0)
- */
-void initVars( void )
+void initPorts( void )
 {
 
-    EEreadAll( );
+    // ports specific to a peripheral  (SPI, I2C) are initialized
+    //	in the functions that initialize the peripheral
 
-    // set up highAlloc and lowAlloc
-    if( (highAlloc == lowAlloc) && (tba_energyAllocation != 0) )
+    TRISAbits.TRISA0 = 1; // emergency button
+    TRISAbits.TRISA3 = 0; // buzzer
+    TRISBbits.TRISB6 = 0; // relay control
+
+    // TODO - check emergency button for the pull up/down resistor
+    // is there one implemented on the circuit board?
+    // or do we use the internal one on the PIC
+    // the following line implements the one in the PIC
+    //CNPD1bits.CN2PDE = 1; // pull down resistor for pin 2 for emergency button
+
+    return;
+}
+
+void initReadGlobalsFromEEPROM( void )
+{
+    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew( );
+    emergencyButton_global = eeReadEmergencyButtonNew( );
+    alarms_global = eeReadAlarmNew( );
+    resetTime_global = eeReadResetTimeNew( );
+    energyUsed_global = eeReadTotalsNew( );
+    energyUsed_global.lifetime = eeReadEnergyUsedNew( );
+    relayActive_global = eeReadRelayNew( );
+
+    return;
+}
+
+void initTimer( void )
+{
+    // set up a timer that ticks off every ms
+    // it will use an interrupt to tick off the ms
+
+    IEC0bits.T1IE = 0; // disable timer 1 interrupt
+    T1CON = 0; // disable and reset timer to known state
+
+    msTimer_module = 0;
+
+    T1CONbits.TCS = 0; // use the instruction cycle clock
+    T1CONbits.T1ECS = 0b00; // use LPRC and clock source
+    T1CONbits.TGATE = 0; // disable gated timer
+    T1CONbits.TCKPS = 0b00; // select 1:1 prescalar
+    T1CONbits.TSYNC = 0; // sync external clock input
+    TMR1 = 0; // clear the timer register
+
+    // set timer to tick at predictable rate using MACRO
+
+    PR1 = (FCY / 1000) - 1; // interrupt at 1ms interval (note the -1, this is to )
+    // always load TIME -1 to make timer more accurate - one count is added due to timer internals
+    //  16Mhz = 16,000,000   / 1000   = 16,000.  If at 16Mhz we interval every 16,000 clock cycles we get 1ms timer
+
+    IPC0bits.T1IP = 0x04; // interrupt priority level
+    IFS0bits.T1IF = 0; // clear timer interrupt flag
+    IEC0bits.T1IE = 1; // enable interrupt
+    T1CONbits.TON = 1; // enable timer
+
+    return;
+}
+
+void __attribute__( (__interrupt__, __no_auto_psv__) ) _T1Interrupt( void )
+{
+
+    TMR1 = 0; // reset the accumulator
+    IFS0bits.T1IF = 0; // reset the interrupt flag
+
+    // timer is designed to interrupt at 0.001s (1ms)
+
+    // the following variable must be declared as 'volatile'
+    // this means the value can change unexpectedly, even in the middle
+    // of an operation with the variable
+    // because this interrupt can trigger at any time
+    msTimer_module++; // increment every 1ms
+
+    // control our timer rollover to prevent overflow
+    // not critical that we do this, but it is more controlled than an overflow
+    if( msTimer_module >= 4000000000 )
     {
-	highAlloc = tba_energyAllocation;
-	lowAlloc = (tba_energyAllocation * 3) / 4;
+	msTimer_module = 0;
     }
 
-    setHighLow( );
-
+    return;
 }
 
-/* setClocks()
- * At boot time, check which RTCC has the most recent time and synchronize them.
- * If this is a new build of the code, use the build time to set both RTCCs.
- */
-void setClock( void )
+void powerOnCheckForAllocationReset( void )
 {
-    unsigned char year, month, day, hour, minute, second;
-    readI2CTime( &year, &month, &day, &hour, &minute, &second );
 
-    // Minute  6 bits // << 0
-    // Hour    5 bits // << 6
-    // Day     5 bits // << 11
-    // Month   4 bits // << 16
-    // Year    7 bits // << 20
-    // The entire date and time fits in a 32-bit long for comparison
-    unsigned long
-    buildDate = ((unsigned long) BUILD_YEAR << 20) +
-	    ((unsigned long) BUILD_MONTH << 16) +
-	    ((unsigned long) BUILD_DAY << 11) +
-	    ((unsigned long) BUILD_HOUR << 6) + BUILD_MINUTE,
+    // TODO this function does not seem to be working properly
+    // first test did not have the meter reset when power was removed over the reset time
+    // if we can't get this working good, then we need to store the time in EEPROM and recall it for this
+    // but this could wear out the EEPROM pretty quick - maybe store time every 10 or 15 minutes.
 
-	    I2CDate = ((unsigned long) year << 20) +
-	    ((unsigned long) month << 16) +
-	    ((unsigned long) day << 11) +
-	    ((unsigned long) hour << 6) + minute;
 
-    // Find most recent date/time
-    if( buildDate > I2CDate )
-    {
-	// Correct for the 17 seconds it takes to program the PIC
-	second = BUILD_SECOND + 17;
-	minute = BUILD_MINUTE;
-	hour = BUILD_HOUR;
-	if( second > 59 )
-	{
-	    minute++;
-	    if( minute > 59 )
-		hour++;
-	}
-
-	setI2CTime( BUILD_YEAR, BUILD_MONTH, BUILD_DAY, hour, minute % 60, second % 60 );
-    }
-}
-
-void dailyResetPowerOnCheck( void )
-{
     // the clock chip saves the timestamp for when power failed
     // the clock chip saves the timestamp for when the power is restored
 
     // this function compares the down time against the reset time and
-    // resets the allocation
-    //
+    // resets the allocation if the reset time is passes during the power outage
 
+
+    // if the reset should have happened during the power outage, then we reset the allocation
     // this needs verified
     // right now the powerDown and powerUp is not working correctly
     // don't try to reset during a power outage for now
 
+    // scenarios
+    //	power loss and power restore before a reset would normally occur (no reset needed)
+    //	power loss then power restore after reset would normally occur (reset needed)
 
+    // determine the next expected reset time based on the power loss time
+    // if the power loss time is before the reset time then the reset date is today
+    // if the power loss time is after the reset time then the reset date is tomorrow (the reset was this morning)
 
+    struct date_time timePowerFail;
+    struct date_time timePowerRestore;
 
-    // on startup check to see if we need to reset the power allocation
+    unsigned char resetTempTimeMonth;
+    unsigned char resetTempTimeDay;
+    unsigned char resetTempTimeYear;
 
-    unsigned char resetTimeMonth;
-    unsigned char resetTimeDay;
+    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
 
+    // determine which day the reset was to occur in relation to the day the power went out
 
-    // determine which day the reset was to occurr in relation to the day the power went out
-    if( powerFailTimeHour > resetTimeHour )
+    // if the power fail time was after the reset time then that means
+    // that the next reset time is actually tomorrow since it has already occurred today
+    // add one to the day we are looking for with the reset
+    if( timePowerFail.hour > resetTime_global.hour )
     {
-	resetTimeDay = powerFailTimeDay + 1;
+	resetTempTimeDay = (timePowerFail.day + 1);
     }
-    else if( powerFailTimeHour == resetTimeHour )
+    else if( timePowerFail.hour == resetTime_global.hour )
     {
-	if( powerFailTimeMinute > resetTimeMinute )
+	if( timePowerFail.minute > resetTime_global.minute )
 	{
-	    resetTimeDay = powerFailTimeDay + 1;
+	    resetTempTimeDay = (timePowerFail.day + 1);
 	}
     }
     else
     {
-	resetTimeDay = powerFailTimeDay;
+	resetTempTimeDay = timePowerFail.day;
     }
-    resetTimeMonth = powerFailTimeMonth;
+
+
+    // now that we have the day, we need to check the month
+    // account for day rollover in the month
+    resetTempTimeMonth = timePowerFail.month;
 
     // account for days in the month
-    switch( powerFailTimeMonth )
-    {
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-    case 8:
-    case 10:
-    case 12:
-	if( resetTimeDay > 31 )
-	{
-	    resetTimeDay = 1;
-	    resetTimeMonth++;
-	}
-	break;
 
-    case 2:
-	if( (timeYear % 4) == 0 )
-	{
-	    if( resetTimeDay >= 29 )
+    switch( timePowerFail.month )
+    {
+	    // first check is for 31 days
+	    // these case statements fall through until the break
+	case 1: //  Jan
+	case 3: //  Mar
+	case 5: //  May
+	case 7: //  Jul
+	case 8: //  Aug
+	case 10: // Oct
+	case 12: // Dec
+	    if( resetTempTimeDay > 31 )
 	    {
-		resetTimeDay = 1;
-		resetTimeMonth++;
+		resetTempTimeDay = 1;
+		resetTempTimeMonth++;
 	    }
-	}
-	else
-	{
-	    if( resetTimeDay >= 28 )
+	    break;
+
+	    // second check is for 28/29 days
+	case 2: //  Feb - check for leap year
+	    // technically we should check each century as well (no leap year)
+	    // bit it is very unlikely that the meter will be running then, so skip check for now)
+	    if( (dateTime_global.year % 4) == 0 )
 	    {
-		resetTimeDay = 1;
-		resetTimeMonth++;
+		if( resetTempTimeDay >= 29 )
+		{
+		    resetTempTimeDay = 1;
+		    resetTempTimeMonth++;
+		}
 	    }
-	}
-	break;
-    case 4:
-    case 6:
-    case 9:
-    case 11:
-	if( resetTimeDay > 30 )
-	{
-	    resetTimeDay = 1;
-	    resetTimeMonth++;
-	}
-	break;
+	    else
+	    {
+		if( resetTempTimeDay >= 28 )
+		{
+		    resetTempTimeDay = 1;
+		    resetTempTimeMonth++;
+		}
+	    }
+	    break;
+	    // third check is for 30 days
+	case 4: //  Apr
+	case 6: //  Jun
+	case 9: //  Sept
+	case 11: // Nov
+	    if( resetTempTimeDay > 30 )
+	    {
+		resetTempTimeDay = 1;
+		resetTempTimeMonth++;
+	    }
+	    break;
     }
 
-    // no more than 12 months
-    // recognized glitch here if power is out and reset over the new year
-    if( resetTimeMonth > 12 )
+    // did the month roll over into the next year?
+    resetTempTimeYear = 0;
+    if( resetTempTimeMonth > 12 )
     {
-	resetTimeMonth = 1;
+	resetTempTimeMonth = 1;
+	resetTempTimeYear = 1;
     }
 
-    // turn the information into numbers that we can easily compare
-    unsigned long powerFailTimeSerial;
-    unsigned long resetTimeSerial;
-    unsigned long powerRestoreTimeSerial;
-    // some of these variables need to be global so we can send them to the UI
+    // now compare the current time against the calculated reset time
+    // if it is before, then do not reset the allocation
+    // if it is after, then reset the allocation
 
+    // to make this comparison easy, check if we do not need to have a reset
+    // else do the reset
+    bool resetNeeded;
 
-    powerFailTimeSerial = (powerRestoreTimeMonth * 1000000) + (powerRestoreTimeDay * 10000) + (powerRestoreTimeHour * 100) + (powerRestoreTimeMinute);
-    resetTimeSerial = (resetTimeMonth * 1000000) + (resetTimeDay * 10000) + (resetTimeHour * 100) + (resetTimeMinute);
-    powerRestoreTimeSerial = (powerFailTimeMonth * 1000000) + (powerFailTimeDay * 10000) + (powerFailTimeHour * 100) + (powerFailTimeMinute);
+    if(
+	(dateTime_global.month <= resetTempTimeMonth) &&
+	(dateTime_global.day <= resetTempTimeDay) &&
+	(dateTime_global.hour <= resetTime_global.hour) &&
+	(dateTime_global.minute <= resetTime_global.minute)
+	)
+    {
+	resetNeeded = false;
+    }
+    else
+    {
+	resetNeeded = true;
+    }
 
-
-    if( powerFailTimeSerial > resetTimeSerial )
+    if( resetNeeded == true )
     {
 	dailyReset( );
     }
@@ -740,535 +564,122 @@ void dailyResetPowerOnCheck( void )
 
 void dailyResetCheck( void )
 {
+    // are we are the reset time (hour and minute)
+    //	don't check seconds because there is a potential that we skip over a second
+    //	in between calling this function
+
+    // make sure this function runs only once for each reset
 
     static bool resetComplete = false;
 
-    if( (timeMinute == resetTimeMinute) && (timeHour == resetTimeHour) )
+    if( (dateTime_global.minute == resetTime_global.minute) && (dateTime_global.hour == resetTime_global.hour) )
     {
 	if( resetComplete == false )
 	{
-
 	    dailyReset( );
 	    resetComplete = true;
 	}
     }
     else
     {
-
 	resetComplete = false;
     }
 
+    return;
 }
 
 void dailyReset( void )
 {
 
-    //    static bool resetComplete = false;
+    energyUsed_global.previousCycleUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
+    energyUsed_global.lastReset = energyUsed_global.lifetime;
+    energyAdd_global = 0;
 
-    //    if ((timeMinute == resetMinute) && (timeHour == resetHour))
-    //    {
-    //        if (resetComplete == false)
-    //        {
-    tba_energyUsedPreviousDay = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
-    tba_energyUsedLastDayReset = tba_energyUsedLifetime;
-    emerAllocation = 0;
+    eeWriteEnergyTotalsNew( energyUsed_global );
 
-    EEwriteTotals( );
-    EEwriteEnergyUsed( );
+    eeWriteEnergyLifetimeNew( energyUsed_global.lifetime );
 
-    // FIX NEEDS IMPLEMENTED
-    // for right now just let the UI naturally update itself
-    // expose functions from communications
-    // commCommandSendStats();
-
-    //    setRemoteStats( );
-    // this is in the old SharedCommunications
-    //    char charEnergyUsedLifetime[12];
-    //    char charEnergyUsedPreviousDay[12];
-    //
-    //    ultoa( charEnergyUsedLifetime, tba_energyUsedLifetime, 10 );
-    //    ultoa( charEnergyUsedPreviousDay, tba_energyUsedPreviousDay, 10 );
-    //
-    //    commandBuilder2( "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
-
-
-    // reset allocation to what is stored
-    EEreadEnergyAlloc( );
-
-
-    //            resetComplete = true;
-    //
-    //        }
-    //    }
-    //    else
-    //    {
-    //        resetComplete = false;
-    //    }
-
-    return;
-
-    //    if( ( ( timeHour == resetHour ) && ( timeMinute == resetMinute ) && ( timeSecond == 0 ) && resetFlag ) )
-    //    {
-    //	resetFlag = 0;
-    //	reset = 0;
-    //	totalUsed += powerUsed + extraPower;
-    //	previousDayUsed = powerUsed + extraPower;
-    //	powerUsedMW = 0;
-    //	powerUsed = 0;
-    //	extraPower = 0;
-    //	setRemoteStats( );
-    //	EEwriteTotals( );
-    //    }
-    //    else if( !resetFlag && timeSecond )
-    //    {
-    //	resetFlag = 0xFF;
-    //    }
-}
-
-/* initPorts
- * initializes ports for I/O
- * disables Int0 interrupt
- */
-void initPorts( void )
-{
-
-    // Pin 1:  RA5
-    // Pin 2:  RA0
-    // Pin 3:  RA1
-    // Pin 4:  RB0
-    // Pin 5:  RB1
-    // Pin 6:  RB2
-    // Pin 7:  RA2
-    // Pin 8:  RA3
-    // Pin 9:  RB4
-    // Pin 10: RA4
-    // Pin 11: RB7
-    // Pin 12: RB8
-    // Pin 13: RB9
-    // Pin 14: Vcap
-    // Pin 15: RB12
-    // Pin 16: RB13
-    // Pin 17: RB14
-    // Pin 18: RB15
-    // Pin 19: Vss
-    // Pin 20: Vdd
-
-    //Everything starts as an output, make input if needed
-    //OSCCON = 0b0000000010100101;
-
-    ANSA = 0x0000;
-    ANSB = 0x0000;
-    //PORTA = 0b1111111111111111;
-    PORTA = 0x0000;
-    PORTB = 0x0000;
-
-    // 1 for input, 0 for output
-    // initialize all to input (for safety - don't launch the missile)
-    TRISA = 0xFFFF;
-    TRISB = 0xFFFF;
-
-    /* TRIS setup for 20 pin PIC
-    _TRISB1 = 1;  // UART
-    _TRISB7 = 1;  // power sense
-    _TRISB12 = 1; // power sense
-    _TRISA1 = 0;  // RS485 send/recieve toggle
-
-    _TRISA3 = 1;  // no connection
-    _TRISA0 = 1;  // emergency button
-    _TRISB8 = 0;  // relay
-    _TRISB14 = 0; // relay
-    _TRISA4 = 1;  // oscillator
-    _TRISB4 = 1;  // oscillator
-     */
-
-    _TRISA0 = 1; // emergency button
-    _TRISB0 = 0; // U2TX
-    _TRISB1 = 1; // U2RX
-    _TRISB2 = 1; // U1RX
-    _TRISA3 = 0; // buzzer
-    _TRISB7 = 0; // U1TX
-    _TRISB8 = 1; // I2C clock
-    _TRISB9 = 1; // I2C data
-    _TRISA7 = 1; // IC1 from MCP3909
-    _TRISB11 = 0; // bar graph
-    _TRISB6 = 0; // relay control
-    _TRISB15 = 0; // MCP3909 !MCLR
-    // 9 pins still available for GPIO
-
-
-    // disable int0 interrupt, just in case it initializes enabled
-    _INT0IE = 0;
-
-    LED1_DIR = 0;
-    LED2_DIR = 0;
-    LED3_DIR = 0;
-    LED4_DIR = 0;
+    // reset allocation to what is stored in EEPROM
+    // this makes sure everything is in sync
+    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew( );
 
     return;
 }
 
-void enablePullDownResistors( void )
+void readEmergencyButton( void )
 {
 
-    _CN2PDE = 1; // pin 2 for emergency button
+    // only register an emergency button press every 250ms
+    // this keeps multiple presses from being detected due to button bounce
 
-}
+#define EMERGENCY_BUTTON_TIMER 250 // length of time in ms to wait between button presses
+    static bool onePress = false;
+    static unsigned long buttonTimer;
 
-void enableInterrupts( void )
-{
-
-    INTCON1 |= 0b1000000000000000;
-}
-
-void disableInterrupts( void )
-{
-
-    INTCON1 &= 0b0111111111111111;
-}
-
-void readButton( void )
-{
-    static unsigned char buttonEmergencyComplete = 0;
-    static unsigned char buttonTimeSecond = 255;
-
-    if( emerButtonEnable )
+    if( emergencyButton_global.enabled == true )
     {
-	if( BTN_EMER )
+
+	// TODO emergency button not working
+	// the following button read was not triggering
+	// verify if there is a hardware issue or if the right port is being used
+	if( PORT_READ_BUTTON_EMERGENCY == 1 )
 	{
-	    if( buttonEmergencyComplete == 0 )
+	    if( onePress == false )
 	    {
-		if( buttonTimeSecond != timeSecond )
-		{
-		    tba_energyAllocation += emerButtonEnergyAllocate;
-		    buttonEmergencyComplete = 1;
-		    buttonTimeSecond = timeSecond;
-		}
+		energyCycleAllocation_global += emergencyButton_global.energyAmount;
+		buttonTimer = msTimer_module + EMERGENCY_BUTTON_TIMER; // wait 250ms between presses
+		onePress = true;
 	    }
 	}
 	else
 	{
-	    if( buttonTimeSecond != timeSecond )
+	    // we need to check if msTimer rolled over as well
+	    if( (msTimer_module >= buttonTimer) || ((buttonTimer - msTimer_module) > EMERGENCY_BUTTON_TIMER) )
 	    {
-
-		buttonEmergencyComplete = 0;
+		onePress = false;
 	    }
 	}
     }
 
     return;
-
-    //    static unsigned char lastSecond = 0;
-    //    static unsigned char lastButton = 0;
-    //
-    //    if( emerButtonEnable )
-    //    {
-    //	if( BTN_EMER )
-    //	{
-    //	    if( lastButton == 0 )
-    //	    {
-    //		if( lastSecond != timeSecond )
-    //		{
-    //		    lastSecond = timeSecond;
-    //
-    //		    tba_energyAllocation += emerButtonAlloc;
-    //		}
-    //		lastButton = 1;
-    //	    }
-    //
-    //	}
-    //	else
-    //	{
-    //	    lastButton = 0;
-    //	}
-    //    }
-    //
-    //    return;
-
-    //
-    //    if( BTN_EMER && emerButtonEnable && ( lastSecond != timeSecond ) )
-    //    {
-    //
-    //	if( ( powerUsedMW / 1000 ) > emerButtonAlloc )
-    //	{
-    //	    powerUsedMW = powerUsedMW - ( ( ( long ) emerButtonAlloc ) * 1000 );
-    //
-    //
-    //	}
-    //	else
-    //	{
-    //	    powerUsedMW = 0;
-    //	    powerUsed = 0;
-    //	}
-    //	lastSecond = timeSecond;
-    //    }
-
 }
 
 void storeToEE( void )
 {
-    static unsigned char eeComplete = 0;
 
-    //TESTING
-    //    if( (timeMinute == 0) || (timeMinute == 15) || (timeMinute == 30) || (timeMinute == 45) )
-    if( (timeSecond == 0) )
-    {
-	if( eeComplete == 0 )
-	{
-	    EEwriteEnergyUsed( );
-	    eeComplete = 1;
-	}
-    }
-    else
-    {
-	eeComplete = 0;
-    }
-
-    //    if( ( timeSecond == 30 ) && EEflag )
-    //    {
-    //	//        if ((timeHour == 0) && (timeMinute == 0)) {
-    //	//            EEwriteDate();
-    //	//            EEflag = 0;
-    //	//        }
-    //	//
-    //	if( ( timeMinute % 15 ) == 1 || ( powerUsed >= powerAllocated ) )
-    //	{
-    //	    EEwritePowerUsed( );
-    //	    EEflag = 0;
-    //	}
-    //    }
-    //    else
-    //    {
-    //	EEflag = 1;
-    //    }
-}
-
-void setHighLow( )
-{
-    if( isHigh )
-    {
-	//	powerAllocated = highAlloc;
-	tba_energyAllocation = highAlloc;
-    }
-    else
-    {
-	//	powerAllocated = lowAlloc;
-
-	tba_energyAllocation = lowAlloc;
-    }
-}
-
-void initRTCCDisplay( void )
-{
-
-    //does unlock sequence to enable write to RTCC, sets RTCWEN
-    __builtin_write_RTCWEN( );
-
-    RCFGCAL = 0b0010001100000000;
-    RTCPWC = 0b0000010100000000; // LPRC is clock source
-
-    _RTCEN = 1;
-
-    _RTCWREN = 0; // Disable Writing
-}
-
-void lightsMode( )
-{
-    static int status = 0;
-
-    if( (LEDS_FOR_TESTING != true) && (lightsModeActive == true) )
-    {
-	switch( status )
-	{
-	case 0:
-	    LED1_SET = 1;
-	    LED2_SET = 0;
-	    LED3_SET = 0;
-	    LED4_SET = 0;
-	    status++;
-	    break;
-	case 1:
-	    LED1_SET = 0;
-	    LED2_SET = 1;
-	    LED3_SET = 0;
-	    LED4_SET = 0;
-	    status++;
-	    break;
-	case 2:
-	    LED1_SET = 0;
-	    LED2_SET = 0;
-	    LED3_SET = 1;
-	    LED4_SET = 0;
-	    status++;
-	    break;
-	case 3:
-	    LED1_SET = 0;
-	    LED2_SET = 0;
-	    LED3_SET = 0;
-	    LED4_SET = 1;
-	    status++;
-	    break;
-	case 4:
-	    LED1_SET = 0;
-	    LED2_SET = 0;
-	    LED3_SET = 1;
-	    LED4_SET = 0;
-	    status++;
-	    break;
-	case 5:
-	    LED1_SET = 0;
-	    LED2_SET = 1;
-	    LED3_SET = 0;
-	    LED4_SET = 0;
-	    status = 0;
-
-	    break;
-	default:
-	    status = 0;
-	    break;
-
-	}
-    }
-}
-
-void debugLEDSet( int LEDNum, bool On )
-{
-    int ledState;
-
-    if( LEDS_FOR_TESTING == true )
-    {
-
-	if( On == true )
-	{
-	    ledState = 1;
-	}
-	else
-	{
-	    ledState = 0;
-	}
-
-	switch( LEDNum )
-	{
-	case 1:
-	    LED1_SET = ledState;
-	    break;
-
-	case 2:
-	    LED2_SET = ledState;
-	    break;
-	case 3:
-	    LED3_SET = ledState;
-	    break;
-	case 4:
-	    LED4_SET = ledState;
-	    break;
-	}
-    }
+    eeWriteEnergyLifetimeNew( energyUsed_global.lifetime );
 
     return;
 }
 
-void debugLEDRotateA( int minLED, int maxLED )
+void relayControl( void )
 {
-    static int pos = 0;
+    static unsigned char lastSecond;
 
-    if( pos == 0 )
+    unsigned long tempEnergyUsed;
+
+    tempEnergyUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
+
+    if( lastSecond != dateTime_global.second )
     {
-	pos = minLED;
+	if( relayActive_global )
+	{
+	    if( tempEnergyUsed < (energyCycleAllocation_global + energyAdd_global) )
+	    {
+		PORT_WRITE_RELAY = 1;
+	    }
+	    else
+	    {
+		PORT_WRITE_RELAY = 0;
+		// the power (watts) is driven by the power sens board
+		// it is not easy to manually change it to zero when the relay
+		// turns off
+		// this means that the power will 'decay' in the power sense module
+		// until it eventually reaches zero
+	    }
+	}
+	lastSecond = dateTime_global.second;
     }
 
-    pos++;
-    if( pos > maxLED )
-    {
-	pos = minLED;
-    }
-
-    for( int inx = minLED; inx <= maxLED; inx++ )
-    {
-	debugLEDSet( inx, false );
-    }
-    debugLEDSet( pos, true );
-
-
-}
-
-void debugLEDRotateB( int minLED, int maxLED )
-{
-    static int pos = 0;
-
-    if( pos == 0 )
-    {
-	pos = minLED;
-    }
-
-    pos++;
-    if( pos > maxLED )
-    {
-	pos = minLED;
-    }
-
-    for( int inx = minLED; inx <= maxLED; inx++ )
-    {
-	debugLEDSet( inx, false );
-    }
-    debugLEDSet( pos, true );
-
-
-}
-
-void debugLEDToggle( int LEDNum )
-{
-
-    int set = 0;
-
-    switch( LEDNum )
-    {
-    case 1:
-	if( LED1_READ == 1 )
-	{
-	    set = 0;
-	}
-	else
-	{
-	    set = 1;
-	}
-	LED1_SET = set;
-	break;
-    case 2:
-	if( LED2_READ == 1 )
-	{
-	    set = 0;
-	}
-	else
-	{
-	    set = 1;
-	}
-	LED2_SET = set;
-	break;
-    case 3:
-	if( LED3_READ == 1 )
-	{
-	    set = 0;
-	}
-	else
-	{
-	    set = 1;
-	}
-	LED3_SET = set;
-	break;
-    case 4:
-	if( LED4_READ == 1 )
-	{
-	    set = 0;
-	}
-	else
-	{
-	    set = 1;
-	}
-	LED4_SET = set;
-	break;
-
-    }
     return;
-
 }
-

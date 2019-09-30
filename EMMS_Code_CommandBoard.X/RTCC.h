@@ -1,12 +1,5 @@
-/* 
- * File:   MasterComm.h
- * Author: Austin
- *
- * Created on June 1, 2019, 12:30 PM
- */
-
-#ifndef MASTERCOMM_H
-#define	MASTERCOMM_H
+#ifndef I2C_RTCC_H
+#define	I2C_RTCC_H
 
 
 /****************
@@ -15,12 +8,14 @@
  do not include macros that are only used internally within this module
  ****************/
 
+
 /****************
  VARIABLES
  these are the globals required by external c files
  there should be as few of these as possible to help keep things clean
  these are all 'extern' and require that the variable is declared in the c file
   ****************/
+
 
 
 /****************
@@ -34,9 +29,23 @@
 
 // external and internal
 
+
+
 // external only
-void commInit( );
-void commRunRoutine( );
+void rtccCopyI2CTime( void );
+void rtccInit( void);
+
+void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *timePowerRestore );
+void rtccI2CReadTime( struct date_time *readDateTime );
+void rtccI2CSetTime( struct date_time *setDateTime );
 
 
-#endif	/* MASTERCOMM_H */
+
+
+// RTCC Internal
+void rtccReadTime( struct date_time *readDateTime );
+
+
+
+#endif	/* I2C_RTCC_H */
+

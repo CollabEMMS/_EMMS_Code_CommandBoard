@@ -1,12 +1,12 @@
 /* 
- * File:   MasterComm.h
+ * File:   ResetReport.h
  * Author: Austin
  *
- * Created on June 1, 2019, 12:30 PM
+ * Created on July 20, 2019, 4:22 PM
  */
 
-#ifndef MASTERCOMM_H
-#define	MASTERCOMM_H
+#ifndef RESETREPORT_H
+#define	RESETREPORT_H
 
 
 /****************
@@ -35,8 +35,10 @@
 // external and internal
 
 // external only
-void commInit( );
-void commRunRoutine( );
+void resetCodeCapture( void );
+void resetReportDisplay( void );
 
 
-#endif	/* MASTERCOMM_H */
+
+#endif	/* RESETREPORT_H */
+

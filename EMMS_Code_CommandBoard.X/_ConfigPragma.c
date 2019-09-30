@@ -16,17 +16,14 @@
 // Protection)
 
 // FOSCSEL
-//#pragma config FNOSC = FRCDIV     // Oscillator Select (8MHz FRC oscillator With
-// Postscaler (FRCDIV))
-#pragma config FNOSC = PRI//SOSC
+#pragma config FNOSC = FRCPLL
 
 #pragma config SOSCSRC = DIG      // SOSC Source Type (Analog Mode for use with
 // crystal) (Digital Mode for not crystal)
 #pragma config LPRCSEL = HP       // LPRC Oscillator Power and Accuracy (High
 // Power, High Accuracy Mode)
 #pragma config IESO = ON          // Internal External Switch Over bit (Internal
-// External Switchover mode enabled (Two-speed
-// Start-up enabled))
+// External Switchover mode enabled (Two-speed Start-up enabled))
 
 // FOSC
 #pragma config POSCMOD = NONE     // Primary Oscillator Configuration bits
@@ -40,7 +37,7 @@
 #pragma config SOSCSEL = SOSCHP   // SOSC Power Selection Configuration bits
 // (Secondary Oscillator configured for
 // high-power operation)
-#pragma config FCKSM = CSDCMD     // Clock Switching and Monitor Selection (Both
+#pragma config FCKSM = CSECMD     // Clock Switching and Monitor Selection (Both
 // Clock Switching and Fail-safe Clock Monitor
 // are disabled)
 

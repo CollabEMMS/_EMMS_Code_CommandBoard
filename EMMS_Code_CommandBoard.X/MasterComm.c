@@ -5,27 +5,30 @@
 #include <stdlib.h>
 
 #include "common.h"
-#include "I2C_RTCC.h"
-#include "Delays.h"
+#include "LEDControl.h"
+#include "RTCC.h"
 #include "EEPROM.h"
 #include "PowerMain.h"
 
 /****************
  MACROS
  ****************/
-#define BUFFER_LENGTH 40  // max size is positive signed character size
+#define BAUD_UART   9600    // set the baud rate as close to this as practical
+#define BAUD_SPI    9600    // set the clock rate as close to this as possible
+// be aware that the SPI clock is not calculated based off this
+// the init function needs modified directly
+
+#define BUFFER_LENGTH 40  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
 #define BUF_SIZE_INT 7
 #define BUF_SIZE_LONG 12
 
-//#define RUN_INTERVAL 8000 // run periodically, going too fast causes problems - this is based off a timer, not loops through the program
-
 #define PARAMETER_MAX_COUNT 7
 #define PARAMETER_MAX_LENGTH 10
 
-//#define CHAR_NULL '\0'
+//#define CHAR_NULL '\0' // defined in common.h since it is used in a lot of places
 #define COMMAND_SEND_RECEIVE_PRIMER_CHAR '#' // something to run the SPI clock so data can be received
 #define COMMAND_START_CHAR '!'
 #define COMMAND_END_CHAR '*'
@@ -52,23 +55,11 @@
  ****************/
 
 // external
-long tba_energyAllocation;
-long tba_energyUsedLifetime;
-long tba_energyUsedLastDayReset;
-long tba_powerWatts;
-long tba_energyUsedPreviousDay = 0;
 
-char audibleAlarm;
-char alarm1Enabled;
-char alarm2Enabled;
-char alarm1Energy;
-char alarm2Energy;
-
-int emerAllocation = 0;
 
 // internal only
 
-enum receive_status
+enum receive_status_enum
 {
     enum_receive_status_waiting,
     enum_receive_status_in_command,
@@ -82,7 +73,7 @@ enum communications_port_enum
     enum_port_commUART2,
 };
 
-struct buffer
+struct buffer_struct
 {
     enum communications_port_enum port;
     char data_buffer[ BUFFER_LENGTH + 1];
@@ -101,19 +92,19 @@ struct buffer
  ****************/
 bool set_current_port( unsigned char * );
 
-bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer );
-void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *buffer_to_parameterize );
-bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *send_buffer );
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer );
+void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize );
+bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer );
 
-void command_builder1( struct buffer *send_buffer, char* data1 );
-void command_builder2( struct buffer *send_buffer, char* data1, char* data2 );
-void command_builder3( struct buffer *send_buffer, char* data1, char* data2, char* data3 );
-void command_builder4( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4 );
-void command_builder5( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 );
-void command_builder6( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 );
-void command_builder7( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 );
-void command_builder_add_char( struct buffer *send_buffer, char data );
-void command_builder_add_string( struct buffer *send_buffer, char *data );
+void command_builder1( struct buffer_struct *send_buffer, char* data1 );
+void command_builder2( struct buffer_struct *send_buffer, char* data1, char* data2 );
+void command_builder3( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3 );
+void command_builder4( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4 );
+void command_builder5( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 );
+void command_builder6( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 );
+void command_builder7( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 );
+void command_builder_add_char( struct buffer_struct *send_buffer, char data );
+void command_builder_add_string( struct buffer_struct *send_buffer, char *data );
 
 bool SPI_receive_data_char( char * );
 bool SPI_send_data_char( char data );
@@ -132,28 +123,34 @@ bool checkOnOff( char *toCheck );
 void zeroPad_itoa( char *output, int num, int minDigits );
 
 
-void send_end_of_transmission( struct buffer *send_buffer );
+void send_end_of_transmission( struct buffer_struct *send_buffer );
 
 
-bool communicationsSPI( bool initialize );
+void communicationsSPI( bool initialize );
 void communicationsUART1( bool initialize );
 void communicationsUART2( bool initialize );
-bool communicationsRecv( struct buffer *receive_buffer, struct buffer *send_buffer, enum communications_port_enum communicationsPort, enum receive_status *receive_current_state );
-bool communicationsSend( struct buffer *send_buffer, enum communications_port_enum communicationsPort );
+bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state );
+bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort );
+
+void uartInit( void );
+void commSPIInit( void );
+void initUART2( void );
+void initUART1( void );
 
 /****************
  CODE
  ****************/
 
-
-
-
-
-
-
-
-void communications( bool initialize )
+void commInit( )
 {
+
+    bool initialize;
+
+    initialize = true;
+
+    uartInit( );
+    commSPIInit( );
+
     communicationsSPI( initialize );
 
     communicationsUART1( initialize );
@@ -161,7 +158,21 @@ void communications( bool initialize )
 
 }
 
-bool communicationsSPI( bool initialize )
+void commRunRoutine( )
+{
+    bool initialize;
+
+    initialize = false;
+
+    communicationsSPI( initialize );
+
+    communicationsUART1( initialize );
+    communicationsUART2( initialize );
+
+
+}
+
+void communicationsSPI( bool initialize )
 {
 
     bool enabledSPI;
@@ -169,22 +180,22 @@ bool communicationsSPI( bool initialize )
     static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
     static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
 
-    static struct buffer send_buffer;
-    static struct buffer receive_buffer;
+    static struct buffer_struct send_buffer;
+    static struct buffer_struct receive_buffer;
 
     static bool end_of_transmission_received = false;
     bool no_more_to_send; // here to make this more readable
 
-    static enum receive_status receive_current_state = enum_receive_status_waiting;
+    static enum receive_status_enum receive_current_state = enum_receive_status_waiting;
     static unsigned int receive_wait_count;
     static unsigned int receive_in_command_count;
 
     if( initialize == true )
     {
 	send_buffer.port = enum_port_commSPI;
-	//for now do nothing
+	//for now do nothing else
 	// variable init takes place when port changes, which initial values cause automatically
-	// maybe init SPI ports here int he future
+	// maybe init SPI ports here in the future
     }
 
     if( current_port_done == true )
@@ -216,35 +227,35 @@ bool communicationsSPI( bool initialize )
 
     switch( receive_current_state )
     {
-    case enum_receive_status_waiting:
-	// count # of times we are waiting for COMMAND_START_CHAR !
-	if( data_received == true )
-	{
-	    receive_wait_count++;
-	}
+	case enum_receive_status_waiting:
+	    // count # of times we are waiting for COMMAND_START_CHAR !
+	    if( data_received == true )
+	    {
+		receive_wait_count++;
+	    }
 
-	break;
-    case enum_receive_status_in_command:
-	// count # of times we are in a command
-	// need to check if we somehow missed the COMMAND_END_CHAR *
-	// must be more than max length a command can be
-	if( data_received == true )
-	{
+	    break;
+	case enum_receive_status_in_command:
+	    // count # of times we are in a command
+	    // need to check if we somehow missed the COMMAND_END_CHAR *
+	    // must be more than max length a command can be
+	    if( data_received == true )
+	    {
+		receive_wait_count = 0;
+		receive_in_command_count++;
+	    }
+
+	    break;
+	case enum_receive_status_end_command:
+
+	    if( process_data( &receive_buffer, &send_buffer ) == true )
+	    {
+		end_of_transmission_received = true;
+	    }
 	    receive_wait_count = 0;
-	    receive_in_command_count++;
-	}
+	    receive_in_command_count = 0;
 
-	break;
-    case enum_receive_status_end_command:
-
-	if( process_data( &receive_buffer, &send_buffer ) == true )
-	{
-	    end_of_transmission_received = true;
-	}
-	receive_wait_count = 0;
-	receive_in_command_count = 0;
-
-	break;
+	    break;
     }
 
     no_more_to_send = communicationsSend( &send_buffer, enum_port_commSPI );
@@ -253,7 +264,7 @@ bool communicationsSPI( bool initialize )
     {
 	if( end_of_transmission_received == true )
 	{
-	    // make sure trans buffer is empty
+	    // make sure transmit buffer is empty
 	    // the following test is for standard buffer mode only
 	    // a different check must be performed if the enhanced buffer is used
 	    if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
@@ -265,7 +276,6 @@ bool communicationsSPI( bool initialize )
 	{
 	    // not receiving anything valid from slave
 	    // just move to the next port - things should clear up on their own eventually
-
 	    current_port_done = true;
 	}
 	else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
@@ -281,73 +291,16 @@ bool communicationsSPI( bool initialize )
 	}
     }
 
-    return enabledSPI;
-
-    //    bool enabledSPI;
-    //
-    //    static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
-    //    static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
-    //
-    //    static struct buffer send_buffer;
-    //    static struct buffer receive_buffer;
-    //
-    //    static unsigned int receive_wait_count;
-    //    static unsigned int receive_in_command_count;
-    //
-    //
-    //    if( initialize == true )
-    //    {
-    //	// possibly init the SPI port here
-    //	// do this later if we get to it
-    //
-    //	send_buffer.write_position = 0;
-    //	send_buffer.read_position = 0;
-    //	send_buffer.data_buffer[0] = CHAR_NULL;
-    //
-    //	receive_buffer.write_position = 0;
-    //	receive_buffer.read_position = 0;
-    //	receive_buffer.data_buffer[0] = CHAR_NULL;
-    //
-    //    }
-    //
-    //    if( current_port_done == true )
-    //    {
-    //	enabledSPI = set_current_port( &current_port );
-    //
-    //	if( enabledSPI == true )
-    //	{
-    //	    current_port_done = false;
-    //	    //	    end_of_transmission_received = false;
-    //
-    //	    receive_wait_count = 0;
-    //	    receive_in_command_count = 0;
-    //
-    //	    // put something in the send buffer to run the clock
-    //	    send_buffer.write_position = 0;
-    //	    send_buffer.read_position = 0;
-    //	    receive_buffer.write_position = 0;
-    //	    receive_buffer.read_position = 0;
-    //
-    //	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-    //	}
-    //    }
-    //
-    //    communicationsRecv( &receive_buffer, &send_buffer, enum_port_commSPI );
-    //
-    //
-    //
-    //    communicationsSend( &send_buffer, enum_port_commSPI );
-    //
-    //
-    //    return enabledSPI;
+    return;
 }
 
 void communicationsUART1( bool initialize )
 {
 
-    static struct buffer send_buffer;
-    static struct buffer receive_buffer;
-    static enum receive_status receive_current_state = enum_receive_status_waiting;
+    static struct buffer_struct send_buffer;
+    static struct buffer_struct receive_buffer;
+    static enum receive_status_enum receive_current_state = enum_receive_status_waiting;
+
 
     if( initialize == true )
     {
@@ -359,24 +312,23 @@ void communicationsUART1( bool initialize )
 	receive_current_state = enum_receive_status_waiting;
     }
 
-
     communicationsRecv( &receive_buffer, &send_buffer, enum_port_commUART1, &receive_current_state );
 
     bool end_of_transmission_received;
 
     switch( receive_current_state )
     {
-    case enum_receive_status_waiting:
-	break;
-    case enum_receive_status_in_command:
-	break;
-    case enum_receive_status_end_command:
+	case enum_receive_status_waiting:
+	    break;
+	case enum_receive_status_in_command:
+	    break;
+	case enum_receive_status_end_command:
 
-	if( process_data( &receive_buffer, &send_buffer ) == true )
-	{
-	    end_of_transmission_received = true;
-	}
-	break;
+	    if( process_data( &receive_buffer, &send_buffer ) == true )
+	    {
+		end_of_transmission_received = true;
+	    }
+	    break;
     }
 
     communicationsSend( &send_buffer, enum_port_commUART1 );
@@ -386,9 +338,9 @@ void communicationsUART1( bool initialize )
 
 void communicationsUART2( bool initialize )
 {
-    static struct buffer send_buffer;
-    static struct buffer receive_buffer;
-    static enum receive_status receive_current_state = enum_receive_status_waiting;
+    static struct buffer_struct send_buffer;
+    static struct buffer_struct receive_buffer;
+    static enum receive_status_enum receive_current_state = enum_receive_status_waiting;
 
     if( initialize == true )
     {
@@ -406,17 +358,17 @@ void communicationsUART2( bool initialize )
 
     switch( receive_current_state )
     {
-    case enum_receive_status_waiting:
-	break;
-    case enum_receive_status_in_command:
-	break;
-    case enum_receive_status_end_command:
+	case enum_receive_status_waiting:
+	    break;
+	case enum_receive_status_in_command:
+	    break;
+	case enum_receive_status_end_command:
 
-	if( process_data( &receive_buffer, &send_buffer ) == true )
-	{
-	    end_of_transmission_received = true;
-	}
-	break;
+	    if( process_data( &receive_buffer, &send_buffer ) == true )
+	    {
+		end_of_transmission_received = true;
+	    }
+	    break;
     }
 
     communicationsSend( &send_buffer, enum_port_commUART2 );
@@ -424,7 +376,7 @@ void communicationsUART2( bool initialize )
     return;
 }
 
-bool communicationsRecv( struct buffer *receive_buffer, struct buffer *send_buffer, enum communications_port_enum communicationsPort, enum receive_status *receive_current_state )
+bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state )
 {
 
     bool data_received;
@@ -441,22 +393,21 @@ bool communicationsRecv( struct buffer *receive_buffer, struct buffer *send_buff
     bool gotSomething = false;
 
 
-    //FIX
     // the UART automatically buffers 4 characters
     // unlikely there will be more than one character in the buffer since
     // there is no blocking code, but ideally we would clean out the buffer with each run
     // right now this does not happen
     switch( communicationsPort )
     {
-    case enum_port_commSPI:
-	gotSomething = SPI_receive_data_char( &data );
-	break;
-    case enum_port_commUART1:
-	gotSomething = UART1_receive_data_char( &data );
-	break;
-    case enum_port_commUART2:
-	gotSomething = UART2_receive_data_char( &data );
-	break;
+	case enum_port_commSPI:
+	    gotSomething = SPI_receive_data_char( &data );
+	    break;
+	case enum_port_commUART1:
+	    gotSomething = UART1_receive_data_char( &data );
+	    break;
+	case enum_port_commUART2:
+	    gotSomething = UART2_receive_data_char( &data );
+	    break;
     }
 
     if( gotSomething == true )
@@ -465,7 +416,6 @@ bool communicationsRecv( struct buffer *receive_buffer, struct buffer *send_buff
 
 	if( (data == COMMAND_START_CHAR) && (*receive_current_state != enum_receive_status_in_command) )
 	{
-
 	    *receive_current_state = enum_receive_status_in_command;
 	    receive_buffer->read_position = 0;
 	    receive_buffer->write_position = 0;
@@ -490,10 +440,9 @@ bool communicationsRecv( struct buffer *receive_buffer, struct buffer *send_buff
 
     // maybe we do not need to return the status since we modify the function variable
     return data_received;
-
 }
 
-bool communicationsSend( struct buffer *send_buffer, enum communications_port_enum communicationsPort )
+bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort )
 {
     bool send_end;
 
@@ -508,19 +457,18 @@ bool communicationsSend( struct buffer *send_buffer, enum communications_port_en
 	bool data_sent;
 	switch( communicationsPort )
 	{
-	case enum_port_commSPI:
-	    data_sent = SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-	    break;
-	case enum_port_commUART1:
-	    data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-	    break;
-	case enum_port_commUART2:
-	    data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-	    break;
+	    case enum_port_commSPI:
+		data_sent = SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
+		break;
+	    case enum_port_commUART1:
+		data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
+		break;
+	    case enum_port_commUART2:
+		data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
+		break;
 	}
 	if( data_sent == true )
 	{
-	    delayMSTenths( 5 );
 	    send_buffer->read_position++;
 	    if( send_buffer->read_position >= BUFFER_LENGTH )
 	    {
@@ -532,121 +480,6 @@ bool communicationsSend( struct buffer *send_buffer, enum communications_port_en
     return send_end;
 
 }
-
-//bool communicationsOld( enum communications_port_enum communicationsPort )
-//{
-//    bool enabledSPI;
-//
-//    static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
-//    static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
-//
-//    static struct buffer send_buffer;
-//    static struct buffer receive_buffer;
-//
-//    static bool end_of_transmission_received = false;
-//    bool no_more_to_send; // here to make this more readable
-//
-//    static enum receive_status receive_current_state;
-//    static unsigned int receive_wait_count;
-//    static unsigned int receive_in_command_count;
-//
-//    if( current_port_done == true )
-//    {
-//	enabledSPI = set_current_port( &current_port );
-//
-//	if( enabledSPI == true )
-//	{
-//	    current_port_done = false;
-//	    end_of_transmission_received = false;
-//
-//	    receive_wait_count = 0;
-//	    receive_in_command_count = 0;
-//
-//	    // put something in the send buffer to run the clock
-//	    send_buffer.write_position = 0;
-//	    send_buffer.read_position = 0;
-//	    receive_buffer.write_position = 0;
-//	    receive_buffer.read_position = 0;
-//
-//	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//
-//	}
-//    }
-//
-//
-//    bool data_received;
-//
-//    receive_current_state = receive_data( &receive_buffer, &data_received, communicationsPort );
-//    switch( receive_current_state )
-//    {
-//    case enum_receive_status_waiting:
-//	// count # of times we are waiting for COMMAND_START_CHAR !
-//	if( data_received == true )
-//	{
-//	    receive_wait_count++;
-//	}
-//
-//	break;
-//    case enum_receive_status_in_command:
-//	// count # of times we are in a command
-//	// need to check if we somehow missed the COMMAND_END_CHAR *
-//	// must be more than max length a command can be
-//	if( data_received == true )
-//	{
-//	    receive_wait_count = 0;
-//	    receive_in_command_count++;
-//	}
-//
-//	break;
-//    case enum_receive_status_end_command:
-//
-//	if( process_data( &receive_buffer, &send_buffer ) == true )
-//	{
-//	    end_of_transmission_received = true;
-//	}
-//	receive_wait_count = 0;
-//	receive_in_command_count = 0;
-//
-//	break;
-//    }
-//
-//
-//    no_more_to_send = send_data( &send_buffer );
-//
-//    if( no_more_to_send == true )
-//    {
-//	if( end_of_transmission_received == true )
-//	{
-//	    // make sure trans buffer is empty
-//	    // the following test is for standard buffer mode only
-//	    // a different check must be performed if the enhanced buffer is used
-//	    if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
-//	    {
-//		current_port_done = true;
-//	    }
-//	}
-//	else if( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
-//	{
-//	    // not receiving anything valid from slave
-//	    // just move to the next port - things should clear up on their own eventually
-//
-//	    current_port_done = true;
-//	}
-//	else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
-//	{
-//	    // received too many characters before the command was ended
-//	    // likely a garbled COMMAND_END_CHAR or something
-//	    // just move to the next port - things should clear up on their own eventually
-//	    current_port_done = true;
-//	}
-//	else
-//	{
-//	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//	}
-//    }
-//
-//    return enabledSPI;
-//}
 
 bool set_current_port( unsigned char *current_port )
 {
@@ -660,7 +493,6 @@ bool set_current_port( unsigned char *current_port )
 	SPI_PORT_0 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
 	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-	//	LED4___SET = 0;
     }
     else
     {
@@ -671,21 +503,21 @@ bool set_current_port( unsigned char *current_port )
 	}
 	switch( *current_port )
 	{
-	case 0:
-	    // set correct DO chip select here
-	    SPI_PORT_0 = 0; //enable Slave Select
-	    break;
-	case 1:
-	    // set correct DO the chip select here
-	    SPI_PORT_1 = 0;
+	    case 0:
+		// set correct DO chip select here
+		SPI_PORT_0 = 0; //enable Slave Select
+		break;
+	    case 1:
+		// set correct DO the chip select here
+		SPI_PORT_1 = 0;
 
-	    //	    LED4___SET = 1;
+		//	    LED4___SET = 1;
 
-	    break;
-	case 2:
-	    // set correct DO the chip select here
-	    SPI_PORT_2 = 0;
-	    break;
+		break;
+	    case 2:
+		// set correct DO the chip select here
+		SPI_PORT_2 = 0;
+		break;
 	}
 
 	SPI1STATbits.SPIEN = 1; //enable master SPI
@@ -695,68 +527,7 @@ bool set_current_port( unsigned char *current_port )
     return enabledSPI;
 }
 
-//enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received, enum communications_port_enum communicationsPort )
-//{
-//    char data;
-//
-//    static enum receive_status my_status = enum_receive_status_waiting;
-//
-//    if( my_status == enum_receive_status_end_command )
-//    {
-//	my_status = enum_receive_status_waiting;
-//    }
-//
-//    *data_received = false;
-//
-//    bool gotSomething = false;
-//
-//    switch( communicationsPort )
-//    {
-//    case enum_port_commSPI:
-//	gotSomething = SPI_receive_data_char( &data );
-//	break;
-//    case enum_port_commUART1:
-//	//	gotSomething = UART1_receive_data( &data );
-//	break;
-//    case enum_port_commUART2:
-//	//	gotSomething = UART2_receive_data( &data );
-//	break;
-//    }
-//
-//    //    if( SPI_receive_data( &data ) == true )
-//    if( gotSomething == true )
-//    {
-//	*data_received = true;
-//
-//	if( (data == COMMAND_START_CHAR) && (my_status != enum_receive_status_in_command) )
-//	{
-//
-//	    my_status = enum_receive_status_in_command;
-//	    receive_buffer->read_position = 0;
-//	    receive_buffer->write_position = 0;
-//	}
-//
-//	if( my_status == enum_receive_status_in_command )
-//	{
-//	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-//
-//	    receive_buffer->write_position++;
-//	    if( receive_buffer->write_position >= BUFFER_LENGTH )
-//	    {
-//		receive_buffer->write_position = (BUFFER_LENGTH - 1);
-//	    }
-//	}
-//
-//	if( (my_status == enum_receive_status_in_command) && (data == COMMAND_END_CHAR) )
-//	{
-//	    my_status = enum_receive_status_end_command;
-//	}
-//    }
-//
-//    return my_status;
-//}
-
-bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer )
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer )
 {
     bool end_of_transmission_received;
 
@@ -772,7 +543,7 @@ bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer )
     return end_of_transmission_received;
 }
 
-void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *buffer_to_parameterize )
+void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize )
 {
     unsigned char parameter_position = 0;
     unsigned char parameter_index = 0;
@@ -793,34 +564,34 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
     {
 	switch( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
 	{
-	case COMMAND_START_CHAR:
-	    // this character should never appear
-	    break;
-	case COMMAND_DELIMETER:
-	    // move to next parameter
-	    parameter_position = 0;
-	    parameter_index++;
+	    case COMMAND_START_CHAR:
+		// this character should never appear
+		break;
+	    case COMMAND_DELIMETER:
+		// move to next parameter
+		parameter_position = 0;
+		parameter_index++;
 
-	    if( parameter_index >= PARAMETER_MAX_COUNT )
-	    {
-		// if we run out of parameters just overwrite the last one
-		// we should never have this case, but this keeps us from crashing and burning
-		parameter_index = (PARAMETER_MAX_COUNT - 1);
-	    }
+		if( parameter_index >= PARAMETER_MAX_COUNT )
+		{
+		    // if we run out of parameters just overwrite the last one
+		    // we should never have this case, but this keeps us from crashing and burning
+		    parameter_index = (PARAMETER_MAX_COUNT - 1);
+		}
 
-	    break;
-	default:
-	    // add the character to the current parameter
-	    parameters[parameter_index][parameter_position] = buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position];
-	    parameter_position++;
-	    if( parameter_position >= PARAMETER_MAX_LENGTH )
-	    {
-		// if our parameter is too long, just overwrite the last character
-		// we should never have this case, but this keeps us from crashing and burning
-		parameter_position = (PARAMETER_MAX_LENGTH - 1);
-	    }
-	    parameters[parameter_index][parameter_position] = CHAR_NULL;
-	    break;
+		break;
+	    default:
+		// add the character to the current parameter
+		parameters[parameter_index][parameter_position] = buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position];
+		parameter_position++;
+		if( parameter_position >= PARAMETER_MAX_LENGTH )
+		{
+		    // if our parameter is too long, just overwrite the last character
+		    // we should never have this case, but this keeps us from crashing and burning
+		    parameter_position = (PARAMETER_MAX_LENGTH - 1);
+		}
+		parameters[parameter_index][parameter_position] = CHAR_NULL;
+		break;
 	}
 	buffer_to_parameterize->read_position++;
     }
@@ -831,7 +602,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
     return;
 }
 
-bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *send_buffer )
+bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer )
 {
     bool end_of_transmission_received = false;
 
@@ -842,11 +613,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
     // it's not very clean to call the command builder functions from here
     // especially if there is some processing to do, like setting a clock or something
 
+
     if( strmatch( parameters[0], "END" ) == true )
     {
 
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
+
     }
     else if( strmatch( parameters[0], "Set" ) == true )
     {
@@ -886,38 +659,29 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    timeSecondBuf[1] = parameters[3][7];
 	    timeSecondBuf[2] = CHAR_NULL;
 
+	    struct date_time newDateTime;
 
-	    char newTimeDay;
-	    char newTimeMonth;
-	    char newTimeYear;
+	    newDateTime.day = atoi( timeDayBuf );
+	    newDateTime.month = atoi( timeMonthBuf );
+	    newDateTime.year = atoi( timeYearBuf );
 
-	    char newTimeHour;
-	    char newTimeMinute;
-	    char newTimeSecond;
+	    newDateTime.hour = atoi( timeHourBuf );
+	    newDateTime.minute = atoi( timeMinuteBuf );
+	    newDateTime.second = atoi( timeSecondBuf );
 
-	    newTimeDay = atoi( timeDayBuf );
-	    newTimeMonth = atoi( timeMonthBuf );
-	    newTimeYear = atoi( timeYearBuf );
-
-	    newTimeHour = atoi( timeHourBuf );
-	    newTimeMinute = atoi( timeMinuteBuf );
-	    newTimeSecond = atoi( timeSecondBuf );
-
-	    writeTime( newTimeYear, newTimeMonth, newTimeDay, newTimeHour, newTimeMinute, newTimeSecond );
-	    setI2CTime( newTimeYear, newTimeMonth, newTimeDay, newTimeHour, newTimeMinute, newTimeSecond );
-
-	    readTimeI2C( );
+	    // set the RTCC I2C and then copy it to the RTCC Internal
+	    // this will help verify that they are the same
+	    rtccI2CSetTime( &newDateTime );
+	    rtccCopyI2CTime( );
 
 	    command_builder2( send_buffer, "Conf", "Time" );
 
 	}
 	else if( strmatch( parameters[1], "EnAl" ) == true )
 	{
-	    tba_energyAllocation = atol( parameters[2] );
+	    energyCycleAllocation_global = atol( parameters[2] );
 
-	    EEwriteEnergyAlloc( );
-	    // previously set high/low here as well
-	    // may get rid of high/low for now
+	    eeWriteEnergyAllocNew( energyCycleAllocation_global );
 
 	    command_builder2( send_buffer, "Conf", "EnAl" );
 	}
@@ -933,51 +697,54 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    if( checkOnOff( parameters[2] ) == true )
 	    {
-		audibleAlarm = 1;
+		alarms_global.alarmAudible = 1;
 	    }
 	    else
 	    {
-		audibleAlarm = 0;
+		alarms_global.alarmAudible = 0;
 	    }
 
 
 	    if( checkOnOff( parameters[3] ) == true )
 	    {
-		alarm1Enabled = 1;
+		alarms_global.alarm1Enabled = 1;
 	    }
 	    else
 	    {
-		alarm1Enabled = 0;
+		alarms_global.alarm1Enabled = 0;
 	    }
 
-	    alarm1Energy = atoi( parameters[4] );
+	    alarms_global.alarm1Energy = atoi( parameters[4] );
 
 
 	    if( checkOnOff( parameters[5] ) == true )
 	    {
-		alarm2Enabled = 1;
+		alarms_global.alarm2Enabled = 1;
 	    }
 	    else
 	    {
-		alarm2Enabled = 0;
+		alarms_global.alarm2Enabled = 0;
 	    }
 
-	    alarm2Energy = atoi( parameters[6] );
+	    alarms_global.alarm2Energy = atoi( parameters[6] );
 
-	    EEwriteAlarm( );
+	    eeWriteAlarmNew( alarms_global );
 
 	    command_builder2( send_buffer, "Conf", "Alarm" );
 	}
 	else if( strmatch( parameters[1], "Pass" ) == true )
 	{
-	    passwordSet[0] = parameters[2][0];
-	    passwordSet[1] = parameters[2][1];
-	    passwordSet[2] = parameters[2][2];
-	    passwordSet[3] = parameters[2][3];
-	    passwordSet[4] = parameters[2][4];
-	    passwordSet[5] = parameters[2][5];
 
-	    EEwritePassword( );
+	    char passwordNew[7];
+
+	    passwordNew[0] = parameters[2][0];
+	    passwordNew[1] = parameters[2][1];
+	    passwordNew[2] = parameters[2][2];
+	    passwordNew[3] = parameters[2][3];
+	    passwordNew[4] = parameters[2][4];
+	    passwordNew[5] = parameters[2][5];
+
+	    eeWritePasswordNew( passwordNew );
 
 	    command_builder2( send_buffer, "Conf", "Pass" );
 
@@ -987,16 +754,16 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    if( checkOnOff( parameters[2] ) == true )
 	    {
-		emerButtonEnable = true;
+		emergencyButton_global.enabled = true;
+		emergencyButton_global.energyAmount = atoi( parameters[3] );
 	    }
 	    else
 	    {
-		emerButtonEnable = false;
+		emergencyButton_global.enabled = false;
+		emergencyButton_global.energyAmount = 0;
 	    }
 
-	    emerButtonEnergyAllocate = atoi( parameters[3] );
-
-
+	    eeWriteEmerButtonNew( emergencyButton_global );
 
 	    command_builder2( send_buffer, "Conf", "Emer" );
 
@@ -1005,15 +772,15 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 
 
-	    resetTimeHour = atoi( parameters[2] );
-	    resetTimeMinute = atoi( parameters[3] );
+	    resetTime_global.hour = atoi( parameters[2] );
+	    resetTime_global.minute = atoi( parameters[3] );
 
 	    char rsh[20];
 	    char rsm[20];
 
-	    itoa( rsh, resetTimeHour, 10 );
-	    itoa( rsm, resetTimeMinute, 10 );
-	    EEwriteResetTime( );
+	    itoa( rsh, resetTime_global.hour, 10 );
+	    itoa( rsm, resetTime_global.minute, 10 );
+	    eeWriteResetTimeNew( resetTime_global.hour, resetTime_global.minute );
 
 	    command_builder4( send_buffer, "Conf", "RstTim", rsh, rsm );
 
@@ -1023,14 +790,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    if( checkOnOff( parameters[2] ) == true )
 	    {
-		relayActive = 1;
+		relayActive_global = 1;
 	    }
 	    else
 	    {
-		relayActive = 0;
+		relayActive_global = 0;
 	    }
 
-	    EEwriteRelay( );
+	    eeWriteRelayNew( relayActive_global );
 
 	    command_builder2( send_buffer, "Conf", "Relay" );
 
@@ -1039,7 +806,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	else if( strmatch( parameters[1], "Watts" ) == true )
 	{
-	    tba_powerWatts = atol( parameters[2] );
+	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
@@ -1051,27 +818,19 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    unsigned long tempEnergyUsedLifetime;
 
-
-
 	    tempEnergyUsedLifetime = atol( parameters[2] );
 
-	    // TESTING   remove the lifetime setting
-	    if( tempEnergyUsedLifetime < tba_energyUsedLifetime )
+	    if( tempEnergyUsedLifetime < energyUsed_global.lifetime )
 	    {
-		if( tba_energyUsedLifetime == 0 )
-		{
-		}
 
 		char temp[12];
-		//		ultoa( temp, totalUsed, 10 );
-		ltoa( temp, tba_energyUsedLifetime, 10 );
+		ltoa( temp, energyUsed_global.lifetime, 10 );
 		command_builder3( send_buffer, "Set", "EnUsed", temp );
 
 	    }
 	    else
 	    {
-		tba_energyUsedLifetime = tempEnergyUsedLifetime;
-		// done know if we need this here		powerUsed = totalUsed - tba_powerUsedDayStart;
+		energyUsed_global.lifetime = tempEnergyUsedLifetime;
 		command_builder2( send_buffer, "Conf", "EnUsed" );
 	    }
 
@@ -1079,69 +838,29 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	else if( strmatch( parameters[1], "Lights" ) == true )
 	{
 
-	    lightsModeActive = checkOnOff( parameters[2] );
+	    ledFindMeActive_global = checkOnOff( parameters[2] );
 
 	    command_builder2( send_buffer, "Conf", "Lights" );
 
 	}
 	else if( strmatch( parameters[1], "AllAdd" ) == true )
 	{
-	    emerAllocation = atoi( parameters[2] );
+
+	    energyAdd_global = atoi( parameters[2] );
 
 	    char buf[BUF_SIZE_INT];
-	    itoa( buf, emerAllocation, 10 );
+	    itoa( buf, energyAdd_global, 10 );
 
 	    command_builder3( send_buffer, "Conf", "AllAdd", buf );
 
 	}
-	    //	else if( strmatch( parameters[1], "Volts" ) == true )
-	    //	{
-	    //	    powerVolts = atoi( parameters[2] );
-	    //	    command_builder2( send_buffer, "Conf", "Volts" );
-	    //	}
-	    //	else if( strmatch( parameters[1], "Amps" ) == true )
-	    //	{
-	    //	    powerAmps = atoi( parameters[2] );
-	    //	    command_builder2( send_buffer, "Conf", "Amps" );
-	    //	}
 	else if( strmatch( parameters[1], "PSVersion" ) == true )
 	{
 	    command_builder2( send_buffer, "Conf", "PSVersion" );
 	}
-
-
-	//	else if( strmatch( parameters[1], "LED" ) == true )
-	//	{
-	//	    if( strmatch( parameters[2], "On" ) == true )
-	//	    {
-	//		command_builder3( send_buffer, "Conf", "LED", "On" );
-	//
-	//	    }
-	//	    else if( strmatch( parameters[2], "Off" ) == true )
-	//	    {
-	//		command_builder3( send_buffer, "Conf", "LED", "Off" );
-	//	    }
-	//	}
-	//	else if( strmatch( parameters[1], "LEDB" ) == true )
-	//	{
-	//	    if( strmatch( parameters[2], "On" ) == true )
-	//	    {
-	////		LED1_SET = 1;
-	//		command_builder3( send_buffer, "Conf", "LEDB", "On" );
-	//
-	//	    }
-	//	    else if( strmatch( parameters[2], "Off" ) == true )
-	//	    {
-	////		LED1_SET = 0;
-	//		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
-	//	    }
-	//	}
-
-
     }
     else if( strmatch( parameters[0], "Read" ) == true )
     {
-
 	if( strmatch( parameters[1], "Time" ) == true )
 	{
 	    char timeDateBuf[9]; //	"DD-MM-YY"
@@ -1155,13 +874,12 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char timeTimeMMBuf[BUF_SIZE_INT];
 	    char timeTimeSSBuf[BUF_SIZE_INT];
 
-
-	    zeroPad_itoa( timeDateDDBuf, timeDay, 2 );
-	    zeroPad_itoa( timeDateMMBuf, timeMonth, 2 );
-	    zeroPad_itoa( timeDateYYBuf, timeYear, 2 );
-	    zeroPad_itoa( timeTimeHHBuf, timeHour, 2 );
-	    zeroPad_itoa( timeTimeMMBuf, timeMinute, 2 );
-	    zeroPad_itoa( timeTimeSSBuf, timeSecond, 2 );
+	    zeroPad_itoa( timeDateDDBuf, dateTime_global.day, 2 );
+	    zeroPad_itoa( timeDateMMBuf, dateTime_global.month, 2 );
+	    zeroPad_itoa( timeDateYYBuf, dateTime_global.year, 2 );
+	    zeroPad_itoa( timeTimeHHBuf, dateTime_global.hour, 2 );
+	    zeroPad_itoa( timeTimeMMBuf, dateTime_global.minute, 2 );
+	    zeroPad_itoa( timeTimeSSBuf, dateTime_global.second, 2 );
 
 	    timeDateBuf[0] = timeDateDDBuf[0];
 	    timeDateBuf[1] = timeDateDDBuf[1];
@@ -1169,8 +887,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    timeDateBuf[3] = timeDateMMBuf[0];
 	    timeDateBuf[4] = timeDateMMBuf[1];
 	    timeDateBuf[5] = '-';
-	    timeDateBuf[6] = timeDateYYBuf[0];
-	    timeDateBuf[7] = timeDateYYBuf[1];
+	    timeDateBuf[6] = timeDateYYBuf[2]; // pull from 4 digit year
+	    timeDateBuf[7] = timeDateYYBuf[3]; // pull from 4 digit year
 	    timeDateBuf[8] = CHAR_NULL;
 
 	    timeTimeBuf[0] = timeTimeHHBuf[0];
@@ -1190,7 +908,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    char energyAllocationBuf[BUF_SIZE_LONG];
 
-	    ltoa( energyAllocationBuf, tba_energyAllocation, 10 );
+	    ltoa( energyAllocationBuf, energyCycleAllocation_global, 10 );
 
 	    command_builder3( send_buffer, "Set", "EnAl", energyAllocationBuf );
 	}
@@ -1207,13 +925,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char alarm1EnergyBuf[BUF_SIZE_INT];
 	    char alarm2EnergyBuf[BUF_SIZE_INT];
 
-	    fillOnOff( audibleAlarmBuf, audibleAlarm );
-	    fillOnOff( alarm1EnabledBuf, alarm1Enabled );
-	    fillOnOff( alarm2EnabledBuf, alarm2Enabled );
+	    fillOnOff( audibleAlarmBuf, alarms_global.alarmAudible );
+	    fillOnOff( alarm1EnabledBuf, alarms_global.alarm1Enabled );
+	    fillOnOff( alarm2EnabledBuf, alarms_global.alarm2Enabled );
 
 	    // using itoa() - variable type is char, make sure it is an int
-	    alarm1EnergyTemp = alarm1Energy;
-	    alarm2EnergyTemp = alarm2Energy;
+	    alarm1EnergyTemp = alarms_global.alarm1Energy;
+	    alarm2EnergyTemp = alarms_global.alarm2Energy;
 	    itoa( alarm1EnergyBuf, alarm1EnergyTemp, 10 );
 	    itoa( alarm2EnergyBuf, alarm2EnergyTemp, 10 );
 
@@ -1222,28 +940,22 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	}
 	else if( strmatch( parameters[1], "Pass" ) == true )
 	{
-	    char passwordTemp[7];
+	    char password[7];
 
-	    passwordTemp[0] = passwordSet[0];
-	    passwordTemp[1] = passwordSet[1];
-	    passwordTemp[2] = passwordSet[2];
-	    passwordTemp[3] = passwordSet[3];
-	    passwordTemp[4] = passwordSet[4];
-	    passwordTemp[5] = passwordSet[5];
-	    passwordTemp[6] = CHAR_NULL;
+	    eeReadPasswordNew( password );
+	    password[6] = CHAR_NULL;
 
-	    command_builder3( send_buffer, "Set", "Pass", passwordTemp );
+	    command_builder3( send_buffer, "Set", "Pass", password );
 
 	}
 	else if( strmatch( parameters[1], "Emer" ) == true )
 	{
-
-
 	    char emerButtonEnableBuf[4];
 	    char emerButtonEnergyAllocateBuf[BUF_SIZE_INT];
 
-	    fillOnOff( emerButtonEnableBuf, emerButtonEnable );
-	    itoa( emerButtonEnergyAllocateBuf, emerButtonEnergyAllocate, 10 );
+	    fillOnOff( emerButtonEnableBuf, emergencyButton_global.enabled );
+
+	    itoa( emerButtonEnergyAllocateBuf, emergencyButton_global.energyAmount, 10 );
 
 	    command_builder4( send_buffer, "Set", "Emer", emerButtonEnableBuf, emerButtonEnergyAllocateBuf );
 
@@ -1255,8 +967,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char resetTimeMinuteBuf[BUF_SIZE_INT];
 
 
-	    itoa( resetTimeHourBuf, resetTimeHour, 10 );
-	    itoa( resetTimeMinuteBuf, resetTimeMinute, 10 );
+	    itoa( resetTimeHourBuf, resetTime_global.hour, 10 );
+	    itoa( resetTimeMinuteBuf, resetTime_global.minute, 10 );
 
 	    command_builder4( send_buffer, "Set", "RstTim", resetTimeHourBuf, resetTimeMinuteBuf );
 
@@ -1265,7 +977,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    char relayActiveBuf[4];
 
-	    fillOnOff( relayActiveBuf, relayActive );
+	    fillOnOff( relayActiveBuf, relayActive_global );
 
 	    command_builder3( send_buffer, "Set", "Relay", relayActiveBuf );
 
@@ -1275,8 +987,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    char charEnergyUsedLifetime[BUF_SIZE_LONG];
 	    char charEnergyUsedPreviousDay[BUF_SIZE_LONG];
 
-	    ltoa( charEnergyUsedLifetime, tba_energyUsedLifetime, 10 );
-	    ltoa( charEnergyUsedPreviousDay, tba_energyUsedPreviousDay, 10 );
+	    ltoa( charEnergyUsedLifetime, energyUsed_global.lifetime, 10 );
+	    ltoa( charEnergyUsedPreviousDay, energyUsed_global.previousCycleUsed, 10 );
 
 	    command_builder4( send_buffer, "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
 
@@ -1284,7 +996,17 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	else if( strmatch( parameters[1], "CBver" ) == true )
 	{
 
-	    command_builder3( send_buffer, "Set", "CBver", powerBoxCodeVersion );
+	    char temp[10];
+	    temp[0] = 'T';
+	    temp[1] = 'e';
+	    temp[2] = 's';
+	    temp[3] = 't';
+	    temp[4] = ':';
+	    temp[5] = '0';
+	    temp[6] = '1';
+	    temp[7] = CHAR_NULL;
+
+	    command_builder3( send_buffer, "Set", "CBver", powerBoxCodeVersion_global );
 
 	}
 	else if( strmatch( parameters[1], "PwrFail" ) == true )
@@ -1320,27 +1042,10 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerRestoreTimeBuf[10] = 'M';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
 
+	    struct date_time timePowerFail;
+	    struct date_time timePowerRestore;
 
-	    powerFailTimeBuf[ 0] = (powerFailTimeHour >> 4) + 0x30;
-	    powerFailTimeBuf[ 1] = (powerFailTimeHour) + 0x30;
-	    powerFailTimeBuf[ 3] = (powerFailTimeMinute >> 4) + 0x30;
-	    powerFailTimeBuf[ 4] = (powerFailTimeMinute) + 0x30;
-	    powerFailTimeBuf[ 6] = (powerFailTimeDay >> 4) + 0x30;
-	    powerFailTimeBuf[ 7] = (powerFailTimeDay) + 0x30;
-	    powerFailTimeBuf[ 9] = (powerFailTimeMonth >> 4) + 0x30;
-	    powerFailTimeBuf[10] = (powerFailTimeMonth) + 0x30;
-	    powerFailTimeBuf[11] = CHAR_NULL;
-
-	    powerRestoreTimeBuf [ 0] = (powerRestoreTimeHour >> 4) + 0x30;
-	    powerRestoreTimeBuf [ 1] = (powerRestoreTimeHour) + 0x30;
-	    powerRestoreTimeBuf [ 3] = (powerRestoreTimeMinute >> 4) + 0x30;
-	    powerRestoreTimeBuf [ 4] = (powerRestoreTimeMinute) + 0x30;
-	    powerRestoreTimeBuf [ 6] = (powerRestoreTimeDay >> 4) + 0x30;
-	    powerRestoreTimeBuf [ 7] = (powerRestoreTimeDay) + 0x30;
-	    powerRestoreTimeBuf [ 9] = (powerRestoreTimeMonth >> 4) + 0x30;
-	    powerRestoreTimeBuf [10] = (powerRestoreTimeMonth) + 0x30;
-	    powerRestoreTimeBuf [11] = CHAR_NULL;
-
+	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
 
 	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
 
@@ -1349,46 +1054,25 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	{
 	    long energyUsedTemp;
 
-	    energyUsedTemp = tba_energyUsedLifetime - tba_energyUsedLastDayReset;
+	    energyUsedTemp = energyUsed_global.lifetime - energyUsed_global.lastReset;
 
-	    char energyAllocationBuf[BUF_SIZE_LONG];
+	    char energyEmergencyAdderBuf[BUF_SIZE_LONG];
 	    char energyUsedBuf[BUF_SIZE_LONG];
 	    char powerWattsBuf[BUF_SIZE_LONG];
 
-	    ltoa( energyAllocationBuf, (tba_energyAllocation + emerAllocation), 10 );
+	    ltoa( energyEmergencyAdderBuf, (energyCycleAllocation_global + energyAdd_global), 10 );
 	    ltoa( energyUsedBuf, energyUsedTemp, 10 );
-	    ltoa( powerWattsBuf, tba_powerWatts, 10 );
+	    ltoa( powerWattsBuf, powerWatts_global, 10 );
 
-	    command_builder5( send_buffer, "Set", "PwrData", energyAllocationBuf, energyUsedBuf, powerWattsBuf );
+	    command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 
 	}
     }
 
-
-
-
-    //	if( strmatch( parameters[1], "LEDB" ) == true )
-    //	{
-    //
-    //	    if( LED1READ == 0b1 )
-    //	    {
-    //		command_builder3( send_buffer, "Data", "LEDB", "On" );
-    //	    }
-    //	    else
-    //	    {
-    //		command_builder3( send_buffer, "Data", "LEDB", "Off" );
-    //	    }
-    //	}
-    //	}
-
-    // add new parameters as necessary
-    // NEVER check for a higher parameter number than we allocated for.
-    // see earlier comments about NULLS and dying from old age
-
     return end_of_transmission_received;
 }
 
-void command_builder1( struct buffer *send_buffer, char* data1 )
+void command_builder1( struct buffer_struct *send_buffer, char* data1 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
@@ -1398,7 +1082,7 @@ void command_builder1( struct buffer *send_buffer, char* data1 )
     return;
 }
 
-void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
+void command_builder2( struct buffer_struct *send_buffer, char* data1, char* data2 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
@@ -1410,7 +1094,7 @@ void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
     return;
 }
 
-void command_builder3( struct buffer *send_buffer, char* data1, char* data2, char* data3 )
+void command_builder3( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
@@ -1424,7 +1108,7 @@ void command_builder3( struct buffer *send_buffer, char* data1, char* data2, cha
     return;
 }
 
-void command_builder4( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4 )
+void command_builder4( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
@@ -1440,7 +1124,7 @@ void command_builder4( struct buffer *send_buffer, char* data1, char* data2, cha
     return;
 }
 
-void command_builder5( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 )
+void command_builder5( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1459,7 +1143,7 @@ void command_builder5( struct buffer *send_buffer, char* data1, char* data2, cha
     return;
 }
 
-void command_builder6( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 )
+void command_builder6( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1480,7 +1164,7 @@ void command_builder6( struct buffer *send_buffer, char* data1, char* data2, cha
     return;
 }
 
-void command_builder7( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 )
+void command_builder7( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1503,7 +1187,7 @@ void command_builder7( struct buffer *send_buffer, char* data1, char* data2, cha
     return;
 }
 
-void command_builder_add_char( struct buffer *send_buffer, char data )
+void command_builder_add_char( struct buffer_struct *send_buffer, char data )
 {
     send_buffer->data_buffer[send_buffer->write_position] = data;
 
@@ -1516,7 +1200,7 @@ void command_builder_add_char( struct buffer *send_buffer, char data )
     return;
 }
 
-void command_builder_add_string( struct buffer *send_buffer, char *data_string )
+void command_builder_add_string( struct buffer_struct *send_buffer, char *data_string )
 {
     for( int inx = 0; data_string[inx] != CHAR_NULL; inx++ )
     {
@@ -1525,30 +1209,6 @@ void command_builder_add_string( struct buffer *send_buffer, char *data_string )
 
     return;
 }
-
-//bool send_data( struct buffer *send_buffer )
-//{
-//    bool send_end;
-//
-//    if( send_buffer->read_position == send_buffer->write_position )
-//    {
-//	send_end = true;
-//    }
-//    else
-//    {
-//	send_end = false;
-//	if( SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] ) == true )
-//	{
-//	    send_buffer->read_position++;
-//	    if( send_buffer->read_position >= BUFFER_LENGTH )
-//	    {
-//		send_buffer->read_position = 0;
-//	    }
-//	}
-//    }
-//
-//    return send_end;
-//}
 
 bool strmatch( char* a, char* b )
 {
@@ -1715,10 +1375,15 @@ bool UART1_receive_data_char( char *data )
 {
     bool recvGood = false;
 
+
     if( U1STAbits.URXDA == 1 )
     {
 	*data = U1RXREG;
-	recvGood = true;
+
+	if( *data != CHAR_NULL )
+	{
+	    recvGood = true;
+	}
     }
 
     return recvGood;
@@ -1768,20 +1433,15 @@ bool UART2_send_data_char( char data )
 /************************/
 // RESPONSES
 
-void send_end_of_transmission( struct buffer * send_buffer )
+void send_end_of_transmission( struct buffer_struct * send_buffer )
 {
     command_builder1( send_buffer, "END" );
 
     return;
 }
 
-void SPIMasterInit( void )
+void commSPIInit( void )
 {
-    static bool firstRun = true;
-
-    // make sure analog is turned off - it messes with the pins
-    ANSA = 0;
-    ANSB = 0;
 
     TRISBbits.TRISB10 = 0b1; // SDI1
     TRISBbits.TRISB11 = 0b1; // SCK1 (seems this should be set output, but 0b0 does not work)
@@ -1805,9 +1465,17 @@ void SPIMasterInit( void )
     SPI1CON1bits.CKE = 0b1; // serial data changes on active to idle clock state
     SPI1CON1bits.SSEN = 0b0; // not a slave
     SPI1CON1bits.CKP = 0b1; // clock idle is high
-    SPI1CON1bits.SPRE = 0b110; // secondary prescale 2:1
-    SPI1CON1bits.PPRE = 0b11; // primary prescale 1:1
-    //    SPI1CON1bits.PPRE = 0b00; // primary prescale 1:1
+
+    // set the SPI clock speed
+    // this is not simple to do based off calculations using the FCY macro
+    // for now, just hadn calcualte and set the correct bits
+
+    // start at 16,000,000 Hz
+    // PRI prescale 16:1 - takes it down to 1,000,000 Hz
+    // SEC prescale 4:1 - takes it down to 250,000 Hz
+
+    SPI1CON1bits.PPRE = 0b01; // primary prescale 16:1
+    SPI1CON1bits.SPRE = 0b100; // secondary prescale 4:1
 
     SPI1CON2bits.FRMEN = 0b0; // frame mode, unused
     SPI1CON2bits.SPIFSD = 0b0; // frame mode, unused
@@ -1818,807 +1486,166 @@ void SPIMasterInit( void )
 
     SPI1STATbits.SPIROV = 0; //clear flag for overflow data
 
-
-    // do not use the interrupt , could not get it to work
-    //    SPI1STATbits.SISEL = 0b001;
-    //
-    //    IFS0bits.SPI1IF = 0;
-    //    IEC0bits.SPI1IE = 1;
-
-
-
-
-    //SPI1BUF = SPI1BUF;
-    //    SPI1STATbits.SPIEN = 1; //enable SPI
-
-    if( firstRun == true )
-    {
-	// set timer up here
-	T1CONbits.TSIDL = 0b1; //Discontinue module operation when device enters idle mode
-	T1CONbits.T1ECS = 0b00; // Timer1 uses Secondary Oscillator (SOSC) as the clock soource)
-	T1CONbits.TGATE = 0b0; // Gated time accumulation is disabled
-	T1CONbits.TSYNC = 0b0; // Do not synchronize external clock input (asynchronous)
-	T1CONbits.TCS = 0b0; //use internal clock
-
-
-	T1CONbits.TCKPS = 0b00; // Timer 1 Input Clock Prescale (11-256)(10-64) (01-8) (00-1)
-	TMR1 = 0x0000; // start timer at 0
-
-	T1CONbits.TON = 0b1; //turn on timer
-	firstRun = false;
-    }
     return;
 }
 
-//void __attribute__((__interrupt__,__auto_psv__)) _SPI1Interrupt(void)
-//{
-//    // we received a byte
-//    IFS0bits.SPI1IF = 0;
-//
-//    rcvSPI = true;
-//    rcvChar =  SPI1BUF;
-//
-//    return;
-//
-//}
+void uartInit( void )
+{
+
+    initUART1( );
+    initUART2( );
+
+}
+
+void initUART2( void )
+{
+
+    TRISBbits.TRISB0 = 0; // U2TX
+    TRISBbits.TRISB1 = 1; // U2RX
+
+    //shooting for BAUD_UART (typically 9600))
+    // baud = FCY / ( 16 / (U1BRG + ))
+    //U1BRG = ( FCY / (16 * baud)) - 1
+
+    // do the math one step at a time
+    // to explicitly control the order of operations
+    // otherwise we could have a overflow or underflow
+    // without really knowing it
+    unsigned long tempBaud;
+
+    tempBaud = BAUD_UART * 16ul; // must explicitly make unsigned long
+    tempBaud = FCY / tempBaud;
+    tempBaud = tempBaud - 1;
+
+    U2BRG = tempBaud;
 
 
-//void communicationsUART( )
-//{
-//
-//    // must do UART1 and UART2 separately
-//
-//    // recv
-//    // send
-//
-//    // global volatile UART1 recv ready
-//
-//
-//
-//}
+    U2MODEbits.USIDL = 0b0;
+    U2MODEbits.IREN = 0b0;
+    U2MODEbits.RTSMD = 0b1;
+    U2MODEbits.UEN = 0b00;
+    U2MODEbits.WAKE = 0b0;
+    U2MODEbits.LPBACK = 0b0;
+    U2MODEbits.ABAUD = 0b0;
+    U2MODEbits.RXINV = 0b0;
+    U2MODEbits.BRGH = 0b0;
+    U2MODEbits.PDSEL = 0b00;
+    U2MODEbits.STSEL = 0b0;
+
+    // we do not need the interrupt on receive
+    // set these bits to just make sure they are in a known state
+    // interesting that the UTXISEL does not exist - we need to set each bit separately
+    U2STAbits.UTXISEL0 = 0b0; // transmit interrupt
+    U2STAbits.UTXISEL1 = 0b0; // maybe this should be 0b11 (not used))
+
+    U2STAbits.UTXINV = 0b0;
+    U2STAbits.UTXBRK = 0b0;
+    U2STAbits.URXISEL = 0b00; // interrupt after one RX character is received
+    U2STAbits.ADDEN = 0;
+
+    // we need the error interrupt to clear errors - without this it does not work
+    IFS4bits.U2ERIF = 0; // clear Error Flag
+    IEC4bits.U2ERIE = 1; // enable Error Interrupt
+
+    IFS1bits.U2TXIF = 0; // clear TX Flag
+    IEC1bits.U2TXIE = 0; // disable TX Interrupt
+
+    IFS1bits.U2RXIF = 0; // clear RX interrupt flag
+    IEC1bits.U2RXIE = 0; // disable RX interrupt
+
+    U2MODEbits.UARTEN = 0b1; // turn it on
+    U2STAbits.UTXEN = 0b1; // enable transmit
+
+    return;
+}
+
+void initUART1( void )
+{
+    TRISBbits.TRISB2 = 1; // U1RX
+    TRISBbits.TRISB7 = 0; // U1TX
+
+    //shooting for BAUD_UART (typically 9600))
+    // baud = FCY / ( 16 / (U1BRG + ))
+    //U1BRG = ( FCY / (16 * baud)) - 1
+
+    // do the math one step at a time
+    // to explicitly control the order of operations
+    // otherwise we could have a overflow or underflow
+    // without really knowing it
+    unsigned long tempBaud;
+
+    tempBaud = BAUD_UART * 16ul; // must explicitly make unsigned long
+    tempBaud = FCY / tempBaud;
+    tempBaud = tempBaud - 1;
+
+    U1BRG = tempBaud;
+
+    U1MODEbits.USIDL = 0b0;
+    U1MODEbits.IREN = 0b0;
+    U1MODEbits.RTSMD = 0b1;
+    U1MODEbits.UEN = 0b00;
+    U1MODEbits.WAKE = 0b0;
+    U1MODEbits.LPBACK = 0b0;
+    U1MODEbits.ABAUD = 0b0;
+    U1MODEbits.RXINV = 0b0;
+    U1MODEbits.BRGH = 0b0;
+    U1MODEbits.PDSEL = 0b00;
+    U1MODEbits.STSEL = 0b0;
+
+    // we do not need the interrupt on receive
+    // set these bits to just make sure they are in a known state
+    // interesting that the UTXISEL does not exist - we need to set each bit separately
+    U1STAbits.UTXISEL0 = 0b0; // transmit interrupt
+    U1STAbits.UTXISEL1 = 0b0; // maybe this should be 0b11 (not used))
+
+
+    U1STAbits.UTXINV = 0b0;
+    U1STAbits.UTXBRK = 0b0;
+    U1STAbits.URXISEL = 0b00; // interrupt after one RX character is received
+    U1STAbits.ADDEN = 0;
+
+    // we need the error interrupt to clear errors - without this it does not work
+    IFS4bits.U1ERIF = 0; // clear Error Flag
+    IEC4bits.U1ERIE = 1; // enable Error Interrupt
+
+    IFS0bits.U1TXIF = 0; // clear TX Flag
+    IEC0bits.U1TXIE = 0; // disable TX Interrupt
+
+    IFS0bits.U1RXIF = 0; // clear RX interrupt flag
+    IEC0bits.U1RXIE = 0; // disable RX interrupt
+
+    U1MODEbits.UARTEN = 0b1; // turn it on
+    U1STAbits.UTXEN = 0b1; // enable transmit
+
+    return;
+}
 
 
 
-//bool communicationsSPI( )
-//{
-//    bool enabledSPI;
-//
-//    static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
-//    static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
-//
-//    static struct buffer send_buffer;
-//    static struct buffer receive_buffer;
-//
-//    static bool end_of_transmission_received = false;
-//    bool no_more_to_send; // here to make this more readable
-//
-//    static enum receive_status receive_current_state;
-//    static unsigned int receive_wait_count;
-//    static unsigned int receive_in_command_count;
-//
-//    if( current_port_done == true )
-//    {
-//	enabledSPI = set_current_port( &current_port );
-//
-//	if( enabledSPI == true )
-//	{
-//	    current_port_done = false;
-//	    end_of_transmission_received = false;
-//
-//	    receive_wait_count = 0;
-//	    receive_in_command_count = 0;
-//
-//	    // put something in the send buffer to run the clock
-//	    send_buffer.write_position = 0;
-//	    send_buffer.read_position = 0;
-//	    receive_buffer.write_position = 0;
-//	    receive_buffer.read_position = 0;
-//
-//	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//
-//	}
-//    }
-//
-//    bool data_received;
-//
-//    receive_current_state = receive_data( &receive_buffer, &data_received );
-//    switch( receive_current_state )
-//    {
-//    case receive_waiting:
-//	// count # of times we are waiting for COMMAND_START_CHAR !
-//	if( data_received == true )
-//	{
-//	    receive_wait_count++;
-//	}
-//
-//	break;
-//    case receive_in_command:
-//	// count # of times we are in a command
-//	// need to check if we somehow missed the COMMAND_END_CHAR *
-//	// must be more than max length a command can be
-//	if( data_received == true )
-//	{
-//	    receive_wait_count = 0;
-//	    receive_in_command_count++;
-//	}
-//
-//	break;
-//    case receive_end_command:
-//
-//	if( process_data( &receive_buffer, &send_buffer ) == true )
-//	{
-//	    end_of_transmission_received = true;
-//	}
-//	receive_wait_count = 0;
-//	receive_in_command_count = 0;
-//
-//	break;
-//    }
-//
-//    no_more_to_send = send_data( &send_buffer );
-//
-//    if( no_more_to_send == true )
-//    {
-//	if( end_of_transmission_received == true )
-//	{
-//	    // make sure trans buffer is empty
-//	    // the following test is for standard buffer mode only
-//	    // a different check must be performed if the enhanced buffer is used
-//	    if( SPI1STATbits.SPITBF == 0b0 ) // only for standard buffer
-//	    {
-//		current_port_done = true;
-//	    }
-//	}
-//	else if( receive_wait_count >= RECEIVE_WAIT_COUNT_LIMIT )
-//	{
-//	    // not receiving anything valid from slave
-//	    // just move to the next port - things should clear up on their own eventually
-//
-//	    current_port_done = true;
-//	}
-//	else if( receive_in_command_count >= RECEIVE_IN_COMMAND_COUNT_LIMIT )
-//	{
-//	    // received too many characters before the command was ended
-//	    // likely a garbled COMMAND_END_CHAR or something
-//	    // just move to the next port - things should clear up on their own eventually
-//	    current_port_done = true;
-//	}
-//	else
-//	{
-//	    command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//	}
-//    }
-//
-//    return enabledSPI;
-//}
-//
-//bool set_current_port( unsigned char *current_port )
-//{
-//    static bool enabledSPI = true;
-//
-//    if( enabledSPI == true )
-//    {
-//	SPI1STATbits.SPIEN = 0; //disable master SPI
-//	enabledSPI = false;
-//
-//	SPI_PORT_0 = 1; //disable slave select (1 is disabled)
-//	SPI_PORT_1 = 1; //disable slave select (1 is disabled)
-//	SPI_PORT_2 = 1; //disable slave select (1 is disabled)
-//	//	LED4_SET = 0;
-//
-//    }
-//    else
-//    {
-//	(*current_port)++;
-//	if( *current_port >= PORT_COUNT )
-//	{
-//	    *current_port = 0;
-//	}
-//
-//	switch( *current_port )
-//	{
-//	case 0:
-//	    // set correct DO chip select here
-//	    SPI_PORT_0 = 0; //enable Slave Select
-//	    break;
-//	case 1:
-//	    // set correct DO the chip select here
-//	    SPI_PORT_1 = 0;
-//	    //	    LED4_SET = 1;
-//
-//	    break;
-//	case 2:
-//	    // set correct DO the chip select here
-//	    SPI_PORT_2 = 0;
-//	    break;
-//	}
-//
-//	SPI1STATbits.SPIEN = 1; //enable master SPI
-//	enabledSPI = true;
-//    }
-//
-//    return enabledSPI;
-//}
-//
-//enum receive_status receive_data( struct buffer *receive_buffer, bool *data_received )
-//{
-//    char data;
-//
-//    static enum receive_status my_status = receive_waiting;
-//
-//    if( my_status == receive_end_command )
-//    {
-//	my_status = receive_waiting;
-//    }
-//
-//    *data_received = false;
-//
-//    if( SPI_receive_data( &data ) == true )
-//    {
-//	*data_received = true;
-//
-//
-//	if( (data == COMMAND_START_CHAR) && (my_status != receive_in_command) )
-//	{
-//
-//	    my_status = receive_in_command;
-//	    receive_buffer->read_position = 0;
-//	    receive_buffer->write_position = 0;
-//	}
-//
-//	if( my_status == receive_in_command )
-//	{
-//	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-//
-//	    receive_buffer->write_position++;
-//	    if( receive_buffer->write_position >= BUFFER_LENGTH )
-//	    {
-//		receive_buffer->write_position = (BUFFER_LENGTH - 1);
-//	    }
-//	}
-//
-//	if( (my_status == receive_in_command) && (data == COMMAND_END_CHAR) )
-//	{
-//	    my_status = receive_end_command;
-//	}
-//    }
-//
-//    return my_status;
-//}
-//
-//bool process_data( struct buffer *receive_buffer, struct buffer *send_buffer )
-//{
-//    bool end_of_transmission_received;
-//
-//    // if we are here then the receive buffer must have good data with start and end command characters
-//    // the characters are not included as they were not added
-//
-//    char parameters[PARAMETER_MAX_COUNT][PARAMETER_MAX_LENGTH];
-//
-//    process_data_parameterize( parameters, receive_buffer );
-//
-//    end_of_transmission_received = process_data_parameters( parameters, send_buffer );
-//
-//    return end_of_transmission_received;
-//}
-//
-//void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *buffer_to_parameterize )
-//{
-//    unsigned char parameter_position = 0;
-//    unsigned char parameter_index = 0;
-//
-//    // only one command is expected due to the way we read
-//    // go through buffer until we hit end char or end of buffer
-//
-//    // this is super important - we must initialize the entire array
-//    // if we do not we risk passing junk into some functions that assume strings and check for NULL
-//    // without NULL a string function could run forever until we die from old age
-//    // even then it would keep running
-//    for( int inx = 0; inx < PARAMETER_MAX_COUNT; inx++ )
-//    {
-//	parameters[inx][0] = CHAR_NULL;
-//    }
-//
-//    while( (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR) && (buffer_to_parameterize->read_position < BUFFER_LENGTH) && (buffer_to_parameterize->read_position != buffer_to_parameterize->write_position) )
-//    {
-//	switch( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
-//	{
-//	case COMMAND_START_CHAR:
-//	    // this character should never appear
-//	    break;
-//	case COMMAND_DELIMETER:
-//	    // move to next parameter
-//	    parameter_position = 0;
-//	    parameter_index++;
-//
-//	    if( parameter_index >= PARAMETER_MAX_COUNT )
-//	    {
-//		// if we run out of parameters just overwrite the last one
-//		// we should never have this case, but this keeps us from crashing and burning
-//		parameter_index = (PARAMETER_MAX_COUNT - 1);
-//	    }
-//
-//	    break;
-//	default:
-//	    // add the character to the current parameter
-//	    parameters[parameter_index][parameter_position] = buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position];
-//	    parameter_position++;
-//	    if( parameter_position >= PARAMETER_MAX_LENGTH )
-//	    {
-//		// if our parameter is too long, just overwrite the last character
-//		// we should never have this case, but this keeps us from crashing and burning
-//		parameter_position = (PARAMETER_MAX_LENGTH - 1);
-//	    }
-//	    parameters[parameter_index][parameter_position] = CHAR_NULL;
-//	    break;
-//	}
-//	buffer_to_parameterize->read_position++;
-//    }
-//
-//    buffer_to_parameterize->read_position = 0;
-//    buffer_to_parameterize->write_position = 0;
-//
-//    return;
-//}
-//
-//bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer *send_buffer )
-//{
-//    bool end_of_transmission_received = false;
-//
-//    // the 'commands' shown here are for example only
-//    // make them whatever is needed
-//
-//    // ideally, any new commands are set in a separate function called from one of these tests
-//    // it's not very clean to call the command builder functions from here
-//    // especially if there is some processing to do, like setting a clock or something
-//
-//    if( strmatch( parameters[0], "END" ) == true )
-//    {
-//
-//	send_end_of_transmission( send_buffer );
-//	end_of_transmission_received = true;
-//    }
-//    else if( strmatch( parameters[0], "Set" ) == true )
-//    {
-//	if( strmatch( parameters[1], "Watts" ) == true )
-//	{
-//	    tba_powerWatts = strtoul( parameters[2], NULL, 10 );
-//	    command_builder2( send_buffer, "Conf", "Watts" );
-//	}
-//	else if( strmatch( parameters[1], "EnUsed" ) == true )
-//	{
-//	    // the lifetime energy is currently stored in the command board EEPROM
-//	    // power sense at power-up has lifetime energy at 0
-//	    // if power sense lifetime energy is < command board lifetime energy we must be in start-up
-//	    // send power sense new lifetime energy value
-//
-//	    unsigned long tempEnergyUsedLifetime;
-//
-//
-//	    // TESTING
-//	    //  Sometimes things don't go well without an end pointer
-//	    //        https://www.microchip.com/forums/m633615.aspx
-//	    //  Leading '0' in number string can cause trouble
-//	    //  text explicitly for leading 0
-//	    //  we always use decimal and we never lead a number with 0
-//	    //  so, if first character is '0', the our result = 0
-//
-//	    char *endptr;
-//	    if( parameters[2][0] == '0' )
-//	    {
-//		tempEnergyUsedLifetime = 0;
-//	    }
-//	    else
-//	    {
-//		tempEnergyUsedLifetime = strtoul( parameters[2], &endptr, 10 );
-//	    }
-//
-//	    // TESTING   remove the lifetime setting
-//	    if( tempEnergyUsedLifetime < tba_energyUsedLifetime )
-//	    {
-//		//    if( tba_energyUsedLifetime == 0 )
-//		{
-//		    //		    LED1_DIR = 0;
-//		    //		    LED4_DIR = 0;
-//		    for( int inx = 0; inx < 10; inx++ )
-//		    {
-//			LED2_SET = 0;
-//			LED4_SET = 1;
-//			delayMS( 100 );
-//			LED2_SET = 1;
-//			LED4_SET = 0;
-//			delayMS( 100 );
-//		    }
-//		}
-//
-//		char temp[12];
-//		//		ultoa( temp, totalUsed, 10 );
-//		ultoa( temp, tba_energyUsedLifetime, 10 );
-//		command_builder3( send_buffer, "Set", "EnUsed", temp );
-//
-//	    }
-//	    else
-//	    {
-//		tba_energyUsedLifetime = tempEnergyUsedLifetime;
-//		// done know if we need this here		powerUsed = totalUsed - tba_powerUsedDayStart;
-//		command_builder2( send_buffer, "Conf", "EnUsed" );
-//	    }
-//
-//	}
-//	    //	else if( strmatch( parameters[1], "Volts" ) == true )
-//	    //	{
-//	    //	    powerVolts = atoi( parameters[2] );
-//	    //	    command_builder2( send_buffer, "Conf", "Volts" );
-//	    //	}
-//	    //	else if( strmatch( parameters[1], "Amps" ) == true )
-//	    //	{
-//	    //	    powerAmps = atoi( parameters[2] );
-//	    //	    command_builder2( send_buffer, "Conf", "Amps" );
-//	    //	}
-//	else if( strmatch( parameters[1], "PSVersion" ) == true )
-//	{
-//	    command_builder2( send_buffer, "Conf", "PSVersion" );
-//	}
-//
-//	//	else if( strmatch( parameters[1], "LED" ) == true )
-//	//	{
-//	//	    if( strmatch( parameters[2], "On" ) == true )
-//	//	    {
-//	//		command_builder3( send_buffer, "Conf", "LED", "On" );
-//	//
-//	//	    }
-//	//	    else if( strmatch( parameters[2], "Off" ) == true )
-//	//	    {
-//	//		command_builder3( send_buffer, "Conf", "LED", "Off" );
-//	//	    }
-//	//	}
-//	//	else if( strmatch( parameters[1], "LEDB" ) == true )
-//	//	{
-//	//	    if( strmatch( parameters[2], "On" ) == true )
-//	//	    {
-//	////		LED1_SET = 1;
-//	//		command_builder3( send_buffer, "Conf", "LEDB", "On" );
-//	//
-//	//	    }
-//	//	    else if( strmatch( parameters[2], "Off" ) == true )
-//	//	    {
-//	////		LED1_SET = 0;
-//	//		command_builder3( send_buffer, "Conf", "LEDB", "Off" );
-//	//	    }
-//	//	}
-//
-//
-//    }
-//    else if( strmatch( parameters[0], "Read" ) == true )
-//    {
-//	//	if( strmatch( parameters[1], "LEDB" ) == true )
-//	//	{
-//	//
-//	//	    if( LED1READ == 0b1 )
-//	//	    {
-//	//		command_builder3( send_buffer, "Data", "LEDB", "On" );
-//	//	    }
-//	//	    else
-//	//	    {
-//	//		command_builder3( send_buffer, "Data", "LEDB", "Off" );
-//	//	    }
-//	//	}
-//    }
-//
-//    // add new parameters as necessary
-//    // NEVER check for a higher parameter number than we allocated for.
-//    // see earlier comments about NULLS and dying from old age
-//
-//    return end_of_transmission_received;
-//}
-//
-//void command_builder1( struct buffer *send_buffer, char* data1 )
-//{
-//    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
-//    command_builder_add_string( send_buffer, data1 );
-//    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-//
-//    return;
-//}
-//
-//void command_builder2( struct buffer *send_buffer, char* data1, char* data2 )
-//{
-//    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
-//    command_builder_add_string( send_buffer, data1 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data2 );
-//    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-//
-//    return;
-//}
-//
-//void command_builder3( struct buffer *send_buffer, char* data1, char* data2, char* data3 )
-//{
-//    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
-//    command_builder_add_string( send_buffer, data1 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data2 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data3 );
-//    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-//
-//    return;
-//}
-//
-//void command_builder4( struct buffer *send_buffer, char* data1, char* data2, char* data3, char* data4 )
-//{
-//    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-//    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
-//    command_builder_add_string( send_buffer, data1 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data2 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data3 );
-//    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
-//    command_builder_add_string( send_buffer, data4 );
-//    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-//
-//    return;
-//}
-//
-//void command_builder_add_char( struct buffer *send_buffer, char data )
-//{
-//    send_buffer->data_buffer[send_buffer->write_position] = data;
-//
-//    send_buffer->write_position++;
-//    if( send_buffer->write_position >= BUFFER_LENGTH )
-//    {
-//	send_buffer->write_position = 0;
-//    }
-//
-//    return;
-//}
-//
-//void command_builder_add_string( struct buffer *send_buffer, char *data_string )
-//{
-//    for( int inx = 0; data_string[inx] != CHAR_NULL; inx++ )
-//    {
-//	command_builder_add_char( send_buffer, data_string[inx] );
-//    }
-//
-//    return;
-//}
-//
-//bool send_data( struct buffer *send_buffer )
-//{
-//    bool send_end;
-//
-//    if( send_buffer->read_position == send_buffer->write_position )
-//    {
-//	send_end = true;
-//    }
-//    else
-//    {
-//	send_end = false;
-//	if( SPI_send_data( send_buffer->data_buffer[send_buffer->read_position] ) == true )
-//	{
-//	    send_buffer->read_position++;
-//	    if( send_buffer->read_position >= BUFFER_LENGTH )
-//	    {
-//		send_buffer->read_position = 0;
-//	    }
-//	}
-//    }
-//
-//    return send_end;
-//}
-//
-//bool strmatch( char* a, char* b )
-//{
-//    int result;
-//    bool match;
-//
-//    static int co = 0;
-//    co++;
-//
-//    result = strcmp2( a, b );
-//
-//    if( result == 0 )
-//    {
-//	match = true;
-//    }
-//    else
-//    {
-//	match = false;
-//    }
-//
-//    return match;
-//}
-//
-//int strcmp2( char* a, char* b )
-//{
-//    int inx = 0;
-//    int match = 0;
-//
-//    while( (a[inx] != CHAR_NULL) && (b[inx] != CHAR_NULL) && (match == 0) )
-//    {
-//	if( a[inx] > b[inx] )
-//	{
-//	    match = 1;
-//	}
-//	else if( a[inx] < b[inx] )
-//	{
-//	    match = -1;
-//	}
-//	else if( a[inx] == b[inx] )
-//	{
-//	    //do nothing
-//	}
-//
-//	inx++;
-//    }
-//
-//    if( (a[inx] == CHAR_NULL) && (b[inx] != CHAR_NULL) )
-//    {
-//	match = -1;
-//    }
-//    else if( (a[inx] != CHAR_NULL) && (b[inx] == CHAR_NULL) )
-//    {
-//	match = 1;
-//    }
-//
-//
-//    return match;
-//}
-//
-//bool SPI_receive_data( char *data )
-//{
-//    bool recvGood = false;
-//
-//    if( SPI1STATbits.SPIRBF == 1 )
-//    {
-//	*data = SPI1BUF;
-//	recvGood = true;
-//    }
-//
-//    return recvGood;
-//}
-//
-//bool SPI_send_data( char data )
-//{
-//    bool sendGood = false;
-//
-//    if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
-//    {
-//	SPI1BUF = data;
-//	sendGood = true;
-//    }
-//
-//    return sendGood;
-//}
-//
-///************************/
-//// RESPONSES
-//
-//void send_end_of_transmission( struct buffer *send_buffer )
-//{
-//    command_builder1( send_buffer, "END" );
-//
-//    return;
-//}
-//
-//void SPIMasterInit( void )
-//{
-//    static bool firstRun = true;
-//
-//    // make sure analog is turned off - it messes with the pins
-//    ANSA = 0;
-//    ANSB = 0;
-//
-//    TRISBbits.TRISB10 = 0b1; // SDI1
-//    TRISBbits.TRISB11 = 0b1; // SCK1 (seems this should be set output, but 0b0 does not work)
-//    TRISBbits.TRISB13 = 0b0; // SDO1
-//
-//    SPI_PORT_0_DIR = 0;
-//    SPI_PORT_1_DIR = 0;
-//    SPI_PORT_2_DIR = 0;
-//
-//    SPI_PORT_0 = 1;
-//    SPI_PORT_1 = 1;
-//    SPI_PORT_2 = 1;
-//
-//    //SPI1 Initialize
-//    SPI1CON1bits.MSTEN = 1; //making SPI1 Master
-//
-//    SPI1CON1bits.DISSCK = 0b0; // SPI clock enabled
-//    SPI1CON1bits.DISSDO = 0b0; // SDO used
-//    SPI1CON1bits.MODE16 = 0b0; // 8 bit mode
-//    SPI1CON1bits.SMP = 0b1; // sample phase mode end
-//    SPI1CON1bits.CKE = 0b1; // serial data changes on active to idle clock state
-//    SPI1CON1bits.SSEN = 0b0; // not a slave
-//    SPI1CON1bits.CKP = 0b1; // clock idle is high
-//    SPI1CON1bits.SPRE = 0b110; // secondary prescale 2:1
-//    SPI1CON1bits.PPRE = 0b11; // primary prescale 1:1
-//    //    SPI1CON1bits.PPRE = 0b00; // primary prescale 1:1
-//
-//    SPI1CON2bits.FRMEN = 0b0; // frame mode, unused
-//    SPI1CON2bits.SPIFSD = 0b0; // frame mode, unused
-//    SPI1CON2bits.SPIFPOL = 0b0; // frame mode, unused
-//    SPI1CON2bits.SPIFE = 0b0; // frame mode, unused
-//
-//    SPI1CON2bits.SPIBEN = 0b0; // 1=enhanced buffer mode
-//
-//    SPI1STATbits.SPIROV = 0; //clear flag for overflow data
-//
-//
-//    // do not use the interrupt , could not get it to work
-//    //    SPI1STATbits.SISEL = 0b001;
-//    //
-//    //    IFS0bits.SPI1IF = 0;
-//    //    IEC0bits.SPI1IE = 1;
-//
-//
-//
-//
-//    //SPI1BUF = SPI1BUF;
-//    //    SPI1STATbits.SPIEN = 1; //enable SPI
-//
-//    if( firstRun == true )
-//    {
-//	// set timer up here
-//	T1CONbits.TSIDL = 0b1; //Discontinue module operation when device enters idle mode
-//	T1CONbits.T1ECS = 0b00; // Timer1 uses Secondary Oscillator (SOSC) as the clock soource)
-//	T1CONbits.TGATE = 0b0; // Gated time accumulation is disabled
-//	T1CONbits.TSYNC = 0b0; // Do not synchronize external clock input (asynchronous)
-//	T1CONbits.TCS = 0b0; //use internal clock
-//
-//
-//	T1CONbits.TCKPS = 0b00; // Timer 1 Input Clock Prescale (11-256)(10-64) (01-8) (00-1)
-//	TMR1 = 0x0000; // start timer at 0
-//
-//	T1CONbits.TON = 0b1; //turn on timer
-//	firstRun = false;
-//    }
-//    return;
-//}
-//
-////void __attribute__((__interrupt__,__auto_psv__)) _SPI1Interrupt(void)
-////{
-////    // we received a byte
-////    IFS0bits.SPI1IF = 0;
-////
-////    rcvSPI = true;
-////    rcvChar =  SPI1BUF;
-////
-////    return;
-////
-////}
-//
-//void communicationsUART( )
-//{
-//
-//    // must do UART1 and UART2 separately
-//
-//    // recv
-//    // send
-//
-//    // global volatile UART1 recv ready
-//
-//
-//
-//}
-//
-//void communicationsUART1( )
-//{
-//    static struct buffer send_buffer;
-//    static struct buffer receive_buffer;
-//
-//
-//
-//
-//}
-//
-//void communicationsUART2( )
-//{
-//    static struct buffer send_buffer;
-//    static struct buffer receive_buffer;
-//
-//}
+// this is required to clear any errors that occur - without it things do not work right
+
+void __attribute__( (__interrupt__, __no_auto_psv__) ) _U2ErrInterrupt( void )
+{
+    U2STAbits.PERR;
+    U2STAbits.FERR;
+    U2STAbits.OERR = 0;
+
+    IFS4bits.U2ERIF = 0; // clear error interrupt flag
+
+    return;
+}
+
+
+
+// this is required to clear any errors that occur - without it things do not work right
+
+void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1ErrInterrupt( void )
+{
+    U1STAbits.PERR;
+    U1STAbits.FERR;
+    U1STAbits.OERR = 0;
+
+    IFS4bits.U1ERIF = 0; // clear error interrupt flag
+
+    return;
+}

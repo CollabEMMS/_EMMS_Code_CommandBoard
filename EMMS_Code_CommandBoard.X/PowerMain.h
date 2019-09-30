@@ -8,30 +8,48 @@
 #ifndef POWERMAIN_H
 #define	POWERMAIN_H
 
-extern char emerButtonEnable;
-extern int emerButtonEnergyAllocate;
-extern int resetTimeHour;
-extern int resetTimeMinute;
 
-extern char audibleAlarm;
-extern char  alarm1Energy;
-extern char  alarm2Energy;
-extern char  alarm1Enabled;
-extern char  alarm2Enabled;
+/****************
+ MACROS
+ these are the macros that are required by external c files
+ do not include macros that are only used internally within this module
+ ****************/
 
-extern char isHigh;
-extern char relayActive;
+/****************
+ VARIABLES
+ these are the globals required by external c files
+ there should be as few of these as possible to help keep things clean
+ these are all 'extern' and require that the variable is declared in the c file
+ ****************/
 
-extern bool lightsModeActive;
 
-//FIX = this is clunky and may not work
-extern  char powerBoxCodeVersion[9];
+extern struct energy_info energyUsed_global;
+extern struct date_time dateTime_global;
+extern struct alarm_info alarms_global;
+extern int energyAdd_global;
+extern unsigned long energyCycleAllocation_global;
+extern struct reset_time resetTime_global;
+extern bool relayActive_global;
+extern struct emergency_button emergencyButton_global;
 
-// internal and external
-void debugLEDSet( int LEDNum, bool On );
-void debugLEDRotateA( int minLED, int maxLED );
-void debugLEDRotateB( int minLED, int maxLED );
-void debugLEDToggle( int LEDNum );
+extern unsigned long powerWatts_global;
+
+extern char powerBoxCodeVersion_global[9];
+
+
+/****************
+ FUNCTION PROTOTYPES
+ only include functions required by external c files
+ ideally these are in the same order as in the code listing
+ any functions used internally and externally must have the prototype in both the c and h files and should be marked
+ 
+ *****************/
+
+
+// external and internal
+
+// external only
+
 
 #endif	/* POWERMAIN_H */
 
