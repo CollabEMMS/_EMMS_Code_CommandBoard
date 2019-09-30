@@ -1,22 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="72">
         <file>
-            <url>PowerMain.c</url>
-            <bookmark id="0">
+            <url>file:/D:/EMMS/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/Communications.c</url>
+            <bookmark id="63">
                 <name/>
-                <line>713</line>
+                <line>425</line>
+                <key/>
+            </bookmark>
+            <bookmark id="13">
+                <name/>
+                <line>442</line>
+                <key/>
+            </bookmark>
+            <bookmark id="67">
+                <name/>
+                <line>598</line>
+                <key/>
+            </bookmark>
+            <bookmark id="62">
+                <name/>
+                <line>625</line>
+                <key/>
+            </bookmark>
+            <bookmark id="51">
+                <name/>
+                <line>670</line>
+                <key/>
+            </bookmark>
+            <bookmark id="7">
+                <name/>
+                <line>700</line>
+                <key/>
+            </bookmark>
+            <bookmark id="42">
+                <name/>
+                <line>726</line>
+                <key/>
+            </bookmark>
+            <bookmark id="71">
+                <name/>
+                <line>1440</line>
+                <key/>
+            </bookmark>
+            <bookmark id="25">
+                <name/>
+                <line>1798</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>MasterComm.c</url>
+            <bookmark id="60">
+                <name/>
+                <line>325</line>
+                <key/>
+            </bookmark>
+            <bookmark id="57">
+                <name/>
+                <line>616</line>
+                <key/>
+            </bookmark>
+            <bookmark id="68">
+                <name/>
+                <line>766</line>
+                <key/>
+            </bookmark>
+            <bookmark id="72">
+                <name/>
+                <line>848</line>
+                <key/>
+            </bookmark>
+            <bookmark id="56">
+                <name/>
+                <line>861</line>
+                <key/>
+            </bookmark>
+            <bookmark id="58">
+                <name/>
+                <line>1052</line>
+                <key/>
+            </bookmark>
+            <bookmark id="61">
+                <name/>
+                <line>1307</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>file:/D:/EMMS/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/DisplayMenu.c</url>
+            <bookmark id="65">
+                <name/>
+                <line>1656</line>
+                <key/>
+            </bookmark>
+            <bookmark id="69">
+                <name/>
+                <line>1713</line>
+                <key/>
+            </bookmark>
+            <bookmark id="70">
+                <name/>
+                <line>1857</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>file:/D:/EMMS/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/DisplayMain.c</url>
+            <bookmark id="64">
+                <name/>
+                <line>487</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/emms/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.c</file>
-            <file>file:/C:/Users/emms/Documents/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/DisplayMain.c</file>
-            <file>file:/C:/Users/emms/Documents/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/SharedCommunication.c</file>
-            <file>file:/C:/Users/emms/Documents/GitHub/_EMMS_Code_UserInterface/BFDisplayPIC.X/SharedDefinitions.h</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.c</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/-CL_CommandBoard.txt</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/common.h</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/RTCC.h</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/PowerMain.c</file>
+            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.h</file>
         </group>
     </open-files>
 </project-private>
