@@ -137,12 +137,12 @@ int main( void )
     ANSB = 0b0000000000000000;
 
     // set all ports as input by default
-    TRISA = 0xFFFF; // this is equivalent to setting all of the individual bits
-    TRISB = 0xFFFF; // 0b1111111111111111 = 0xFFFF
+    TRISA = 0b1111111111111111; // this is equivalent to setting all of the individual bits
+    TRISB = 0b1111111111111111; // 0b1111111111111111 = 0xFFFF
 
     // set all ports to low by default to start
-    PORTA = 0; // this is equivalent to setting all of the individual bits
-    PORTB = 0; // 0b0000000000000000 = 0
+    PORTA = 0b0000000000000000; // this is equivalent to setting all of the individual bits
+    PORTB = 0b0000000000000000; // 0b0000000000000000 = 0
 
     ledInit( );
 

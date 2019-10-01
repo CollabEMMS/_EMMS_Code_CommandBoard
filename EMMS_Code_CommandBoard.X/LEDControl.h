@@ -38,6 +38,10 @@ void ledSetAll( int led1Value, int led2Value, int led3Value, int led4Value );
 void ledSetAllOn( void );
 void ledSetAllOff( void );
 
+
+// letTest functions work only in led debug mode (see common.h)
+
+
 // external only
 void ledInit( void );
 void ledTestSetOn( int ledNum );
