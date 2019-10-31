@@ -428,12 +428,14 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
     //Create a static test buffer filled with data
     static char buffer[200];
     static int buffpointer = 0;
-    buffer[buffpointer] = data;
-    buffpointer++;
+    if (data != NULL && data != COMMAND_SEND_RECEIVE_PRIMER_CHAR){ //ignore # and null
+        buffer[buffpointer] = data;
+        buffpointer++;
+    }
     if (buffpointer > 199){
         buffpointer = 0;
         for (int i = 0; i < 199; i++){
-            ledShowChar(i + '0');
+            ledShowChar(buffer[i]);
         }
     }
     
