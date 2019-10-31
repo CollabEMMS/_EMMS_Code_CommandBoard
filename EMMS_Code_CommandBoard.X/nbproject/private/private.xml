@@ -6,37 +6,37 @@
             <url>MasterComm.c</url>
             <bookmark id="60">
                 <name/>
-                <line>325</line>
+                <line>334</line>
                 <key/>
             </bookmark>
             <bookmark id="57">
                 <name/>
-                <line>616</line>
+                <line>653</line>
                 <key/>
             </bookmark>
             <bookmark id="68">
                 <name/>
-                <line>766</line>
+                <line>803</line>
                 <key/>
             </bookmark>
             <bookmark id="72">
                 <name/>
-                <line>848</line>
+                <line>885</line>
                 <key/>
             </bookmark>
             <bookmark id="56">
                 <name/>
-                <line>861</line>
+                <line>898</line>
                 <key/>
             </bookmark>
             <bookmark id="58">
                 <name/>
-                <line>1052</line>
+                <line>1089</line>
                 <key/>
             </bookmark>
             <bookmark id="61">
                 <name/>
-                <line>1307</line>
+                <line>1425</line>
                 <key/>
             </bookmark>
         </file>
@@ -117,16 +117,11 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/-CL_CommandBoard.txt</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/common.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/EEPROM.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/RTCC.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/PowerMain.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.h</file>
+            <file>file:/C:/Users/Nate/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.h</file>
+            <file>file:/C:/Users/Nate/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/common.h</file>
+            <file>file:/C:/Users/Nate/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.h</file>
+            <file>file:/C:/Users/Nate/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.c</file>
+            <file>file:/C:/Users/Nate/Documents/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.c</file>
         </group>
     </open-files>
 </project-private>
