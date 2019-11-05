@@ -17,7 +17,7 @@
  ****************/
 
 #define PORT_WRITE_RELAY PORTBbits.RB6    // Pin 15: RB6
-#define PORT_READ_BUTTON_EMERGENCY LATAbits.LATA0//  PORTAbits.RA0    // Pin 2:  RA0
+#define PORT_READ_BUTTON_EMERGENCY PORTAbits.RA0    // Pin 2:  RA0
 
 
 /*
@@ -145,7 +145,7 @@ int main( void )
     PORTB = 0b0000000000000000; // 0b0000000000000000 = 0
 
     ledInit( );
-
+   
     resetReportDisplay( );
 
     ledSetAllOff( );
@@ -168,9 +168,9 @@ int main( void )
     for( int inx = 0; inx < 5; inx++ )
     {
 	ledSetAllOn( );
-	__delay_ms( 10 );
+	__delay_ms( 50 );
 	ledSetAllOff( );
-	__delay_ms( 10 );
+	__delay_ms( 50 );
     }
 
     ledSetAllOff( );
@@ -608,27 +608,40 @@ void dailyReset( void )
 
 void readEmergencyButton( void )
 {
-
+    
+           
     // only register an emergency button press every 250ms
     // this keeps multiple presses from being detected due to button bounce
 
 #define EMERGENCY_BUTTON_TIMER 250 // length of time in ms to wait between button presses
     static bool onePress = false;
     static unsigned long buttonTimer;
-
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    emergencyButton_global.enabled = true; // ZACH DELETE THIS WHEN FINISHED IT IS A PLACEHOLDER
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    
     if( emergencyButton_global.enabled == true )
     {
+        
+
 
 	// TODO emergency button not working
 	// the following button read was not triggering
 	// verify if there is a hardware issue or if the right port is being used
 	if( PORT_READ_BUTTON_EMERGENCY == 1 )
 	{
+        
 	    if( onePress == false )
 	    {
 		energyCycleAllocation_global += emergencyButton_global.energyAmount;
 		buttonTimer = msTimer_module + EMERGENCY_BUTTON_TIMER; // wait 250ms between presses
-		onePress = true;
+        
+        
+        ledSetAll(0,0,0,0);
+		ledRunUp(50);
+        ledRunDown(100);
+        
 	    }
 	}
 	else

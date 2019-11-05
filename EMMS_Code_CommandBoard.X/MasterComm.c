@@ -166,8 +166,8 @@ void commRunRoutine( )
 
     communicationsSPI( initialize );
 
-    communicationsUART1( initialize );
-    communicationsUART2( initialize );
+    communicationsUART1( initialize ); // This one works (Lower RJ45)
+    communicationsUART2( initialize ); // This one no worky (Upper RJ45)
 
 
 }
@@ -1065,7 +1065,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    ltoa( powerWattsBuf, powerWatts_global, 10 );
 
 	    command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
-
 	}
     }
 
@@ -1499,9 +1498,8 @@ void uartInit( void )
 
 void initUART2( void )
 {
-
-    TRISBbits.TRISB0 = 0; // U2TX
     TRISBbits.TRISB1 = 1; // U2RX
+    TRISBbits.TRISB0 = 0; // U2TX
 
     //shooting for BAUD_UART (typically 9600))
     // baud = FCY / ( 16 / (U1BRG + ))
@@ -1536,7 +1534,7 @@ void initUART2( void )
     // set these bits to just make sure they are in a known state
     // interesting that the UTXISEL does not exist - we need to set each bit separately
     U2STAbits.UTXISEL0 = 0b0; // transmit interrupt
-    U2STAbits.UTXISEL1 = 0b0; // maybe this should be 0b11 (not used))
+    U2STAbits.UTXISEL1 = 0b0; // Must be 0b0 (large integer implicitly truncated to unsigned type)
 
     U2STAbits.UTXINV = 0b0;
     U2STAbits.UTXBRK = 0b0;
@@ -1596,7 +1594,7 @@ void initUART1( void )
     // set these bits to just make sure they are in a known state
     // interesting that the UTXISEL does not exist - we need to set each bit separately
     U1STAbits.UTXISEL0 = 0b0; // transmit interrupt
-    U1STAbits.UTXISEL1 = 0b0; // maybe this should be 0b11 (not used))
+    U1STAbits.UTXISEL1 = 0b0; // Must be 0b0 (large integer implicitly truncated to unsigned type)
 
 
     U1STAbits.UTXINV = 0b0;

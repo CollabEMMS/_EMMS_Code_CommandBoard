@@ -116,17 +116,6 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/-CL_CommandBoard.txt</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/common.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/EEPROM.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/RTCC.h</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/PowerMain.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.c</file>
-            <file>file:/D:/EMMS/GitHub/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.h</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

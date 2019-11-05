@@ -1,14 +1,7 @@
 build/default/production/MasterComm.o:  \
 MasterComm.c  \
- C:/PROGRA~2/Microchip/xc16/v1.40/include/stdlib.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/include/stddef.h  \
 common.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h/p24FV32KA302.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/include/stdint.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h/libpic30.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h/subordinate_errors.h  \
- C:/PROGRA~2/Microchip/xc16/v1.40/include/stdbool.h  \
 LEDControl.h  \
-RTCC.h  \
- EEPROM.h  \
+ RTCC.h  \
+EEPROM.h  \
 PowerMain.h 
