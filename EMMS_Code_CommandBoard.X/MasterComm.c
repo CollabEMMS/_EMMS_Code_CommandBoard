@@ -33,7 +33,7 @@
 #define COMMAND_START_CHAR '!'
 #define COMMAND_END_CHAR '*'
 #define COMMAND_DELIMETER ';'
-#define XSUM_DELIMETER '%'
+#define XSUM_DELIMETER '@'
 
 #define RECEIVE_WAIT_COUNT_LIMIT 25
 #define RECEIVE_IN_COMMAND_COUNT_LIMIT 253
@@ -424,20 +424,6 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	    receive_buffer->read_position = 0;
 	    receive_buffer->write_position = 0;
 	}
-
-    //Create a static test buffer filled with data
-    static char buffer[200];
-    static int buffpointer = 0;
-    if (data != NULL && data != COMMAND_SEND_RECEIVE_PRIMER_CHAR){ //ignore # and null
-        buffer[buffpointer] = data;
-        buffpointer++;
-    }
-    if (buffpointer > 199){
-        buffpointer = 0;
-        for (int i = 0; i < 199; i++){
-            ledShowChar(buffer[i]);
-        }
-    }
     
 	if( *receive_current_state == enum_receive_status_in_command )
 	{
@@ -565,6 +551,12 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 {
     unsigned char parameter_position = 0;
     unsigned char parameter_index = 0;
+    
+    int xsum = 0;
+    char recxsumbuf[16];
+    int recxsumpointer = 0;
+    bool xsumRecieving = false; //this is true after the xsum delimiter
+    
 
     // only one command is expected due to the way we read
     // go through buffer until we hit end char or end of buffer
@@ -596,12 +588,27 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 		    // we should never have this case, but this keeps us from crashing and burning
 		    parameter_index = (PARAMETER_MAX_COUNT - 1);
 		}
+        break;
+        
+        case XSUM_DELIMETER:
+        xsumRecieving = true;
 
 		break;
+        
 	    default:
 		// add the character to the current parameter
 		parameters[parameter_index][parameter_position] = buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position];
-		parameter_position++;
+		
+        //xsum stuff
+        if (xsumRecieving){
+            recxsumbuf[recxsumpointer] = parameters[parameter_index][parameter_position];
+            recxsumpointer++;
+        }
+        else{
+            xsum += parameters[parameter_index][parameter_position];
+        }
+        
+        parameter_position++;
 		if( parameter_position >= PARAMETER_MAX_LENGTH )
 		{
 		    // if our parameter is too long, just overwrite the last character
@@ -609,11 +616,22 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 		    parameter_position = (PARAMETER_MAX_LENGTH - 1);
 		}
 		parameters[parameter_index][parameter_position] = CHAR_NULL;
+        
 		break;
 	}
 	buffer_to_parameterize->read_position++;
     }
-
+    
+    ledShowChar('s');
+    //validate xsum
+    for (int i = 0; i < recxsumpointer; i++){
+        ledShowChar(recxsumbuf[i]);
+    }
+    ledShowChar('@');
+    ledShowChar((unsigned char)(xsum>>8));
+    ledShowChar(xsum & 0xff);
+    ledShowChar('f');
+    
     buffer_to_parameterize->read_position = 0;
     buffer_to_parameterize->write_position = 0;
 
@@ -1097,7 +1115,6 @@ void command_builder1( struct buffer_struct *send_buffer, char* data1 )
     int xsum = 0;
     xsum += command_builder_add_string( send_buffer, data1 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
@@ -1108,11 +1125,11 @@ void command_builder2( struct buffer_struct *send_buffer, char* data1, char* dat
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
+    
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-
+    
     return;
 }
 
@@ -1122,12 +1139,11 @@ void command_builder3( struct buffer_struct *send_buffer, char* data1, char* dat
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data3 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
@@ -1138,14 +1154,13 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
     command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data3 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data4 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
@@ -1153,20 +1168,18 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
 void command_builder5( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
-    xsum += command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data3 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data4 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data5 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
@@ -1174,22 +1187,20 @@ void command_builder5( struct buffer_struct *send_buffer, char* data1, char* dat
 void command_builder6( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
-    xsum += command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data3 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data4 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data5 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data6 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
@@ -1197,34 +1208,35 @@ void command_builder6( struct buffer_struct *send_buffer, char* data1, char* dat
 void command_builder7( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 )
 {
     command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
-    command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
+    command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     int xsum = 0;
-    xsum += command_builder_add_char( send_buffer, COMMAND_START_CHAR );
     xsum += command_builder_add_string( send_buffer, data1 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data2 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data3 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data4 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data5 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data6 );
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data7 );
     xsum_builder( send_buffer, xsum );
-    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
     return;
 }
 
 void xsum_builder( struct buffer_struct *send_buffer, int xsum ){
-    xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER ); // REMOVE THIS ONCE XSUM CHECK IS IMPLEMENTED
-    command_builder_add_char( send_buffer, XSUM_DELIMETER ); //%
+ 
+    command_builder_add_char( send_buffer, COMMAND_DELIMETER ); // REMOVE THIS ONCE XSUM CHECK IS IMPLEMENTED
+    command_builder_add_char( send_buffer, XSUM_DELIMETER ); //@
     char xsumBuf[16]; //allocate space for XSUM
-    itoa( xsumBuf, xsum, 10 ); //convert XSUM from into to string
-    command_builder_add_string( send_buffer, xsumBuf ); //add XSUM to send buffer
+    itoa( xsumBuf, xsum, 8 ); //convert XSUM from int into to string.
+    command_builder_add_string( send_buffer, xsumBuf ); //add XSUM to send buffer 
+
+    command_builder_add_char( send_buffer, COMMAND_END_CHAR );
     return;
 }
 
@@ -1237,9 +1249,8 @@ int command_builder_add_char( struct buffer_struct *send_buffer, char data )
     {
 	send_buffer->write_position = 0;
     }
-    char xsumdata[2];
-    xsumdata[0] = data;
-    return atoi(xsumdata);
+    
+    return data;
 }
 
 int command_builder_add_string( struct buffer_struct *send_buffer, char *data_string )
@@ -1249,7 +1260,7 @@ int command_builder_add_string( struct buffer_struct *send_buffer, char *data_st
     {
 	xsum += command_builder_add_char( send_buffer, data_string[inx] );
     }
-
+    
     return xsum;
 }
 
@@ -1408,7 +1419,8 @@ bool SPI_send_data_char( char data )
     if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
 	SPI1BUF = data;
-	sendGood = true;
+	sendGood = true;  
+    
     }
 
     return sendGood;
