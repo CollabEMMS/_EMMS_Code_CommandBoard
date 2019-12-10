@@ -412,6 +412,20 @@ void ledShowChar( char showMe )
     __delay_ms( 250 );
     ledSetAllOff( );
 
+}
 
 
+void ledShowIntH(int showMe) {
+    unsigned char upper;
+    
+    upper = showMe & 0xFF;
+    ledShowChar(showMe);
+    
+}
+
+void ledShowIntL(int showMe) {
+    unsigned char lower;
+    
+    lower = showMe >>8;
+    ledShowChar(showMe);
 }

@@ -3,6 +3,7 @@
  only include the header files that are required
  ****************/
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "LEDControl.h"
@@ -1014,6 +1015,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    char powerFailTimeBuf[12];
 	    char powerRestoreTimeBuf[12];
+        char temp[12];
 
 
 	    powerFailTimeBuf[0] = 'H';
@@ -1047,8 +1049,25 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
 
-	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
-
+//	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
+        
+        /////////////////////////////////////////////////// BEGIN NEW CODE
+//        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
+	    powerRestoreTimeBuf[1] = timePowerFail.minute;
+	    powerRestoreTimeBuf[2] = 'r';
+	    powerRestoreTimeBuf[3] = 'o';
+	    powerRestoreTimeBuf[4] = 'i';
+	    powerRestoreTimeBuf[5] = 's';
+	    powerRestoreTimeBuf[6] = 's';
+	    powerRestoreTimeBuf[7] = 'a';
+	    powerRestoreTimeBuf[8] = 'n';
+	    powerRestoreTimeBuf[9] = 't';
+	    powerRestoreTimeBuf[10] = 's';
+	    powerRestoreTimeBuf[11] = CHAR_NULL;
+        
+        
+        command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
+        //////////////////////////////////////////////////// END NEW CODE
 	}
 	else if( strmatch( parameters[1], "PwrData" ) == true )
 	{
@@ -1064,6 +1083,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    ltoa( energyUsedBuf, energyUsedTemp, 10 );
 	    ltoa( powerWattsBuf, powerWatts_global, 10 );
 
+        
+        
+        
 	    command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 	}
     }

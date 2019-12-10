@@ -91,6 +91,7 @@ struct date_time
     unsigned char month;
     unsigned char day;
     unsigned char hour;
+    unsigned char minuteTens;
     unsigned char minute;
     unsigned char second;
 };

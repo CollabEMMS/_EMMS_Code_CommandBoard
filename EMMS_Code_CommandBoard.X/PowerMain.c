@@ -100,17 +100,17 @@ char powerBoxCodeVersion_global[9] = POWER_BOX_CODE_VERSION;
  ****************/
 
 // internal only
-void initOscillator( void );
-void init( void );
-void initPorts( void );
-void initReadGlobalsFromEEPROM( void );
-void powerOnCheckForAllocationReset( void );
-void dailyResetCheck( void );
-void dailyReset( void );
-void readEmergencyButton( void );
-void storeToEE( void );
-void relayControl( void );
-void initTimer( void );
+void initOscillator(void);
+void init(void);
+void initPorts(void);
+void initReadGlobalsFromEEPROM(void);
+void powerOnCheckForAllocationReset(void);
+void dailyResetCheck(void);
+void dailyReset(void);
+void readEmergencyButton(void);
+void storeToEE(void);
+void relayControl(void);
+void initTimer(void);
 
 
 
@@ -121,12 +121,11 @@ void initTimer( void );
  CODE
  ****************/
 
-int main( void )
-{
+int main(void) {
     // capture reset code first before something overwrites the register
-    resetCodeCapture( );
+    resetCodeCapture();
 
-    initOscillator( );
+    initOscillator();
 
     //disable all analog ports
     // if one is needed it must be individually activated
@@ -144,137 +143,118 @@ int main( void )
     PORTA = 0b0000000000000000; // this is equivalent to setting all of the individual bits
     PORTB = 0b0000000000000000; // 0b0000000000000000 = 0
 
-    ledInit( );
-   
-    resetReportDisplay( );
+    ledInit();
 
-    ledSetAllOff( );
+    resetReportDisplay();
 
-    init( );
-    ledSetAll( 1, 0, 0, 0 );
+    ledSetAllOff();
+
+    init();
+    ledSetAll(1, 0, 0, 0);
 
     // read in the EEPROM values that are used as global
-    initReadGlobalsFromEEPROM( );
-    ledSetAll( 1, 0, 0, 1 );
+    initReadGlobalsFromEEPROM();
+    ledSetAll(1, 0, 0, 1);
 
-    powerOnCheckForAllocationReset( );
-    ledSetAll( 1, 0, 1, 0 );
+    powerOnCheckForAllocationReset();
+    ledSetAll(1, 0, 1, 0);
 
-    commInit( );
-    ledSetAll( 1, 0, 1, 1 );
+    commInit();
+    ledSetAll(1, 0, 1, 1);
 
 
     // all good - send the all good signal
-    for( int inx = 0; inx < 5; inx++ )
-    {
-	ledSetAllOn( );
-	__delay_ms( 50 );
-	ledSetAllOff( );
-	__delay_ms( 50 );
+    for (int inx = 0; inx < 5; inx++) {
+        ledSetAllOn();
+        __delay_ms(50);
+        ledSetAllOff();
+        __delay_ms(50);
     }
 
-    ledSetAllOff( );
+    ledSetAllOff();
 
-    rtccCopyI2CTime( );
+    rtccCopyI2CTime();
 
-    while( true )
-    {
+    while (true) {
 
-	commRunRoutine( );
-	ledSetFrontEnergyRemain( );
-	readEmergencyButton( );
-	dailyResetCheck( );
-	relayControl( );
+        commRunRoutine();
+        ledSetFrontEnergyRemain();
+        readEmergencyButton();
+        dailyResetCheck();
+        relayControl();
 
-	// in the following, code blocks {} are used
-	// to encapsulate the oneShot variable
-	// why
-	// - otherwise we would need to declare separately named
-	// one shots before the infinite for loop
-	// the oneShot variables are local to each block
-	// and self contained which makes the code leaner
+        // in the following, code blocks {} are used
+        // to encapsulate the oneShot variable
+        // why
+        // - otherwise we would need to declare separately named
+        // one shots before the infinite for loop
+        // the oneShot variables are local to each block
+        // and self contained which makes the code leaner
 
-	// oneShot
-	{
-	    static bool oneShot = false;
+        // oneShot
+        {
+            static bool oneShot = false;
 
-	    if( (msTimer_module % 500) == 0 )
-	    {
-		if( oneShot == false )
-		{
-		    rtccReadTime( &dateTime_global );
-		    oneShot = true;
-		}
-	    }
-	    else
-	    {
-		oneShot = false;
-	    }
-	}
+            if ((msTimer_module % 500) == 0) {
+                if (oneShot == false) {
+                    rtccReadTime(&dateTime_global);
+                    oneShot = true;
+                }
+            } else {
+                oneShot = false;
+            }
+        }
 
-	// oneShot
-	{
-	    static bool oneShot = false;
+        // oneShot
+        {
+            static bool oneShot = false;
 
-	    if( (msTimer_module % 60000) == 0 )
-	    {
-		if( oneShot == false )
-		{
-		    rtccCopyI2CTime( );
-		    oneShot = true;
-		}
-	    }
-	    else
-	    {
-		oneShot = false;
-	    }
+            if ((msTimer_module % 60000) == 0) {
+                if (oneShot == false) {
+                    rtccCopyI2CTime();
+                    oneShot = true;
+                }
+            } else {
+                oneShot = false;
+            }
 
-	} //oneShot block
+        } //oneShot block
 
-	// oneShot
-	{
-	    static bool oneShot = false;
+        // oneShot
+        {
+            static bool oneShot = false;
 
-	    if( (msTimer_module % 120000) == 0 )
-	    {
-		if( oneShot == false )
-		{
-		    storeToEE( );
-		    oneShot = true;
-		}
-	    }
-	    else
-	    {
-		oneShot = false;
-	    }
+            if ((msTimer_module % 120000) == 0) {
+                if (oneShot == false) {
+                    storeToEE();
+                    oneShot = true;
+                }
+            } else {
+                oneShot = false;
+            }
 
-	} // oneShot block
+        } // oneShot block
 
-	// oneShot
-	{
-	    static bool oneShot = false;
+        // oneShot
+        {
+            static bool oneShot = false;
 
-	    if( (msTimer_module % 50) == 0 )
-	    {
-		if( oneShot == false )
-		{
-		    ledSetFrontFindMe( );
-		    oneShot = true;
-		}
-	    }
-	    else
-	    {
-		oneShot = false;
-	    }
+            if ((msTimer_module % 50) == 0) {
+                if (oneShot == false) {
+                    ledSetFrontFindMe();
+                    oneShot = true;
+                }
+            } else {
+                oneShot = false;
+            }
 
-	} // oneShot block
+        } // oneShot block
 
     } //while (true)
 
 }
 
-void initOscillator( void )
-{
+void initOscillator(void) {
     // set clock to fastest available - 16MHz
 
     // unlock the OSCON high byte
@@ -297,30 +277,29 @@ void initOscillator( void )
     return;
 }
 
-void init( void )
-{
+void init(void) {
 
 
     // the LEDs help determine if we get stuck someplace during init
     // the I2C for rtcc is blocking and if something goes wrong there it could freeze
 
 
-    ledSetAll( 0, 0, 0, 1 );
-    initPorts( );
-    ledSetAll( 0, 0, 1, 0 );
-    initTimer( );
-    ledSetAll( 0, 0, 1, 1 );
-    rtccInit( );
-    ledSetAll( 0, 1, 0, 0 );
-    ledSetAll( 0, 1, 0, 1 );
-    ledSetAll( 0, 1, 1, 0 );
-    ledSetAll( 0, 1, 1, 1 );
+    ledSetAll(0, 0, 0, 1);
+    initPorts();
+    ledSetAll(0, 0, 1, 0);
+    initTimer();
+    ledSetAll(0, 0, 1, 1);
+    
+    rtccInit();
+    ledSetAll(0, 1, 0, 0);
+    ledSetAll(0, 1, 0, 1);
+    ledSetAll(0, 1, 1, 0);
+    ledSetAll(0, 1, 1, 1);
 
     return;
 }
 
-void initPorts( void )
-{
+void initPorts(void) {
 
     // ports specific to a peripheral  (SPI, I2C) are initialized
     //	in the functions that initialize the peripheral
@@ -338,21 +317,19 @@ void initPorts( void )
     return;
 }
 
-void initReadGlobalsFromEEPROM( void )
-{
-    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew( );
-    emergencyButton_global = eeReadEmergencyButtonNew( );
-    alarms_global = eeReadAlarmNew( );
-    resetTime_global = eeReadResetTimeNew( );
-    energyUsed_global = eeReadTotalsNew( );
-    energyUsed_global.lifetime = eeReadEnergyUsedNew( );
-    relayActive_global = eeReadRelayNew( );
+void initReadGlobalsFromEEPROM(void) {
+    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew();
+    emergencyButton_global = eeReadEmergencyButtonNew();
+    alarms_global = eeReadAlarmNew();
+    resetTime_global = eeReadResetTimeNew();
+    energyUsed_global = eeReadTotalsNew();
+    energyUsed_global.lifetime = eeReadEnergyUsedNew();
+    relayActive_global = eeReadRelayNew();
 
     return;
 }
 
-void initTimer( void )
-{
+void initTimer(void) {
     // set up a timer that ticks off every ms
     // it will use an interrupt to tick off the ms
 
@@ -382,8 +359,7 @@ void initTimer( void )
     return;
 }
 
-void __attribute__( (__interrupt__, __no_auto_psv__) ) _T1Interrupt( void )
-{
+void __attribute__((__interrupt__, __no_auto_psv__)) _T1Interrupt(void) {
 
     TMR1 = 0; // reset the accumulator
     IFS0bits.T1IF = 0; // reset the interrupt flag
@@ -398,16 +374,14 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _T1Interrupt( void )
 
     // control our timer rollover to prevent overflow
     // not critical that we do this, but it is more controlled than an overflow
-    if( msTimer_module >= 4000000000 )
-    {
-	msTimer_module = 0;
+    if (msTimer_module >= 4000000000) {
+        msTimer_module = 0;
     }
 
     return;
 }
 
-void powerOnCheckForAllocationReset( void )
-{
+void powerOnCheckForAllocationReset(void) {
 
     // TODO this function does not seem to be working properly
     // first test did not have the meter reset when power was removed over the reset time
@@ -442,27 +416,21 @@ void powerOnCheckForAllocationReset( void )
     unsigned char resetTempTimeDay;
     unsigned char resetTempTimeYear;
 
-    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
+    rtccI2CReadPowerTimes(&timePowerFail, &timePowerRestore);
 
     // determine which day the reset was to occur in relation to the day the power went out
 
     // if the power fail time was after the reset time then that means
     // that the next reset time is actually tomorrow since it has already occurred today
     // add one to the day we are looking for with the reset
-    if( timePowerFail.hour > resetTime_global.hour )
-    {
-	resetTempTimeDay = (timePowerFail.day + 1);
-    }
-    else if( timePowerFail.hour == resetTime_global.hour )
-    {
-	if( timePowerFail.minute > resetTime_global.minute )
-	{
-	    resetTempTimeDay = (timePowerFail.day + 1);
-	}
-    }
-    else
-    {
-	resetTempTimeDay = timePowerFail.day;
+    if (timePowerFail.hour > resetTime_global.hour) {
+        resetTempTimeDay = (timePowerFail.day + 1);
+    } else if (timePowerFail.hour == resetTime_global.hour) {
+        if (timePowerFail.minute > resetTime_global.minute) {
+            resetTempTimeDay = (timePowerFail.day + 1);
+        }
+    } else {
+        resetTempTimeDay = timePowerFail.day;
     }
 
 
@@ -472,64 +440,55 @@ void powerOnCheckForAllocationReset( void )
 
     // account for days in the month
 
-    switch( timePowerFail.month )
-    {
-	    // first check is for 31 days
-	    // these case statements fall through until the break
-	case 1: //  Jan
-	case 3: //  Mar
-	case 5: //  May
-	case 7: //  Jul
-	case 8: //  Aug
-	case 10: // Oct
-	case 12: // Dec
-	    if( resetTempTimeDay > 31 )
-	    {
-		resetTempTimeDay = 1;
-		resetTempTimeMonth++;
-	    }
-	    break;
+    switch (timePowerFail.month) {
+            // first check is for 31 days
+            // these case statements fall through until the break
+        case 1: //  Jan
+        case 3: //  Mar
+        case 5: //  May
+        case 7: //  Jul
+        case 8: //  Aug
+        case 10: // Oct
+        case 12: // Dec
+            if (resetTempTimeDay > 31) {
+                resetTempTimeDay = 1;
+                resetTempTimeMonth++;
+            }
+            break;
 
-	    // second check is for 28/29 days
-	case 2: //  Feb - check for leap year
-	    // technically we should check each century as well (no leap year)
-	    // bit it is very unlikely that the meter will be running then, so skip check for now)
-	    if( (dateTime_global.year % 4) == 0 )
-	    {
-		if( resetTempTimeDay >= 29 )
-		{
-		    resetTempTimeDay = 1;
-		    resetTempTimeMonth++;
-		}
-	    }
-	    else
-	    {
-		if( resetTempTimeDay >= 28 )
-		{
-		    resetTempTimeDay = 1;
-		    resetTempTimeMonth++;
-		}
-	    }
-	    break;
-	    // third check is for 30 days
-	case 4: //  Apr
-	case 6: //  Jun
-	case 9: //  Sept
-	case 11: // Nov
-	    if( resetTempTimeDay > 30 )
-	    {
-		resetTempTimeDay = 1;
-		resetTempTimeMonth++;
-	    }
-	    break;
+            // second check is for 28/29 days
+        case 2: //  Feb - check for leap year
+            // technically we should check each century as well (no leap year)
+            // bit it is very unlikely that the meter will be running then, so skip check for now)
+            if ((dateTime_global.year % 4) == 0) {
+                if (resetTempTimeDay >= 29) {
+                    resetTempTimeDay = 1;
+                    resetTempTimeMonth++;
+                }
+            } else {
+                if (resetTempTimeDay >= 28) {
+                    resetTempTimeDay = 1;
+                    resetTempTimeMonth++;
+                }
+            }
+            break;
+            // third check is for 30 days
+        case 4: //  Apr
+        case 6: //  Jun
+        case 9: //  Sept
+        case 11: // Nov
+            if (resetTempTimeDay > 30) {
+                resetTempTimeDay = 1;
+                resetTempTimeMonth++;
+            }
+            break;
     }
 
     // did the month roll over into the next year?
     resetTempTimeYear = 0;
-    if( resetTempTimeMonth > 12 )
-    {
-	resetTempTimeMonth = 1;
-	resetTempTimeYear = 1;
+    if (resetTempTimeMonth > 12) {
+        resetTempTimeMonth = 1;
+        resetTempTimeYear = 1;
     }
 
     // now compare the current time against the calculated reset time
@@ -540,30 +499,25 @@ void powerOnCheckForAllocationReset( void )
     // else do the reset
     bool resetNeeded;
 
-    if(
-	(dateTime_global.month <= resetTempTimeMonth) &&
-	(dateTime_global.day <= resetTempTimeDay) &&
-	(dateTime_global.hour <= resetTime_global.hour) &&
-	(dateTime_global.minute <= resetTime_global.minute)
-	)
-    {
-	resetNeeded = false;
-    }
-    else
-    {
-	resetNeeded = true;
+    if (
+            (dateTime_global.month <= resetTempTimeMonth) &&
+            (dateTime_global.day <= resetTempTimeDay) &&
+            (dateTime_global.hour <= resetTime_global.hour) &&
+            (dateTime_global.minute <= resetTime_global.minute)
+            ) {
+        resetNeeded = false;
+    } else {
+        resetNeeded = true;
     }
 
-    if( resetNeeded == true )
-    {
-	dailyReset( );
+    if (resetNeeded == true) {
+        dailyReset();
     }
 
     return;
 }
 
-void dailyResetCheck( void )
-{
+void dailyResetCheck(void) {
     // are we are the reset time (hour and minute)
     //	don't check seconds because there is a potential that we skip over a second
     //	in between calling this function
@@ -572,126 +526,103 @@ void dailyResetCheck( void )
 
     static bool resetComplete = false;
 
-    if( (dateTime_global.minute == resetTime_global.minute) && (dateTime_global.hour == resetTime_global.hour) )
-    {
-	if( resetComplete == false )
-	{
-	    dailyReset( );
-	    resetComplete = true;
-	}
-    }
-    else
-    {
-	resetComplete = false;
+    if ((dateTime_global.minute == resetTime_global.minute) && (dateTime_global.hour == resetTime_global.hour)) {
+        if (resetComplete == false) {
+            dailyReset();
+            resetComplete = true;
+        }
+    } else {
+        resetComplete = false;
     }
 
     return;
 }
 
-void dailyReset( void )
-{
+void dailyReset(void) {
 
     energyUsed_global.previousCycleUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
     energyUsed_global.lastReset = energyUsed_global.lifetime;
     energyAdd_global = 0;
 
-    eeWriteEnergyTotalsNew( energyUsed_global );
+    eeWriteEnergyTotalsNew(energyUsed_global);
 
-    eeWriteEnergyLifetimeNew( energyUsed_global.lifetime );
+    eeWriteEnergyLifetimeNew(energyUsed_global.lifetime);
 
     // reset allocation to what is stored in EEPROM
     // this makes sure everything is in sync
-    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew( );
+    energyCycleAllocation_global = eeReadEnergyCycleAllocationNew();
 
     return;
 }
 
-void readEmergencyButton( void )
-{
-    
-           
+void readEmergencyButton(void) {
+
+
     // only register an emergency button press every 250ms
     // this keeps multiple presses from being detected due to button bounce
 
 #define EMERGENCY_BUTTON_TIMER 250 // length of time in ms to wait between button presses
     static bool onePress = false;
     static unsigned long buttonTimer;
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    emergencyButton_global.enabled = true; // ZACH DELETE THIS WHEN FINISHED IT IS A PLACEHOLDER
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    
-    if( emergencyButton_global.enabled == true )
-    {
-        
+
+    if (emergencyButton_global.enabled == true) {
 
 
-	// TODO emergency button not working
-	// the following button read was not triggering
-	// verify if there is a hardware issue or if the right port is being used
-	if( PORT_READ_BUTTON_EMERGENCY == 1 )
-	{
-        
-	    if( onePress == false )
-	    {
-		energyCycleAllocation_global += emergencyButton_global.energyAmount;
-		buttonTimer = msTimer_module + EMERGENCY_BUTTON_TIMER; // wait 250ms between presses
-        
-        
-        ledSetAll(0,0,0,0);
-		ledRunUp(50);
-        ledRunDown(100);
-        
-	    }
-	}
-	else
-	{
-	    // we need to check if msTimer rolled over as well
-	    if( (msTimer_module >= buttonTimer) || ((buttonTimer - msTimer_module) > EMERGENCY_BUTTON_TIMER) )
-	    {
-		onePress = false;
-	    }
-	}
+
+        // TODO emergency button not working
+        // the following button read was not triggering
+        // verify if there is a hardware issue or if the right port is being used
+        if (PORT_READ_BUTTON_EMERGENCY == 1) {
+
+            if (onePress == false) {
+                energyCycleAllocation_global += emergencyButton_global.energyAmount;
+                buttonTimer = msTimer_module + EMERGENCY_BUTTON_TIMER; // wait 250ms between presses
+
+
+                ledSetAll(0, 0, 0, 0);
+                ledRunUp(50);
+                ledRunDown(100);
+
+            }
+        } else {
+            // we need to check if msTimer rolled over as well
+            if ((msTimer_module >= buttonTimer) || ((buttonTimer - msTimer_module) > EMERGENCY_BUTTON_TIMER)) {
+                onePress = false;
+            }
+        }
     }
 
     return;
 }
 
-void storeToEE( void )
-{
+void storeToEE(void) {
 
-    eeWriteEnergyLifetimeNew( energyUsed_global.lifetime );
+    eeWriteEnergyLifetimeNew(energyUsed_global.lifetime);
 
     return;
 }
 
-void relayControl( void )
-{
+void relayControl(void) {
     static unsigned char lastSecond;
 
     unsigned long tempEnergyUsed;
 
     tempEnergyUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
 
-    if( lastSecond != dateTime_global.second )
-    {
-	if( relayActive_global )
-	{
-	    if( tempEnergyUsed < (energyCycleAllocation_global + energyAdd_global) )
-	    {
-		PORT_WRITE_RELAY = 1;
-	    }
-	    else
-	    {
-		PORT_WRITE_RELAY = 0;
-		// the power (watts) is driven by the power sens board
-		// it is not easy to manually change it to zero when the relay
-		// turns off
-		// this means that the power will 'decay' in the power sense module
-		// until it eventually reaches zero
-	    }
-	}
-	lastSecond = dateTime_global.second;
+    if (lastSecond != dateTime_global.second) {
+        if (relayActive_global) {
+            if (tempEnergyUsed < (energyCycleAllocation_global + energyAdd_global)) {
+                PORT_WRITE_RELAY = 1;
+            } else {
+                PORT_WRITE_RELAY = 0;
+                // the power (watts) is driven by the power sens board
+                // it is not easy to manually change it to zero when the relay
+                // turns off
+                // this means that the power will 'decay' in the power sense module
+                // until it eventually reaches zero
+            }
+        }
+        lastSecond = dateTime_global.second;
     }
 
     return;
