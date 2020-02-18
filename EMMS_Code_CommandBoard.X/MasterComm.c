@@ -807,8 +807,31 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	else if( strmatch( parameters[1], "Watts" ) == true )
 	{
+        
 	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
+        
+        
+        // TODO testing
+        if( powerWatts_global == 78)
+        {
+            ledTestSetOn(2);
+        }
+        else
+        {
+            ledTestSetOff(2);
+        }
+        
+        if( powerWatts_global == 7 )
+        {
+            ledTestSetOn(1);
+        }
+        else
+        {
+            ledTestSetOff(1);
+        }
+        
+        
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
 	{
@@ -1493,10 +1516,10 @@ void commSPIInit( void )
 
     // start at 16,000,000 Hz
     // PRI prescale 16:1 - takes it down to 1,000,000 Hz
-    // SEC prescale 4:1 - takes it down to 250,000 Hz
+    // SEC prescale 8:1 - takes it down to 125,000 Hz
 
     SPI1CON1bits.PPRE = 0b01; // primary prescale 16:1
-    SPI1CON1bits.SPRE = 0b100; // secondary prescale 4:1
+    SPI1CON1bits.SPRE = 0b000; // secondary prescale 8:1
 
     SPI1CON2bits.FRMEN = 0b0; // frame mode, unused
     SPI1CON2bits.SPIFSD = 0b0; // frame mode, unused
