@@ -1052,8 +1052,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 //	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
         
         /////////////////////////////////////////////////// BEGIN NEW CODE
-//        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
-	    powerRestoreTimeBuf[1] = timePowerFail.minute;
+        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
+//	    powerRestoreTimeBuf[1] = timePowerFail.minute;
 	    powerRestoreTimeBuf[2] = 'r';
 	    powerRestoreTimeBuf[3] = 'o';
 	    powerRestoreTimeBuf[4] = 'i';

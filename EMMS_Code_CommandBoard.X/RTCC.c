@@ -708,6 +708,10 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 
     static bool firstRun = true;
 
+    static char PWDHOUR;
+    static char PWDMIN;
+    static char PWDDATE;
+    
     static char powerFailTimeMinuteTens;
     static char powerFailTimeMinute;
     static char powerFailTimeHour;
@@ -723,11 +727,12 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     {
 	firstRun = false;
 	// TODO RTCC I2C Read - document better how this works
-    ledShowChar(ReadI2CRegister( RTCC_PWRDNMIN ) & 0b01111111);
-//    powerFailTimeMinuteTens = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b01110000;
+//    ledShowChar(ReadI2CRegister( RTCC_PWRDNMIN ) & 0b01111111);
+    powerFailTimeMinuteTens = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b01110000;
+//    ledShowChar(powerFailTimeMinuteTens);
     powerFailTimeMinuteTens = powerFailTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
-    
-    powerFailTimeMinute = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b00001111; // I know we already read the register BUT we need first nibble    
+    powerFailTimeMinuteTens = powerFailTimeMinuteTens + 48;
+//    powerFailTimeMinute = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b00001111; // I know we already read the register BUT we need first nibble    
     
     /////////
 //	BeginSequentialReadI2C( RTCC_PWRDNMIN );
@@ -750,7 +755,8 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 
     }
     ////Confirmed to work here, variables put into struct display properly, problem is above.
-    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+//    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+    timePowerFail->minuteTens = powerFailTimeMinuteTens;
     timePowerFail->minute = BcdToDecI2C(powerFailTimeMinute);
     timePowerFail->hour = BcdToDecI2C(powerFailTimeHour);
     timePowerFail->day = BcdToDecI2C(powerFailTimeDay);

@@ -110,11 +110,11 @@ section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200               0x53e           0x7dd  (2013)
 .const                       0x73e                0x80            0xc0  (192)
-.text                        0x7be              0x305c          0x488a  (18570)
-.dinit                      0x381a                0x48            0x6c  (108)
-.init.delay32               0x3862                0x1c            0x2a  (42)
+.text                        0x7be              0x3058          0x4884  (18564)
+.dinit                      0x3816                0x48            0x6c  (108)
+.init.delay32               0x385e                0x1c            0x2a  (42)
 
-                 Total "program" memory used (bytes):         0x51bd  (20925) 63%
+                 Total "program" memory used (bytes):         0x51b7  (20919) 63%
 
 
 Data EEPROM Memory  [Origin = 0x7ffe00, Length = 0x200]
@@ -360,86 +360,86 @@ External Symbols in Program Memory (by address):
                   0x002b38                  _SequentialReadI2C
                   0x002b5c                  _ReadI2CRegister
                   0x002b7e                  _rtccI2CReadPowerTimes
-                  0x002c36                  _IdleI2C
-                  0x002c48                  _StartI2C
-                  0x002c5a                  _StopI2C
-                  0x002c6c                  _RestartI2C
-                  0x002c7e                  _NackI2C
-                  0x002c92                  _AckI2C
-                  0x002ca6                  _WriteI2C
-                  0x002cc8                  _ReadI2C
-                  0x002cf6                  _BcdToDecI2C
-                  0x002d2e                  _DecToBcdI2C
-                  0x002d68                  _ledInit
-                  0x002d76                  _ledSet
-                  0x002df2                  _ledSetOn
-                  0x002e04                  _ledSetOff
-                  0x002e16                  _ledTestSetOn
-                  0x002e1e                  _ledTestSetOff
-                  0x002e26                  _ledSetAll
-                  0x002e4c                  _ledTestSetAll
-                  0x002e5a                  _ledSetAllOn
-                  0x002e6a                  _ledSetAllOff
-                  0x002e7a                  _ledTestSetAllOn
-                  0x002e80                  _ledTestSetAllOff
-                  0x002e86                  _ledToggle
-                  0x002eee                  _ledTestToggle
-                  0x002ef6                  _ledRunUp
-                  0x002fb2                  _ledRunDown
-                  0x00306e                  _ledRun
-                  0x00307e                  _ledSetFrontEnergyRemain
-                  0x00315e                  _ledSetFrontFindMe
-                  0x0031f8                  _ledShowChar
-                  0x003284                  _ledShowIntH
-                  0x003296                  _ledShowIntL
-                  0x0032aa                  _main
-                  0x0033b2                  _initOscillator
-                  0x0033dc                  _init
-                  0x00342e                  _initPorts
-                  0x00343a                  _initReadGlobalsFromEEPROM
-                  0x00349a                  _initTimer
-                  0x0034d4                  _powerOnCheckForAllocationReset
-                  0x0035d8                  _dailyResetCheck
-                  0x003608                  _dailyReset
-                  0x003642                  _readEmergencyButton
-                  0x0036b4                  _storeToEE
-                  0x0036c0                  _relayControl
-                  0x003700                  _resetCodeCapture
-                  0x00370c                  _resetReportDisplay
-                  0x003862                  ___delay32
+                  0x002c32                  _IdleI2C
+                  0x002c44                  _StartI2C
+                  0x002c56                  _StopI2C
+                  0x002c68                  _RestartI2C
+                  0x002c7a                  _NackI2C
+                  0x002c8e                  _AckI2C
+                  0x002ca2                  _WriteI2C
+                  0x002cc4                  _ReadI2C
+                  0x002cf2                  _BcdToDecI2C
+                  0x002d2a                  _DecToBcdI2C
+                  0x002d64                  _ledInit
+                  0x002d72                  _ledSet
+                  0x002dee                  _ledSetOn
+                  0x002e00                  _ledSetOff
+                  0x002e12                  _ledTestSetOn
+                  0x002e1a                  _ledTestSetOff
+                  0x002e22                  _ledSetAll
+                  0x002e48                  _ledTestSetAll
+                  0x002e56                  _ledSetAllOn
+                  0x002e66                  _ledSetAllOff
+                  0x002e76                  _ledTestSetAllOn
+                  0x002e7c                  _ledTestSetAllOff
+                  0x002e82                  _ledToggle
+                  0x002eea                  _ledTestToggle
+                  0x002ef2                  _ledRunUp
+                  0x002fae                  _ledRunDown
+                  0x00306a                  _ledRun
+                  0x00307a                  _ledSetFrontEnergyRemain
+                  0x00315a                  _ledSetFrontFindMe
+                  0x0031f4                  _ledShowChar
+                  0x003280                  _ledShowIntH
+                  0x003292                  _ledShowIntL
+                  0x0032a6                  _main
+                  0x0033ae                  _initOscillator
+                  0x0033d8                  _init
+                  0x00342a                  _initPorts
+                  0x003436                  _initReadGlobalsFromEEPROM
+                  0x003496                  _initTimer
+                  0x0034d0                  _powerOnCheckForAllocationReset
+                  0x0035d4                  _dailyResetCheck
+                  0x003604                  _dailyReset
+                  0x00363e                  _readEmergencyButton
+                  0x0036b0                  _storeToEE
+                  0x0036bc                  _relayControl
+                  0x0036fc                  _resetCodeCapture
+                  0x003708                  _resetReportDisplay
+                  0x00385e                  ___delay32
                   0xf80000                  __FBS.sec
                   0xf80004                  __FGS.sec
 
 External Symbols in Program Memory (by name):
 
-                  0x002c92                  _AckI2C
+                  0x002c8e                  _AckI2C
                   0x0027a8                  _BcdToDec
-                  0x002cf6                  _BcdToDecI2C
+                  0x002cf2                  _BcdToDecI2C
                   0x002b12                  _BeginSequentialReadI2C
                   0x0027c8                  _DecToBcd
-                  0x002d2e                  _DecToBcdI2C
-                  0x002c36                  _IdleI2C
-                  0x002c7e                  _NackI2C
-                  0x002cc8                  _ReadI2C
+                  0x002d2a                  _DecToBcdI2C
+                  0x002c32                  _IdleI2C
+                  0x002c7a                  _NackI2C
+                  0x002cc4                  _ReadI2C
                   0x002b5c                  _ReadI2CRegister
-                  0x002c6c                  _RestartI2C
+                  0x002c68                  _RestartI2C
                   0x001764                  _SPI_receive_data_char
                   0x001786                  _SPI_send_data_char
                   0x002b38                  _SequentialReadI2C
-                  0x002c48                  _StartI2C
-                  0x002c5a                  _StopI2C
+                  0x002c44                  _StartI2C
+                  0x002c56                  _StopI2C
                   0x0017a6                  _UART1_receive_data_char
                   0x0017d0                  _UART1_send_data_char
                   0x0017f2                  _UART2_receive_data_char
                   0x001814                  _UART2_send_data_char
-                  0x002ca6                  _WriteI2C
+                  0x002ca2                  _WriteI2C
                   0x00031c                  __DefaultInterrupt
                   0xf80000                  __FBS.sec
                   0xf80004                  __FGS.sec
                   0x0002c8                  __T1Interrupt
                   0x00030a                  __U1ErrInterrupt
                   0x0002f8                  __U2ErrInterrupt
-                  0x003862                  ___delay32
+                  0x00385e                  ___delay32
                   0x000490                  ___divdi3
                   0x0004f0                  ___moddi3
                   0x00054c                  ___muldi3
@@ -477,8 +477,8 @@ External Symbols in Program Memory (by name):
                   0x000a28                  _communicationsSend
                   0x0008bc                  _communicationsUART1
                   0x000910                  _communicationsUART2
-                  0x003608                  _dailyReset
-                  0x0035d8                  _dailyResetCheck
+                  0x003604                  _dailyReset
+                  0x0035d4                  _dailyResetCheck
                   0x001c66                  _eeReadAlarmNew
                   0x001b7e                  _eeReadEmergencyButtonNew
                   0x001b26                  _eeReadEnergyCycleAllocationNew
@@ -500,47 +500,47 @@ External Symbols in Program Memory (by name):
                   0x001670                  _fillOnOff
                   0x0025ae                  _findPowerToWrite
                   0x0024c2                  _findSlotToRead
-                  0x0033dc                  _init
+                  0x0033d8                  _init
                   0x00280e                  _initI2Crtcc
-                  0x0033b2                  _initOscillator
-                  0x00342e                  _initPorts
-                  0x00343a                  _initReadGlobalsFromEEPROM
-                  0x00349a                  _initTimer
+                  0x0033ae                  _initOscillator
+                  0x00342a                  _initPorts
+                  0x003436                  _initReadGlobalsFromEEPROM
+                  0x003496                  _initTimer
                   0x001900                  _initUART1
                   0x001896                  _initUART2
                   0x0006aa                  _itoa
-                  0x002d68                  _ledInit
-                  0x00306e                  _ledRun
-                  0x002fb2                  _ledRunDown
-                  0x002ef6                  _ledRunUp
-                  0x002d76                  _ledSet
-                  0x002e26                  _ledSetAll
-                  0x002e6a                  _ledSetAllOff
-                  0x002e5a                  _ledSetAllOn
-                  0x00307e                  _ledSetFrontEnergyRemain
-                  0x00315e                  _ledSetFrontFindMe
-                  0x002e04                  _ledSetOff
-                  0x002df2                  _ledSetOn
-                  0x0031f8                  _ledShowChar
-                  0x003284                  _ledShowIntH
-                  0x003296                  _ledShowIntL
-                  0x002e4c                  _ledTestSetAll
-                  0x002e80                  _ledTestSetAllOff
-                  0x002e7a                  _ledTestSetAllOn
-                  0x002e1e                  _ledTestSetOff
-                  0x002e16                  _ledTestSetOn
-                  0x002eee                  _ledTestToggle
-                  0x002e86                  _ledToggle
+                  0x002d64                  _ledInit
+                  0x00306a                  _ledRun
+                  0x002fae                  _ledRunDown
+                  0x002ef2                  _ledRunUp
+                  0x002d72                  _ledSet
+                  0x002e22                  _ledSetAll
+                  0x002e66                  _ledSetAllOff
+                  0x002e56                  _ledSetAllOn
+                  0x00307a                  _ledSetFrontEnergyRemain
+                  0x00315a                  _ledSetFrontFindMe
+                  0x002e00                  _ledSetOff
+                  0x002dee                  _ledSetOn
+                  0x0031f4                  _ledShowChar
+                  0x003280                  _ledShowIntH
+                  0x003292                  _ledShowIntL
+                  0x002e48                  _ledTestSetAll
+                  0x002e7c                  _ledTestSetAllOff
+                  0x002e76                  _ledTestSetAllOn
+                  0x002e1a                  _ledTestSetOff
+                  0x002e12                  _ledTestSetOn
+                  0x002eea                  _ledTestToggle
+                  0x002e82                  _ledToggle
                   0x000712                  _ltoa
-                  0x0032aa                  _main
-                  0x0034d4                  _powerOnCheckForAllocationReset
+                  0x0032a6                  _main
+                  0x0034d0                  _powerOnCheckForAllocationReset
                   0x000b08                  _process_data
                   0x000b22                  _process_data_parameterize
                   0x000c06                  _process_data_parameters
-                  0x003642                  _readEmergencyButton
-                  0x0036c0                  _relayControl
-                  0x003700                  _resetCodeCapture
-                  0x00370c                  _resetReportDisplay
+                  0x00363e                  _readEmergencyButton
+                  0x0036bc                  _relayControl
+                  0x0036fc                  _resetCodeCapture
+                  0x003708                  _resetReportDisplay
                   0x002602                  _rtccCopyI2CTime
                   0x002802                  _rtccI2CInit
                   0x002b7e                  _rtccI2CReadPowerTimes
@@ -555,7 +555,7 @@ External Symbols in Program Memory (by name):
                   0x002876                  _setI2CClockBuildTime
                   0x000ab0                  _set_current_port
                   0x002828                  _startI2CClock
-                  0x0036b4                  _storeToEE
+                  0x0036b0                  _storeToEE
                   0x0015ce                  _strcmp2
                   0x0015a4                  _strmatch
                   0x00188c                  _uartInit
@@ -695,12 +695,12 @@ usercode
 
 __FBS             0xf80000          0x2
  *(__FBS.sec*)
- __FBS.sec        0xf80000          0x2 /CW/_FBS°ìþ
+ __FBS.sec        0xf80000          0x2 /CW/_FBSXD÷
                   0xf80000                  __FBS.sec
 
 __FGS             0xf80004          0x2
  *(__FGS.sec*)
- __FGS.sec        0xf80004          0x2 /CW/_FGS Ìþ
+ __FGS.sec        0xf80004          0x2 /CW/_FGSˆ¤÷
                   0xf80004                  __FGS.sec
 
 __FOSCSEL
@@ -724,14 +724,14 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x7be9
+.debug_info       0x000000       0x7c19
  *(.debug_info)
- .debug_info      0x000000       0x16ff build/default/production/PowerMain.o
- .debug_info      0x0016ff       0x1137 build/default/production/EEPROM.o
- .debug_info      0x002836       0x2fec build/default/production/MasterComm.o
- .debug_info      0x005822        0xea0 build/default/production/LEDControl.o
- .debug_info      0x0066c2        0x266 build/default/production/ResetReport.o
- .debug_info      0x006928       0x12c1 build/default/production/RTCC.o
+ .debug_info      0x000000       0x1707 build/default/production/PowerMain.o
+ .debug_info      0x001707       0x113f build/default/production/EEPROM.o
+ .debug_info      0x002846       0x2ff4 build/default/production/MasterComm.o
+ .debug_info      0x00583a        0xea8 build/default/production/LEDControl.o
+ .debug_info      0x0066e2        0x26e build/default/production/ResetReport.o
+ .debug_info      0x006950       0x12c9 build/default/production/RTCC.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev     0x000000        0x9ba
@@ -1425,8 +1425,8 @@ LOAD c:/program files (x86)/microchip/xc16/v1.36/bin/bin/../../lib\libm-elf.a
 LOAD c:/program files (x86)/microchip/xc16/v1.36/bin/bin/../../lib\libc-elf.a
 END GROUP
 OUTPUT(dist/default/production/EMMS_Code_CommandBoard.X.production.elf elf32-pic30)
-LOAD /CW/_FGS Ìþ
-LOAD /CW/_FBS°ìþ
+LOAD /CW/_FGSˆ¤÷
+LOAD /CW/_FBSXD÷
 LOAD default_isr
 LOAD data_init
 
@@ -1564,7 +1564,7 @@ __c30_signature
 .const              0x873e         0x80 load address 0x00073e  
  .const             0x873e         0x80 build/default/production/MasterComm.o
 
-.text             0x0007be       0x305c
+.text             0x0007be       0x3058
  .text            0x0007be       0x11ac build/default/production/MasterComm.o
                   0x0007be                  _commInit
                   0x0007d8                  _commRunRoutine
@@ -1626,7 +1626,7 @@ __c30_signature
                   0x0025ae                  _findPowerToWrite
                   0x0025c0                  _combineIntsToLong
                   0x0025dc                  _separateLongToInts
- .text            0x0025f8        0x770 build/default/production/RTCC.o
+ .text            0x0025f8        0x76c build/default/production/RTCC.o
                   0x0025f8                  _rtccInit
                   0x002602                  _rtccCopyI2CTime
                   0x002614                  _rtccInternalInit
@@ -1644,62 +1644,62 @@ __c30_signature
                   0x002b38                  _SequentialReadI2C
                   0x002b5c                  _ReadI2CRegister
                   0x002b7e                  _rtccI2CReadPowerTimes
-                  0x002c36                  _IdleI2C
-                  0x002c48                  _StartI2C
-                  0x002c5a                  _StopI2C
-                  0x002c6c                  _RestartI2C
-                  0x002c7e                  _NackI2C
-                  0x002c92                  _AckI2C
-                  0x002ca6                  _WriteI2C
-                  0x002cc8                  _ReadI2C
-                  0x002cf6                  _BcdToDecI2C
-                  0x002d2e                  _DecToBcdI2C
- .text            0x002d68        0x542 build/default/production/LEDControl.o
-                  0x002d68                  _ledInit
-                  0x002d76                  _ledSet
-                  0x002df2                  _ledSetOn
-                  0x002e04                  _ledSetOff
-                  0x002e16                  _ledTestSetOn
-                  0x002e1e                  _ledTestSetOff
-                  0x002e26                  _ledSetAll
-                  0x002e4c                  _ledTestSetAll
-                  0x002e5a                  _ledSetAllOn
-                  0x002e6a                  _ledSetAllOff
-                  0x002e7a                  _ledTestSetAllOn
-                  0x002e80                  _ledTestSetAllOff
-                  0x002e86                  _ledToggle
-                  0x002eee                  _ledTestToggle
-                  0x002ef6                  _ledRunUp
-                  0x002fb2                  _ledRunDown
-                  0x00306e                  _ledRun
-                  0x00307e                  _ledSetFrontEnergyRemain
-                  0x00315e                  _ledSetFrontFindMe
-                  0x0031f8                  _ledShowChar
-                  0x003284                  _ledShowIntH
-                  0x003296                  _ledShowIntL
- .text            0x0032aa        0x456 build/default/production/PowerMain.o
-                  0x0032aa                  _main
-                  0x0033b2                  _initOscillator
-                  0x0033dc                  _init
-                  0x00342e                  _initPorts
-                  0x00343a                  _initReadGlobalsFromEEPROM
-                  0x00349a                  _initTimer
-                  0x0034d4                  _powerOnCheckForAllocationReset
-                  0x0035d8                  _dailyResetCheck
-                  0x003608                  _dailyReset
-                  0x003642                  _readEmergencyButton
-                  0x0036b4                  _storeToEE
-                  0x0036c0                  _relayControl
- .text            0x003700        0x11a build/default/production/ResetReport.o
-                  0x003700                  _resetCodeCapture
-                  0x00370c                  _resetReportDisplay
+                  0x002c32                  _IdleI2C
+                  0x002c44                  _StartI2C
+                  0x002c56                  _StopI2C
+                  0x002c68                  _RestartI2C
+                  0x002c7a                  _NackI2C
+                  0x002c8e                  _AckI2C
+                  0x002ca2                  _WriteI2C
+                  0x002cc4                  _ReadI2C
+                  0x002cf2                  _BcdToDecI2C
+                  0x002d2a                  _DecToBcdI2C
+ .text            0x002d64        0x542 build/default/production/LEDControl.o
+                  0x002d64                  _ledInit
+                  0x002d72                  _ledSet
+                  0x002dee                  _ledSetOn
+                  0x002e00                  _ledSetOff
+                  0x002e12                  _ledTestSetOn
+                  0x002e1a                  _ledTestSetOff
+                  0x002e22                  _ledSetAll
+                  0x002e48                  _ledTestSetAll
+                  0x002e56                  _ledSetAllOn
+                  0x002e66                  _ledSetAllOff
+                  0x002e76                  _ledTestSetAllOn
+                  0x002e7c                  _ledTestSetAllOff
+                  0x002e82                  _ledToggle
+                  0x002eea                  _ledTestToggle
+                  0x002ef2                  _ledRunUp
+                  0x002fae                  _ledRunDown
+                  0x00306a                  _ledRun
+                  0x00307a                  _ledSetFrontEnergyRemain
+                  0x00315a                  _ledSetFrontFindMe
+                  0x0031f4                  _ledShowChar
+                  0x003280                  _ledShowIntH
+                  0x003292                  _ledShowIntL
+ .text            0x0032a6        0x456 build/default/production/PowerMain.o
+                  0x0032a6                  _main
+                  0x0033ae                  _initOscillator
+                  0x0033d8                  _init
+                  0x00342a                  _initPorts
+                  0x003436                  _initReadGlobalsFromEEPROM
+                  0x003496                  _initTimer
+                  0x0034d0                  _powerOnCheckForAllocationReset
+                  0x0035d4                  _dailyResetCheck
+                  0x003604                  _dailyReset
+                  0x00363e                  _readEmergencyButton
+                  0x0036b0                  _storeToEE
+                  0x0036bc                  _relayControl
+ .text            0x0036fc        0x11a build/default/production/ResetReport.o
+                  0x0036fc                  _resetCodeCapture
+                  0x003708                  _resetReportDisplay
 
-.dinit            0x00381a         0x48
- .dinit           0x00381a         0x48 data_init
+.dinit            0x003816         0x48
+ .dinit           0x003816         0x48 data_init
 
-.init.delay32     0x003862         0x1c
- .init.delay32    0x003862         0x1c c:/program files (x86)/microchip/xc16/v1.36/bin/bin/../../lib\libpic30-elf.a(delay32.eo)
-                  0x003862                  ___delay32
+.init.delay32     0x00385e         0x1c
+ .init.delay32    0x00385e         0x1c c:/program files (x86)/microchip/xc16/v1.36/bin/bin/../../lib\libpic30-elf.a(delay32.eo)
+                  0x00385e                  ___delay32
 
 .eedata             0xfe00         0x44 load address 0x7ffe00  
  .eedata            0xfe00         0x44 build/default/production/EEPROM.o
