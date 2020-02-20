@@ -36,6 +36,7 @@
 #define COMMAND_DELIMETER ';'
 #define XSUM_DELIMETER '$'
 
+
 #define RECEIVE_WAIT_COUNT_LIMIT 25
 #define RECEIVE_IN_COMMAND_COUNT_LIMIT 253
 
@@ -108,6 +109,7 @@ void command_builder7( struct buffer_struct *send_buffer, char* data1, char* dat
 int command_builder_add_char( struct buffer_struct *send_buffer, char data );
 int command_builder_add_string( struct buffer_struct *send_buffer, char *data );
 void xsum_builder( struct buffer_struct *send_buffer, int xsum );
+
 
 bool SPI_receive_data_char( char * );
 bool SPI_send_data_char( char data );
@@ -861,8 +863,31 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	else if( strmatch( parameters[1], "Watts" ) == true )
 	{
+        
 	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
+        
+        
+        // TODO testing
+        if( powerWatts_global == 78)
+        {
+            ledTestSetOn(2);
+        }
+        else
+        {
+            ledTestSetOff(2);
+        }
+        
+        if( powerWatts_global == 7 )
+        {
+            ledTestSetOn(1);
+        }
+        else
+        {
+            ledTestSetOff(1);
+        }
+        
+        
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
 	{
@@ -1106,8 +1131,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 //	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
         
         /////////////////////////////////////////////////// BEGIN NEW CODE
-//        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
-	    powerRestoreTimeBuf[1] = timePowerFail.minute;
+        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
+//	    powerRestoreTimeBuf[1] = timePowerFail.minute;
 	    powerRestoreTimeBuf[2] = 'r';
 	    powerRestoreTimeBuf[3] = 'o';
 	    powerRestoreTimeBuf[4] = 'i';
@@ -1154,7 +1179,6 @@ void command_builder1( struct buffer_struct *send_buffer, char* data1 )
     int xsum = 0;
     xsum += command_builder_add_string( send_buffer, data1 );
     xsum_builder( send_buffer, xsum );
-
     return;
 }
 
@@ -1184,6 +1208,7 @@ void command_builder3( struct buffer_struct *send_buffer, char* data1, char* dat
     xsum += command_builder_add_string( send_buffer, data3 );
     xsum_builder( send_buffer, xsum );
 
+
     return;
 }
 
@@ -1200,6 +1225,7 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
     xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data4 );
     xsum_builder( send_buffer, xsum );
+
 
     return;
 }
@@ -1219,6 +1245,7 @@ void command_builder5( struct buffer_struct *send_buffer, char* data1, char* dat
     xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
     xsum += command_builder_add_string( send_buffer, data5 );
     xsum_builder( send_buffer, xsum );
+
 
     return;
 }
@@ -1300,6 +1327,7 @@ int command_builder_add_string( struct buffer_struct *send_buffer, char *data_st
 	xsum += command_builder_add_char( send_buffer, data_string[inx] );
     }    
     return xsum;
+
 }
 
 bool strmatch( char* a, char* b )
@@ -1568,6 +1596,7 @@ void commSPIInit( void )
 
     SPI1CON1bits.PPRE = 0b01; // primary prescale 16:1
     SPI1CON1bits.SPRE = 0b100; // secondary prescale 4:1
+
 
     SPI1CON2bits.FRMEN = 0b0; // frame mode, unused
     SPI1CON2bits.SPIFSD = 0b0; // frame mode, unused
