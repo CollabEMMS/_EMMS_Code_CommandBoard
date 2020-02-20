@@ -707,10 +707,17 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     // the second and later times this function is called we simply return what is in the static variables
 
     static bool firstRun = true;
-
+    
+    static char PWDN;
+    static char PWDNHOUR;
+    // TODO impliment AM/PM and Military timekeeping
+    static char powerFailAMPM; // 0 = PM 1 = AM
+    static char powerFailIsMilitary; // 0 = 12 Hour Format 1 = 24 Hour format
+    
     static char powerFailTimeMinuteTens;
     static char powerFailTimeMinute;
     static char powerFailTimeHour;
+    static char powerFailTimeHourTens;
     static char powerFailTimeDay;
     static char powerFailTimeMonth;
 
@@ -719,15 +726,34 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     static char powerRestoreTimeDay;
     static char powerRestoreTimeMonth;
 
+    
     if( firstRun == true )
     {
 	firstRun = false;
 	// TODO RTCC I2C Read - document better how this works
-    ledShowChar(ReadI2CRegister( RTCC_PWRDNMIN ) & 0b01111111);
-//    powerFailTimeMinuteTens = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b01110000;
-    powerFailTimeMinuteTens = powerFailTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
+    PWDN = ReadI2CRegister( RTCC_PWRDNMIN ) & 0b01111111;
+    PWDNHOUR = ReadI2CRegister ( RTCC_PWRDNHOUR ) & 0b01111111;
     
-    powerFailTimeMinute = ReadI2CRegister( RTCC_PWRDNMIN ) &  0b00001111; // I know we already read the register BUT we need first nibble    
+    // Grabs tens place from Minute Register
+    powerFailTimeMinuteTens = PWDN &  0b01110000;
+    powerFailTimeMinuteTens = powerFailTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
+    powerFailTimeMinuteTens = powerFailTimeMinuteTens + 48; // goes from binary number to ASCII number
+    
+    // Grabs ones place from Minute Register
+    powerFailTimeMinute = PWDN &  0b00001111;
+    powerFailTimeMinute = powerFailTimeMinute + 48; // goes from binary number to ASCII number
+    
+    // Grabs tens place from Hour Register
+    powerFailTimeHourTens = PWDN &  0b00110000;
+    powerFailTimeHourTens = powerFailTimeHourTens >> 4; // Shift 4 to calculate properly
+    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
+    
+    // Grabs ones place from Hour Register
+    powerFailTimeHourTens = PWDN &  0b00001111;
+    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
+    
+    
+    //
     
     /////////
 //	BeginSequentialReadI2C( RTCC_PWRDNMIN );
@@ -750,7 +776,8 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 
     }
     ////Confirmed to work here, variables put into struct display properly, problem is above.
-    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+//    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+    timePowerFail->minuteTens = powerFailTimeMinuteTens;
     timePowerFail->minute = BcdToDecI2C(powerFailTimeMinute);
     timePowerFail->hour = BcdToDecI2C(powerFailTimeHour);
     timePowerFail->day = BcdToDecI2C(powerFailTimeDay);
