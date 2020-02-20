@@ -726,7 +726,7 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     static char powerRestoreTimeDay;
     static char powerRestoreTimeMonth;
 
-    
+
     if( firstRun == true )
     {
 	firstRun = false;
