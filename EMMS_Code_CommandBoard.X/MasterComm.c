@@ -95,7 +95,7 @@ struct buffer_struct
  ****************/
 bool set_current_port( unsigned char * );
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer );
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches );
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize );
 bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer );
 
@@ -142,7 +142,7 @@ void commSPIInit( void );
 void initUART2( void );
 void initUART1( void );
 
-bool xSumMatches( struct buffer_struct *buffer_to_chk );
+bool xSumMatches( struct buffer_struct buffer_to_chk );
 
 /****************
  CODE
@@ -254,13 +254,11 @@ void communicationsSPI( bool initialize )
 
 	    break;
 	case enum_receive_status_end_command:
-
-        if( xSumMatches (&receive_buffer) == true){
-            if( process_data( &receive_buffer, &send_buffer ) == true )
-            {
-                end_of_transmission_received = true;
-            }
+        
+        if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true ){
+            end_of_transmission_received = true;
         }
+        
 	    receive_wait_count = 0;
 	    receive_in_command_count = 0;
 	    break;
@@ -302,7 +300,7 @@ void communicationsSPI( bool initialize )
     return;
 }
 
-bool xSumMatches( struct buffer_struct *buffer_to_chk){
+bool xSumMatches( struct buffer_struct buffer_to_chk){
     
     //xsum vars
     //XSUM = sum of ascii value of all chars in command EXCEPT start char '!' and final delimeter ';'
@@ -311,15 +309,15 @@ bool xSumMatches( struct buffer_struct *buffer_to_chk){
     char recXsumbuf[16];
     int recXsumPointer = 0;
     bool xsumRecieving = false; //this is true after the xsum delimiter
-    char currentData;    
-
-    buffer_to_chk->read_position = 1;    
+    char currentData;  
+    char* data = buffer_to_chk.data_buffer;
+    int i = 1;  
         //cycle through receive buffer
         //we start at 1 because the start char '!' is not needed
         while (currentData != COMMAND_END_CHAR){
             
-            currentData = (buffer_to_chk->data_buffer[ buffer_to_chk->read_position]);  
-            buffer_to_chk->read_position++;
+            currentData = data[i];
+            i++;
 
             if (xsumRecieving){ 
                 recXsumbuf[recXsumPointer] = currentData;
@@ -327,11 +325,11 @@ bool xSumMatches( struct buffer_struct *buffer_to_chk){
             }
             else{
                 //if the next character in line is the delimiter...
-                if ((buffer_to_chk->data_buffer[ buffer_to_chk->read_position]) == XSUM_DELIMETER){
-                    (buffer_to_chk->data_buffer[ buffer_to_chk->read_position]) = CHAR_NULL;
+                if (data[i] == XSUM_DELIMETER){
+                    data[i] = CHAR_NULL;
                     xsumRecieving = true;
                     recXsumbuf[recXsumPointer] = CHAR_NULL;
-                    buffer_to_chk->read_position++;
+                    i++;
                 }
                 else{
                     xsum += currentData;
@@ -381,7 +379,7 @@ void communicationsUART1( bool initialize )
 	    break;
 	case enum_receive_status_end_command:
 
-	    if( process_data( &receive_buffer, &send_buffer ) == true )
+	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
@@ -421,7 +419,7 @@ void communicationsUART2( bool initialize )
 	    break;
 	case enum_receive_status_end_command:
 
-	    if( process_data( &receive_buffer, &send_buffer ) == true )
+	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
@@ -584,7 +582,7 @@ bool set_current_port( unsigned char *current_port )
     return enabledSPI;
 }
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer )
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches )
 {
     bool end_of_transmission_received;
 
@@ -595,7 +593,18 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
     process_data_parameterize( parameters, receive_buffer );
 
-    end_of_transmission_received = process_data_parameters( parameters, send_buffer );
+        
+    if (xSumMatches){
+        ledTestSetOn(4);
+        ledTestSetOff(3);
+        end_of_transmission_received = process_data_parameters( parameters, send_buffer );
+
+    }
+    else{
+        ledTestSetOff(4);
+        ledTestSetOn(3);
+        end_of_transmission_received = true;
+    }
 
     return end_of_transmission_received;
 }
@@ -604,6 +613,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 {
     unsigned char parameter_position = 0;
     unsigned char parameter_index = 0;
+
 
     // only one command is expected due to the way we read
     // go through buffer until we hit end char or end of buffer
@@ -867,26 +877,18 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
         
-        
         // TODO testing
-        if( powerWatts_global == 78)
-        {
-            ledTestSetOn(2);
-        }
-        else
-        {
-            ledTestSetOff(2);
-        }
-        
-        if( powerWatts_global == 7 )
+        if( powerWatts_global == 789)
         {
             ledTestSetOn(1);
+            ledTestSetOff(2);
         }
         else
         {
             ledTestSetOff(1);
+            ledTestSetOn(2);
         }
-        
+       
         
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
