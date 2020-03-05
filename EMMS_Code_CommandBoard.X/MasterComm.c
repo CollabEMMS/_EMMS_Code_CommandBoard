@@ -19,7 +19,7 @@
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
-#define BUFFER_LENGTH 40  // max size is positive signed character size (255))
+#define BUFFER_LENGTH 100  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
@@ -27,7 +27,7 @@
 #define BUF_SIZE_LONG 12
 
 #define PARAMETER_MAX_COUNT 7
-#define PARAMETER_MAX_LENGTH 10
+#define PARAMETER_MAX_LENGTH 12
 
 //#define CHAR_NULL '\0' // defined in common.h since it is used in a lot of places
 #define COMMAND_SEND_RECEIVE_PRIMER_CHAR '#' // something to run the SPI clock so data can be received
@@ -905,7 +905,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    if( tempEnergyUsedLifetime < energyUsed_global.lifetime )
 	    {
 
-		char temp[12];
+		char temp[BUF_SIZE_LONG];
 		ltoa( temp, energyUsed_global.lifetime, 10 );
 		command_builder3( send_buffer, "Set", "EnUsed", temp );
 
@@ -1096,8 +1096,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    char powerFailTimeBuf[12];
 	    char powerRestoreTimeBuf[12];
-        char temp[12];
-
 
 	    powerFailTimeBuf[0] = 'H';
 	    powerFailTimeBuf[1] = 'H';
