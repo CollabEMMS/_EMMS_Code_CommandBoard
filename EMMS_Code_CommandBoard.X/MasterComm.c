@@ -67,6 +67,11 @@ volatile char UARTRecvBuffer[10];
 volatile int UARTRecvBufferReadPos = 0;
 volatile int UARTRecvBufferWritePos = 0;
 
+// character receiving buffers (internal)
+volatile char SPIRecvBuffer[10];
+volatile int SPIRecvBufferReadPos = 0;
+volatile int SPIRecvBufferWritePos = 0;
+
 enum receive_status_enum
 {
     enum_receive_status_waiting,
@@ -1478,12 +1483,20 @@ bool SPI_receive_data_char( char *data )
 {
     bool recvGood = false;
 
-    if( SPI1STATbits.SPIRBF == 1 )
+    if( SPIRecvBufferReadPos != SPIRecvBufferWritePos )
     {
-	*data = SPI1BUF;
-	recvGood = true;
+        *data = SPIRecvBuffer[SPIRecvBufferReadPos];
+        if(*data != CHAR_NULL)
+        {
+//            ledToggle(4);
+            recvGood = true;
+        }
+        SPIRecvBufferReadPos = (SPIRecvBufferReadPos + 1) % 10;
+        if(SPIRecvBufferReadPos == 8){
+            ledToggle(4);
+        }
     }
-
+    
     return recvGood;
 }
 
@@ -1506,14 +1519,15 @@ bool SPI_send_data_char( char data )
 
     if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
-	SPI1BUF = data;
-	sendGood = true;
+        SPI1BUF = data;
+        sendGood = true;
+        ledToggle(3);
     }
 
     return sendGood;
 }
 
-//bool UART1_receive_data_char( char *data )
+//bool UART1_receive_data_char( char *data ) // NON-INTERRUPT VERSION
 //{
 //    bool recvGood = false;
 //
@@ -1543,7 +1557,6 @@ bool UART1_receive_data_char( char *data )
         if(*data != CHAR_NULL)
         {
             recvGood = true;
-            ledToggle(4);
         }
         UARTRecvBufferReadPos = (UARTRecvBufferReadPos + 1) % 10;
     }
@@ -1651,7 +1664,7 @@ void commSPIInit( void )
     SPI1STATbits.SISEL = 0b001; // Interrupt when SPIx receive buffer is full
     
     IFS0bits.SPI1IF = 0; // clear RX interrupt flag
-    IEC0bits.SPI1IE = 0; // enable RX interrupt
+    IEC0bits.SPI1IE = 1; // enable RX interrupt
 
     return;
 }
@@ -1789,21 +1802,21 @@ void initUART1( void )
 // this triggers when any data is received (through SPI1) 
 // and stores that data in a buffer for the main loop
 
-//void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
-//
-//    unsigned char recvChar;
-//
-//    _SPI1IF = 0; // clear interrupt flag
-//    _SPIROV = 0; //clear flag for overflow data
-//   
-//    ledToggle(1);
-//    recvChar = SPI1BUF;
-//
-//    if(recvChar != '\0' && recvChar != 35) {
-//        ledToggle(4);
-//        ledShowChar(recvChar);
-//    }
-//}
+void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
+
+    unsigned char recvChar;
+
+    _SPI1IF = 0; // clear interrupt flag
+    _SPIROV = 0; //clear flag for overflow data
+   
+    ledToggle(1);
+    recvChar = SPI1BUF;
+
+    if(recvChar != CHAR_NULL) {
+        SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
+        SPIRecvBufferWritePos = (SPIRecvBufferWritePos + 1) % 10;
+    }
+}
 
 // this triggers when any data is received (through UART1) 
 // and stores that data in a buffer for the main loop
