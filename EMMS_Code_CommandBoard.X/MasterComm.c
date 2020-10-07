@@ -62,6 +62,11 @@
 
 // internal only
 
+// character receiving buffers (internal)
+volatile char UARTRecvBuffer[10];
+volatile int UARTRecvBufferReadPos = 0;
+volatile int UARTRecvBufferWritePos = 0;
+
 enum receive_status_enum
 {
     enum_receive_status_waiting,
@@ -114,6 +119,7 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum );
 bool SPI_receive_data_char( char * );
 bool SPI_send_data_char( char data );
 bool UART1_receive_data_char( char * );
+bool UART1_receive_all_data_char( char *data );
 bool UART1_send_data_char( char data );
 bool UART2_receive_data_char( char * );
 bool UART2_send_data_char( char data );
@@ -368,7 +374,7 @@ void communicationsUART1( bool initialize )
     }
 
     communicationsRecv( &receive_buffer, &send_buffer, enum_port_commUART1, &receive_current_state );
-
+    
     bool end_of_transmission_received;
 
     switch( receive_current_state )
@@ -378,13 +384,14 @@ void communicationsUART1( bool initialize )
 	case enum_receive_status_in_command:
 	    break;
 	case enum_receive_status_end_command:
-
+        
 	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
 	    break;
     }
+    // TODO see that sending keeps going
 
     communicationsSend( &send_buffer, enum_port_commUART1 );
 
@@ -418,7 +425,7 @@ void communicationsUART2( bool initialize )
 	case enum_receive_status_in_command:
 	    break;
 	case enum_receive_status_end_command:
-
+        
 	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
@@ -468,7 +475,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
     if( gotSomething == true )
     {
 	data_received = true;
-
+    
 	if( (data == COMMAND_START_CHAR) && (*receive_current_state != enum_receive_status_in_command) )
 	{
 	    *receive_current_state = enum_receive_status_in_command;
@@ -479,7 +486,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	if( *receive_current_state == enum_receive_status_in_command )
 	{
 	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-
+        
 	    receive_buffer->write_position++;
 	    if( receive_buffer->write_position >= BUFFER_LENGTH )
 	    {
@@ -492,7 +499,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	    *receive_current_state = enum_receive_status_end_command;
 	}
     }
-
+    
     // maybe we do not need to return the status since we modify the function variable
     return data_received;
 }
@@ -500,7 +507,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort )
 {
     bool send_end;
-
+    
     if( send_buffer->read_position == send_buffer->write_position )
     {
 	send_end = true;
@@ -508,16 +515,16 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
     else
     {
 	send_end = false;
-
-	bool data_sent;
+    
+    bool data_sent;
 	switch( communicationsPort )
 	{
 	    case enum_port_commSPI:
 		data_sent = SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-		break;
-	    case enum_port_commUART1:
-		data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-		break;
+        break;
+	    case enum_port_commUART1:       
+        data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
+        break;
 	    case enum_port_commUART2:
 		data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 		break;
@@ -595,14 +602,14 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
         
     if (xSumMatches){
-        ledTestSetOn(4);
-        ledTestSetOff(3);
+//         ledTestSetOn(4);
+//         ledTestSetOff(3);
         end_of_transmission_received = process_data_parameters( parameters, send_buffer );
 
     }
     else{
-        ledTestSetOff(4);
-        ledTestSetOn(3);
+//         ledTestSetOff(4);
+//         ledTestSetOn(3);
         end_of_transmission_received = true;
     }
 
@@ -1480,6 +1487,19 @@ bool SPI_receive_data_char( char *data )
     return recvGood;
 }
 
+//bool SPI_receive_data_char( char *data )
+//{
+//    bool recvGood = false;
+////
+////    if( SPI1STATbits.SPIRBF == 1 )
+////    {
+////	
+////	recvGood = true;
+////    }
+//
+//    return recvGood;
+//}
+
 bool SPI_send_data_char( char data )
 {
     bool sendGood = false;
@@ -1493,21 +1513,41 @@ bool SPI_send_data_char( char data )
     return sendGood;
 }
 
+//bool UART1_receive_data_char( char *data )
+//{
+//    bool recvGood = false;
+//
+//
+//    if( U1STAbits.URXDA == 1 )
+//    {
+//	*data = U1RXREG;
+//
+//	if( *data != CHAR_NULL )
+//	{
+//	    recvGood = true;
+//	}
+//    }
+//
+//    return recvGood;
+//}
+
+
 bool UART1_receive_data_char( char *data )
 {
     bool recvGood = false;
 
 
-    if( U1STAbits.URXDA == 1 )
+    if( UARTRecvBufferReadPos != UARTRecvBufferWritePos )
     {
-	*data = U1RXREG;
-
-	if( *data != CHAR_NULL )
-	{
-	    recvGood = true;
-	}
+        *data = UARTRecvBuffer[UARTRecvBufferReadPos];
+        if(*data != CHAR_NULL)
+        {
+            recvGood = true;
+            ledToggle(4);
+        }
+        UARTRecvBufferReadPos = (UARTRecvBufferReadPos + 1) % 10;
     }
-
+    
     return recvGood;
 }
 
@@ -1608,6 +1648,10 @@ void commSPIInit( void )
     SPI1CON2bits.SPIBEN = 0b0; // 1=enhanced buffer mode
 
     SPI1STATbits.SPIROV = 0; //clear flag for overflow data
+    SPI1STATbits.SISEL = 0b001; // Interrupt when SPIx receive buffer is full
+    
+    IFS0bits.SPI1IF = 0; // clear RX interrupt flag
+    IEC0bits.SPI1IE = 0; // enable RX interrupt
 
     return;
 }
@@ -1734,12 +1778,57 @@ void initUART1( void )
     IEC0bits.U1TXIE = 0; // disable TX Interrupt
 
     IFS0bits.U1RXIF = 0; // clear RX interrupt flag
-    IEC0bits.U1RXIE = 0; // disable RX interrupt
+    IEC0bits.U1RXIE = 1; // enable RX interrupt
 
     U1MODEbits.UARTEN = 0b1; // turn it on
     U1STAbits.UTXEN = 0b1; // enable transmit
 
     return;
+}
+
+// this triggers when any data is received (through SPI1) 
+// and stores that data in a buffer for the main loop
+
+//void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
+//
+//    unsigned char recvChar;
+//
+//    _SPI1IF = 0; // clear interrupt flag
+//    _SPIROV = 0; //clear flag for overflow data
+//   
+//    ledToggle(1);
+//    recvChar = SPI1BUF;
+//
+//    if(recvChar != '\0' && recvChar != 35) {
+//        ledToggle(4);
+//        ledShowChar(recvChar);
+//    }
+//}
+
+// this triggers when any data is received (through UART1) 
+// and stores that data in a buffer for the main loop
+
+void __attribute__((__interrupt__,__no_auto_psv__)) _U1RXInterrupt(void) {
+
+    unsigned char recvChar = 1;
+
+    _U1RXIF = 0; // clear interrupt flag
+ 
+    recvChar = U1RXREG;
+
+//        if(recvChar == 33){
+//            ledTestSetOn(4);
+//        }
+//        if(recvChar == 42) {           
+//            ledTestSetOff(4);
+//        }
+    if(recvChar != CHAR_NULL){
+        UARTRecvBuffer[UARTRecvBufferWritePos] = recvChar;
+        UARTRecvBufferWritePos = (UARTRecvBufferWritePos + 1) % 10;
+//        ledToggle(4);
+    }
+    
+    
 }
 
 
