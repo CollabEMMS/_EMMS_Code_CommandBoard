@@ -19,7 +19,7 @@
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
-#define BUFFER_LENGTH 50  // max size is positive signed character size (255))
+#define BUFFER_LENGTH 40  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
@@ -62,6 +62,16 @@
 
 // internal only
 
+// character receiving buffers (internal)
+volatile char UARTRecvBuffer[10];
+volatile int UARTRecvBufferReadPos = 0;
+volatile int UARTRecvBufferWritePos = 0;
+
+// character receiving buffers (internal)
+volatile char SPIRecvBuffer[10];
+volatile int SPIRecvBufferReadPos = 0;
+volatile int SPIRecvBufferWritePos = 0;
+
 enum receive_status_enum
 {
     enum_receive_status_waiting,
@@ -95,7 +105,7 @@ struct buffer_struct
  ****************/
 bool set_current_port( unsigned char * );
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer );
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches );
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize );
 bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer );
 
@@ -114,6 +124,7 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum );
 bool SPI_receive_data_char( char * );
 bool SPI_send_data_char( char data );
 bool UART1_receive_data_char( char * );
+bool UART1_receive_all_data_char( char *data );
 bool UART1_send_data_char( char data );
 bool UART2_receive_data_char( char * );
 bool UART2_send_data_char( char data );
@@ -142,7 +153,7 @@ void commSPIInit( void );
 void initUART2( void );
 void initUART1( void );
 
-bool xSumMatches( struct buffer_struct *buffer_to_chk );
+bool xSumMatches( struct buffer_struct buffer_to_chk );
 
 /****************
  CODE
@@ -254,13 +265,11 @@ void communicationsSPI( bool initialize )
 
 	    break;
 	case enum_receive_status_end_command:
-
-//        if( xSumMatches (&receive_buffer) == true){
-            if( process_data( &receive_buffer, &send_buffer ) == true )
-            {
-                end_of_transmission_received = true;
-            }
-//        }
+        
+        if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true ){
+            end_of_transmission_received = true;
+        }
+        
 	    receive_wait_count = 0;
 	    receive_in_command_count = 0;
 	    break;
@@ -302,7 +311,7 @@ void communicationsSPI( bool initialize )
     return;
 }
 
-bool xSumMatches( struct buffer_struct *buffer_to_chk){
+bool xSumMatches( struct buffer_struct buffer_to_chk){
     
     //xsum vars
     //XSUM = sum of ascii value of all chars in command EXCEPT start char '!' and final delimeter ';'
@@ -311,15 +320,15 @@ bool xSumMatches( struct buffer_struct *buffer_to_chk){
     char recXsumbuf[16];
     int recXsumPointer = 0;
     bool xsumRecieving = false; //this is true after the xsum delimiter
-    char currentData;    
-
-    buffer_to_chk->read_position = 1;    
+    char currentData;  
+    char* data = buffer_to_chk.data_buffer;
+    int i = 1;  
         //cycle through receive buffer
         //we start at 1 because the start char '!' is not needed
         while (currentData != COMMAND_END_CHAR){
             
-            currentData = (buffer_to_chk->data_buffer[ buffer_to_chk->read_position]);  
-            buffer_to_chk->read_position++;
+            currentData = data[i];
+            i++;
 
             if (xsumRecieving){ 
                 recXsumbuf[recXsumPointer] = currentData;
@@ -327,11 +336,11 @@ bool xSumMatches( struct buffer_struct *buffer_to_chk){
             }
             else{
                 //if the next character in line is the delimiter...
-                if ((buffer_to_chk->data_buffer[ buffer_to_chk->read_position]) == XSUM_DELIMETER){
-                    (buffer_to_chk->data_buffer[ buffer_to_chk->read_position]) = CHAR_NULL;
+                if (data[i] == XSUM_DELIMETER){
+                    data[i] = CHAR_NULL;
                     xsumRecieving = true;
                     recXsumbuf[recXsumPointer] = CHAR_NULL;
-                    buffer_to_chk->read_position++;
+                    i++;
                 }
                 else{
                     xsum += currentData;
@@ -370,7 +379,7 @@ void communicationsUART1( bool initialize )
     }
 
     communicationsRecv( &receive_buffer, &send_buffer, enum_port_commUART1, &receive_current_state );
-
+    
     bool end_of_transmission_received;
 
     switch( receive_current_state )
@@ -380,13 +389,14 @@ void communicationsUART1( bool initialize )
 	case enum_receive_status_in_command:
 	    break;
 	case enum_receive_status_end_command:
-
-	    if( process_data( &receive_buffer, &send_buffer ) == true )
+        
+	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
 	    break;
     }
+    // TODO see that sending keeps going
 
     communicationsSend( &send_buffer, enum_port_commUART1 );
 
@@ -420,8 +430,8 @@ void communicationsUART2( bool initialize )
 	case enum_receive_status_in_command:
 	    break;
 	case enum_receive_status_end_command:
-
-	    if( process_data( &receive_buffer, &send_buffer ) == true )
+        
+	    if( process_data( &receive_buffer, &send_buffer, xSumMatches(receive_buffer) ) == true )
 	    {
 		end_of_transmission_received = true;
 	    }
@@ -470,7 +480,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
     if( gotSomething == true )
     {
 	data_received = true;
-
+    
 	if( (data == COMMAND_START_CHAR) && (*receive_current_state != enum_receive_status_in_command) )
 	{
 	    *receive_current_state = enum_receive_status_in_command;
@@ -481,7 +491,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	if( *receive_current_state == enum_receive_status_in_command )
 	{
 	    receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-
+        
 	    receive_buffer->write_position++;
 	    if( receive_buffer->write_position >= BUFFER_LENGTH )
 	    {
@@ -494,7 +504,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	    *receive_current_state = enum_receive_status_end_command;
 	}
     }
-
+    
     // maybe we do not need to return the status since we modify the function variable
     return data_received;
 }
@@ -502,7 +512,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort )
 {
     bool send_end;
-
+    
     if( send_buffer->read_position == send_buffer->write_position )
     {
 	send_end = true;
@@ -510,16 +520,16 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
     else
     {
 	send_end = false;
-
-	bool data_sent;
+    
+    bool data_sent;
 	switch( communicationsPort )
 	{
 	    case enum_port_commSPI:
 		data_sent = SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-		break;
-	    case enum_port_commUART1:
-		data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
-		break;
+        break;
+	    case enum_port_commUART1:       
+        data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
+        break;
 	    case enum_port_commUART2:
 		data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 		break;
@@ -584,7 +594,7 @@ bool set_current_port( unsigned char *current_port )
     return enabledSPI;
 }
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer )
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches )
 {
     bool end_of_transmission_received;
 
@@ -595,7 +605,18 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
     process_data_parameterize( parameters, receive_buffer );
 
-    end_of_transmission_received = process_data_parameters( parameters, send_buffer );
+        
+    if (xSumMatches){
+         ledTestSetOn(4);
+         ledTestSetOff(3);
+        end_of_transmission_received = process_data_parameters( parameters, send_buffer );
+
+    }
+    else{
+         ledTestSetOff(4);
+         ledTestSetOn(3);
+        end_of_transmission_received = true;
+    }
 
     return end_of_transmission_received;
 }
@@ -604,6 +625,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 {
     unsigned char parameter_position = 0;
     unsigned char parameter_index = 0;
+
 
     // only one command is expected due to the way we read
     // go through buffer until we hit end char or end of buffer
@@ -867,26 +889,18 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
         
-        
         // TODO testing
-        if( powerWatts_global == 78)
-        {
-            ledTestSetOn(2);
-        }
-        else
-        {
-            ledTestSetOff(2);
-        }
-        
-        if( powerWatts_global == 7 )
+        if( powerWatts_global == 789)
         {
             ledTestSetOn(1);
+            ledTestSetOff(2);
         }
         else
         {
             ledTestSetOff(1);
+            ledTestSetOn(2);
         }
-        
+       
         
 	}
 	else if( strmatch( parameters[1], "EnUsed" ) == true )
@@ -939,9 +953,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    command_builder2( send_buffer, "Conf", "PSVersion" );
 	}
     }
-    /// END 'SET' Parameter
-    
-    // BEGIN 'Read' Parameter
     else if( strmatch( parameters[0], "Read" ) == true )
     {
 	if( strmatch( parameters[1], "Time" ) == true )
@@ -1094,11 +1105,11 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	}
 	else if( strmatch( parameters[1], "PwrFail" ) == true )
 	{
-        
-        // Length 12 because that is what is configured in UI code
+
 	    char powerFailTimeBuf[12];
 	    char powerRestoreTimeBuf[12];
         char temp[12];
+
 
 	    powerFailTimeBuf[0] = 'H';
 	    powerFailTimeBuf[1] = 'H';
@@ -1110,7 +1121,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerFailTimeBuf[7] = 'D';
 	    powerFailTimeBuf[8] = ':';
 	    powerFailTimeBuf[9] = 'M';
-        powerFailTimeBuf[10] = 'M';
+	    powerFailTimeBuf[10] = 'M';
 	    powerFailTimeBuf[11] = CHAR_NULL;
 
 	    powerRestoreTimeBuf[0] = 'H';
@@ -1123,56 +1134,32 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerRestoreTimeBuf[7] = 'D';
 	    powerRestoreTimeBuf[8] = ':';
 	    powerRestoreTimeBuf[9] = 'M';
-        powerRestoreTimeBuf[10] = 'M';
+	    powerRestoreTimeBuf[10] = 'M';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
 
 	    struct date_time timePowerFail;
 	    struct date_time timePowerRestore;
-        
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        __delay_ms(100);
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        
 
-//	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
+	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
 
 //	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
         
         /////////////////////////////////////////////////// BEGIN NEW CODE
-//        powerRestoreTimeBuf[0] = timePowerFail.hourTens;
-	    powerRestoreTimeBuf[1] = timePowerFail.hour;
-	    powerRestoreTimeBuf[2] = ':';
-//	    powerRestoreTimeBuf[3] = timePowerFail.monthTens;
-//	    powerRestoreTimeBuf[4] = timePowerFail.month;
-	    powerRestoreTimeBuf[5] = ':';
-//	    powerRestoreTimeBuf[6] = timePowerFail.dayTens;
-//	    powerRestoreTimeBuf[7] = timePowerFail.day;
-	    powerRestoreTimeBuf[8] = ':';
-	    powerRestoreTimeBuf[9] = '0';
-	    powerRestoreTimeBuf[10] = '0';
+        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
+//	    powerRestoreTimeBuf[1] = timePowerFail.minute;
+	    powerRestoreTimeBuf[2] = 'r';
+	    powerRestoreTimeBuf[3] = 'o';
+	    powerRestoreTimeBuf[4] = 'i';
+	    powerRestoreTimeBuf[5] = 's';
+	    powerRestoreTimeBuf[6] = 's';
+	    powerRestoreTimeBuf[7] = 'a';
+	    powerRestoreTimeBuf[8] = 'n';
+	    powerRestoreTimeBuf[9] = 't';
+	    powerRestoreTimeBuf[10] = 's';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
         
-        ledTestSetAllOn(  );
-        __delay_ms(200);
-        ledTestSetAllOff(  );
-        __delay_ms(100);
-        ledTestSetAllOn(  );
-        __delay_ms(200);
-        ledTestSetAllOff(  );
-        __delay_ms(100);
-        ledTestSetAllOn(  );
-        __delay_ms(200);
-        ledTestSetAllOff(  );
-        __delay_ms(100);
-        ledTestSetAllOn(  );
-        __delay_ms(200);
-        ledTestSetAllOff(  ); 
-                                                // was PwrFail
-        command_builder4( send_buffer, "Set", "LPF", powerFailTimeBuf, powerRestoreTimeBuf );
+        
+        command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
         //////////////////////////////////////////////////// END NEW CODE
 	}
 	else if( strmatch( parameters[1], "PwrData" ) == true )
@@ -1195,42 +1182,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 	}
     }
-    // END 'Read' Parameter
-    
-    
-    ///////////////////////////NEW CODE 2/25/2020 ZACHERY HOLSINGER/////////
-    /// testing to see if CONF messages are used
-    else if( strmatch( parameters[0], "Conf" ) == true ) // UI says it will send CONF message...will it?
-    {
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        __delay_ms(100);
-	if( strmatch( parameters[1], "Time" ) == true )
-	{
-        // do something to conf time
-        
-    } else if( strmatch( parameters[1], "LPF" ) == true ) {
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        __delay_ms(200);
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        __delay_ms(200);
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );
-        __delay_ms(200);
-        ledTestSetAllOn(  );
-        __delay_ms(100);
-        ledTestSetAllOff(  );        
-    }
-    }
-    
-    ///////////////////////////////END NEW CODE//////////////////////////////
-    
+
     return end_of_transmission_received;
 }
 
@@ -1531,14 +1483,35 @@ bool SPI_receive_data_char( char *data )
 {
     bool recvGood = false;
 
-    if( SPI1STATbits.SPIRBF == 1 )
+    if( SPIRecvBufferReadPos != SPIRecvBufferWritePos )
     {
-	*data = SPI1BUF;
-	recvGood = true;
+        *data = SPIRecvBuffer[SPIRecvBufferReadPos];
+        if(*data != CHAR_NULL)
+        {
+//            ledToggle(4);
+            recvGood = true;
+        }
+        SPIRecvBufferReadPos = (SPIRecvBufferReadPos + 1) % 10;
+        if(SPIRecvBufferReadPos == 8){
+//            ledToggle(4);
+        }
     }
-
+    
     return recvGood;
 }
+
+//bool SPI_receive_data_char( char *data )
+//{
+//    bool recvGood = false;
+////
+////    if( SPI1STATbits.SPIRBF == 1 )
+////    {
+////	
+////	recvGood = true;
+////    }
+//
+//    return recvGood;
+//}
 
 bool SPI_send_data_char( char data )
 {
@@ -1546,28 +1519,48 @@ bool SPI_send_data_char( char data )
 
     if( SPI1STATbits.SPITBF == 0 ) //if in enhance mode use SPI1STATbits.SR1MPT
     {
-	SPI1BUF = data;
-	sendGood = true;
+        SPI1BUF = data;
+        sendGood = true;
+//        ledToggle(3);
     }
 
     return sendGood;
 }
+
+//bool UART1_receive_data_char( char *data ) // NON-INTERRUPT VERSION
+//{
+//    bool recvGood = false;
+//
+//
+//    if( U1STAbits.URXDA == 1 )
+//    {
+//	*data = U1RXREG;
+//
+//	if( *data != CHAR_NULL )
+//	{
+//	    recvGood = true;
+//	}
+//    }
+//
+//    return recvGood;
+//}
+
 
 bool UART1_receive_data_char( char *data )
 {
     bool recvGood = false;
 
 
-    if( U1STAbits.URXDA == 1 )
+    if( UARTRecvBufferReadPos != UARTRecvBufferWritePos )
     {
-	*data = U1RXREG;
-
-	if( *data != CHAR_NULL )
-	{
-	    recvGood = true;
-	}
+        *data = UARTRecvBuffer[UARTRecvBufferReadPos];
+        if(*data != CHAR_NULL)
+        {
+            recvGood = true;
+        }
+        UARTRecvBufferReadPos = (UARTRecvBufferReadPos + 1) % 10;
     }
-
+    
     return recvGood;
 }
 
@@ -1668,6 +1661,10 @@ void commSPIInit( void )
     SPI1CON2bits.SPIBEN = 0b0; // 1=enhanced buffer mode
 
     SPI1STATbits.SPIROV = 0; //clear flag for overflow data
+    SPI1STATbits.SISEL = 0b001; // Interrupt when SPIx receive buffer is full
+    
+    IFS0bits.SPI1IF = 0; // clear RX interrupt flag
+    IEC0bits.SPI1IE = 1; // enable RX interrupt
 
     return;
 }
@@ -1794,12 +1791,57 @@ void initUART1( void )
     IEC0bits.U1TXIE = 0; // disable TX Interrupt
 
     IFS0bits.U1RXIF = 0; // clear RX interrupt flag
-    IEC0bits.U1RXIE = 0; // disable RX interrupt
+    IEC0bits.U1RXIE = 1; // enable RX interrupt
 
     U1MODEbits.UARTEN = 0b1; // turn it on
     U1STAbits.UTXEN = 0b1; // enable transmit
 
     return;
+}
+
+// this triggers when any data is received (through SPI1) 
+// and stores that data in a buffer for the main loop
+
+void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
+
+    unsigned char recvChar;
+
+    _SPI1IF = 0; // clear interrupt flag
+    _SPIROV = 0; //clear flag for overflow data
+   
+//    ledToggle(1);
+    recvChar = SPI1BUF;
+
+    if(recvChar != CHAR_NULL) {
+        SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
+        SPIRecvBufferWritePos = (SPIRecvBufferWritePos + 1) % 10;
+    }
+}
+
+// this triggers when any data is received (through UART1) 
+// and stores that data in a buffer for the main loop
+
+void __attribute__((__interrupt__,__no_auto_psv__)) _U1RXInterrupt(void) {
+
+    unsigned char recvChar = 1;
+
+    _U1RXIF = 0; // clear interrupt flag
+ 
+    recvChar = U1RXREG;
+
+//        if(recvChar == 33){
+//            ledTestSetOn(4);
+//        }
+//        if(recvChar == 42) {           
+//            ledTestSetOff(4);
+//        }
+    if(recvChar != CHAR_NULL){
+        UARTRecvBuffer[UARTRecvBufferWritePos] = recvChar;
+        UARTRecvBufferWritePos = (UARTRecvBufferWritePos + 1) % 10;
+//        ledToggle(4);
+    }
+    
+    
 }
 
 
