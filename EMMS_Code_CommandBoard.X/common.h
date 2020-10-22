@@ -74,7 +74,7 @@
 
 // LEDs for power remaining indicator
 // can also be used for debugging
-#define LEDS_FOR_DEBUG false
+#define LEDS_FOR_DEBUG true
 // set this to 'true' to turn off the LED graph for testing purposes
 
 #define CHAR_NULL '\0'   //yes, used in many many places
@@ -89,10 +89,13 @@ struct date_time
 {
     unsigned int year;
     unsigned char month;
+    unsigned char monthTens;
     unsigned char day;
+    unsigned char dayTens;
     unsigned char hour;
-    unsigned char minuteTens;
+    unsigned char hourTens;
     unsigned char minute;
+    unsigned char minuteTens;
     unsigned char second;
 };
 

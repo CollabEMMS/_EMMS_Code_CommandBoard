@@ -31,12 +31,12 @@
             </bookmark>
             <bookmark id="58">
                 <name/>
-                <line>1094</line>
+                <line>1098</line>
                 <key/>
             </bookmark>
             <bookmark id="61">
                 <name/>
-                <line>1351</line>
+                <line>1413</line>
                 <key/>
             </bookmark>
         </file>
@@ -133,9 +133,11 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/common.h</file>
             <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/MasterComm.c</file>
             <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/RTCC.c</file>
+            <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/LEDControl.c</file>
+            <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/PowerMain.c</file>
+            <file>file:/C:/Users/Zachery%20Holsinger/eclipse-workspace/EMMS/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/ResetReport.c</file>
         </group>
     </open-files>
 </project-private>

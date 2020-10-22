@@ -19,7 +19,7 @@
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
-#define BUFFER_LENGTH 40  // max size is positive signed character size (255))
+#define BUFFER_LENGTH 50  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
@@ -255,12 +255,12 @@ void communicationsSPI( bool initialize )
 	    break;
 	case enum_receive_status_end_command:
 
-        if( xSumMatches (&receive_buffer) == true){
+//        if( xSumMatches (&receive_buffer) == true){
             if( process_data( &receive_buffer, &send_buffer ) == true )
             {
                 end_of_transmission_received = true;
             }
-        }
+//        }
 	    receive_wait_count = 0;
 	    receive_in_command_count = 0;
 	    break;
@@ -939,6 +939,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    command_builder2( send_buffer, "Conf", "PSVersion" );
 	}
     }
+    /// END 'SET' Parameter
+    
+    // BEGIN 'Read' Parameter
     else if( strmatch( parameters[0], "Read" ) == true )
     {
 	if( strmatch( parameters[1], "Time" ) == true )
@@ -1091,11 +1094,11 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	}
 	else if( strmatch( parameters[1], "PwrFail" ) == true )
 	{
-
+        
+        // Length 12 because that is what is configured in UI code
 	    char powerFailTimeBuf[12];
 	    char powerRestoreTimeBuf[12];
         char temp[12];
-
 
 	    powerFailTimeBuf[0] = 'H';
 	    powerFailTimeBuf[1] = 'H';
@@ -1107,7 +1110,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerFailTimeBuf[7] = 'D';
 	    powerFailTimeBuf[8] = ':';
 	    powerFailTimeBuf[9] = 'M';
-	    powerFailTimeBuf[10] = 'M';
+        powerFailTimeBuf[10] = 'M';
 	    powerFailTimeBuf[11] = CHAR_NULL;
 
 	    powerRestoreTimeBuf[0] = 'H';
@@ -1120,32 +1123,56 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerRestoreTimeBuf[7] = 'D';
 	    powerRestoreTimeBuf[8] = ':';
 	    powerRestoreTimeBuf[9] = 'M';
-	    powerRestoreTimeBuf[10] = 'M';
+        powerRestoreTimeBuf[10] = 'M';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
 
 	    struct date_time timePowerFail;
 	    struct date_time timePowerRestore;
+        
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        __delay_ms(100);
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        
 
-	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
+//	    rtccI2CReadPowerTimes( &timePowerFail, &timePowerRestore );
 
 //	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
         
         /////////////////////////////////////////////////// BEGIN NEW CODE
-        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
-//	    powerRestoreTimeBuf[1] = timePowerFail.minute;
-	    powerRestoreTimeBuf[2] = 'r';
-	    powerRestoreTimeBuf[3] = 'o';
-	    powerRestoreTimeBuf[4] = 'i';
-	    powerRestoreTimeBuf[5] = 's';
-	    powerRestoreTimeBuf[6] = 's';
-	    powerRestoreTimeBuf[7] = 'a';
-	    powerRestoreTimeBuf[8] = 'n';
-	    powerRestoreTimeBuf[9] = 't';
-	    powerRestoreTimeBuf[10] = 's';
+//        powerRestoreTimeBuf[0] = timePowerFail.hourTens;
+	    powerRestoreTimeBuf[1] = timePowerFail.hour;
+	    powerRestoreTimeBuf[2] = ':';
+//	    powerRestoreTimeBuf[3] = timePowerFail.monthTens;
+//	    powerRestoreTimeBuf[4] = timePowerFail.month;
+	    powerRestoreTimeBuf[5] = ':';
+//	    powerRestoreTimeBuf[6] = timePowerFail.dayTens;
+//	    powerRestoreTimeBuf[7] = timePowerFail.day;
+	    powerRestoreTimeBuf[8] = ':';
+	    powerRestoreTimeBuf[9] = '0';
+	    powerRestoreTimeBuf[10] = '0';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
         
-        
-        command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
+        ledTestSetAllOn(  );
+        __delay_ms(200);
+        ledTestSetAllOff(  );
+        __delay_ms(100);
+        ledTestSetAllOn(  );
+        __delay_ms(200);
+        ledTestSetAllOff(  );
+        __delay_ms(100);
+        ledTestSetAllOn(  );
+        __delay_ms(200);
+        ledTestSetAllOff(  );
+        __delay_ms(100);
+        ledTestSetAllOn(  );
+        __delay_ms(200);
+        ledTestSetAllOff(  ); 
+                                                // was PwrFail
+        command_builder4( send_buffer, "Set", "LPF", powerFailTimeBuf, powerRestoreTimeBuf );
         //////////////////////////////////////////////////// END NEW CODE
 	}
 	else if( strmatch( parameters[1], "PwrData" ) == true )
@@ -1168,7 +1195,42 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 	}
     }
-
+    // END 'Read' Parameter
+    
+    
+    ///////////////////////////NEW CODE 2/25/2020 ZACHERY HOLSINGER/////////
+    /// testing to see if CONF messages are used
+    else if( strmatch( parameters[0], "Conf" ) == true ) // UI says it will send CONF message...will it?
+    {
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        __delay_ms(100);
+	if( strmatch( parameters[1], "Time" ) == true )
+	{
+        // do something to conf time
+        
+    } else if( strmatch( parameters[1], "LPF" ) == true ) {
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        __delay_ms(200);
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        __delay_ms(200);
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );
+        __delay_ms(200);
+        ledTestSetAllOn(  );
+        __delay_ms(100);
+        ledTestSetAllOff(  );        
+    }
+    }
+    
+    ///////////////////////////////END NEW CODE//////////////////////////////
+    
     return end_of_transmission_received;
 }
 

@@ -719,7 +719,10 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     static char powerFailTimeHour;
     static char powerFailTimeHourTens;
     static char powerFailTimeDay;
+    static char powerFailTimeDayTens;
+    
     static char powerFailTimeMonth;
+    static char powerFailTimeMonthTens;
 
     static char powerRestoreTimeMinute;
     static char powerRestoreTimeHour;
@@ -731,26 +734,43 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     {
 	firstRun = false;
 	// TODO RTCC I2C Read - document better how this works
-    PWDN = ReadI2CRegister( RTCC_PWRDNMIN ) & 0b01111111;
-    PWDNHOUR = ReadI2CRegister ( RTCC_PWRDNHOUR ) & 0b01111111;
+    PWDN = ReadI2CRegister( RTCC_PWRDNMIN ) &               0b01111111;
+    PWDNHOUR = ReadI2CRegister ( RTCC_PWRDNHOUR ) &         0b01111111;
+    powerFailTimeMonth = ReadI2CRegister( RTCC_PWRDNMTH ) & 0b00011111;
+    powerFailTimeDay = ReadI2CRegister( RTCC_PWRDNDATE ) &  0b00111111;
+    
+    // Get month tens first before overwrite
+    powerFailTimeMonthTens = powerFailTimeMonth >> 4;
+    powerFailTimeMonthTens = powerFailTimeMonthTens + 48; // dont need bcd because its either 0 or 1
+
+    powerFailTimeMonth = powerFailTimeMonth & 0b00001111; // removes tens place
+    powerFailTimeMonth = BcdToDecI2C(powerFailTimeMonth) + 48; // to ASCII
+    
+    // Get month tens first before overwrite
+    powerFailTimeDayTens = powerFailTimeDay >> 4;
+    powerFailTimeDayTens = BcdToDecI2C(powerFailTimeDayTens) + 48; // dont need bcd because its either 0 or 1
+    
+    // Get date tens first before overwrite
+    powerFailTimeDay = powerFailTimeDay & 0b00001111; // Rmoves tens place
+    powerFailTimeDay = BcdToDecI2C(powerFailTimeDay) + 48; // To ASCII
     
     // Grabs tens place from Minute Register
     powerFailTimeMinuteTens = PWDN &  0b01110000;
     powerFailTimeMinuteTens = powerFailTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
-    powerFailTimeMinuteTens = powerFailTimeMinuteTens + 48; // goes from binary number to ASCII number
+    powerFailTimeMinuteTens = BcdToDecI2C(powerFailTimeMinuteTens) + 48; // goes from binary number to ASCII number
     
     // Grabs ones place from Minute Register
     powerFailTimeMinute = PWDN &  0b00001111;
-    powerFailTimeMinute = powerFailTimeMinute + 48; // goes from binary number to ASCII number
+    powerFailTimeMinute = BcdToDecI2C(powerFailTimeMinute) + 48; // goes from binary number to ASCII number
     
     // Grabs tens place from Hour Register
     powerFailTimeHourTens = PWDN &  0b00110000;
     powerFailTimeHourTens = powerFailTimeHourTens >> 4; // Shift 4 to calculate properly
-    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
+//    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
     
     // Grabs ones place from Hour Register
-    powerFailTimeHourTens = PWDN &  0b00001111;
-    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
+    powerFailTimeHour = PWDN &  0b00001111;
+    powerFailTimeHour = 0 + 48; // goes from binary number to ASCII number
     
     
     //
@@ -777,11 +797,14 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     }
     ////Confirmed to work here, variables put into struct display properly, problem is above.
 //    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+    timePowerFail->minute = powerFailTimeMinute;
     timePowerFail->minuteTens = powerFailTimeMinuteTens;
-    timePowerFail->minute = BcdToDecI2C(powerFailTimeMinute);
-    timePowerFail->hour = BcdToDecI2C(powerFailTimeHour);
-    timePowerFail->day = BcdToDecI2C(powerFailTimeDay);
-    timePowerFail->month = BcdToDecI2C(powerFailTimeMonth);
+    timePowerFail->hour = powerFailTimeHour;
+    timePowerFail->hourTens = powerFailTimeHourTens;
+    timePowerFail->day = powerFailTimeDay;
+    timePowerFail->dayTens = powerFailTimeDayTens;
+    timePowerFail->month = powerFailTimeMonth;
+    timePowerFail->monthTens = powerFailTimeMonthTens;
     timePowerFail->second = 0;
     timePowerFail->year = 0;
 

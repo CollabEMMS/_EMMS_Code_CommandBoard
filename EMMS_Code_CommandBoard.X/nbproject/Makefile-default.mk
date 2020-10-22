@@ -70,7 +70,6 @@ OBJECTFILES=${OBJECTDIR}/PowerMain.o ${OBJECTDIR}/EEPROM.o ${OBJECTDIR}/MasterCo
 SOURCEFILES=PowerMain.c EEPROM.c MasterComm.c LEDControl.c ResetReport.c _ConfigPragma.c RTCC.c
 
 
-
 CFLAGS=
 ASFLAGS=
 LDLIBSOPTIONS=
