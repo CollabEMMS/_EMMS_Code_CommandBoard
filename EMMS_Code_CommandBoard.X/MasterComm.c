@@ -607,14 +607,14 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
         
     if (xSumMatches){
-//         ledTestSetOn(4);
-//         ledTestSetOff(3);
+         ledTestSetOn(4);
+         ledTestSetOff(3);
         end_of_transmission_received = process_data_parameters( parameters, send_buffer );
 
     }
     else{
-//         ledTestSetOff(4);
-//         ledTestSetOn(3);
+         ledTestSetOff(4);
+         ledTestSetOn(3);
         end_of_transmission_received = true;
     }
 
@@ -1493,7 +1493,7 @@ bool SPI_receive_data_char( char *data )
         }
         SPIRecvBufferReadPos = (SPIRecvBufferReadPos + 1) % 10;
         if(SPIRecvBufferReadPos == 8){
-            ledToggle(4);
+//            ledToggle(4);
         }
     }
     
@@ -1521,7 +1521,7 @@ bool SPI_send_data_char( char data )
     {
         SPI1BUF = data;
         sendGood = true;
-        ledToggle(3);
+//        ledToggle(3);
     }
 
     return sendGood;
@@ -1809,7 +1809,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
     _SPI1IF = 0; // clear interrupt flag
     _SPIROV = 0; //clear flag for overflow data
    
-    ledToggle(1);
+//    ledToggle(1);
     recvChar = SPI1BUF;
 
     if(recvChar != CHAR_NULL) {
