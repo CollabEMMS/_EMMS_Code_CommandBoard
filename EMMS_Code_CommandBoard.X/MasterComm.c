@@ -19,7 +19,7 @@
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
-#define BUFFER_LENGTH 80  // max size is positive signed character size (255))
+#define BUFFER_LENGTH 40  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
@@ -1124,18 +1124,18 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    powerFailTimeBuf[10] = 'M';
 	    powerFailTimeBuf[11] = CHAR_NULL;
 
-//	    powerRestoreTimeBuf[0] = 'H';
-//	    powerRestoreTimeBuf[1] = 'H';
-//	    powerRestoreTimeBuf[2] = ':';
-//	    powerRestoreTimeBuf[3] = 'M';
-//	    powerRestoreTimeBuf[4] = 'M';
-//	    powerRestoreTimeBuf[5] = ':';
-//	    powerRestoreTimeBuf[6] = 'D';
-//	    powerRestoreTimeBuf[7] = 'D';
-//	    powerRestoreTimeBuf[8] = ':';
-//	    powerRestoreTimeBuf[9] = 'M';
-//	    powerRestoreTimeBuf[10] = 'M';
-//	    powerRestoreTimeBuf[11] = CHAR_NULL;
+	    powerRestoreTimeBuf[0] = 'H';
+	    powerRestoreTimeBuf[1] = 'H';
+	    powerRestoreTimeBuf[2] = ':';
+	    powerRestoreTimeBuf[3] = 'M';
+	    powerRestoreTimeBuf[4] = 'M';
+	    powerRestoreTimeBuf[5] = ':';
+	    powerRestoreTimeBuf[6] = 'D';
+	    powerRestoreTimeBuf[7] = 'D';
+	    powerRestoreTimeBuf[8] = ':';
+	    powerRestoreTimeBuf[9] = 'M';
+	    powerRestoreTimeBuf[10] = 'M';
+	    powerRestoreTimeBuf[11] = CHAR_NULL;
 
 	    struct date_time timePowerFail;
 	    struct date_time timePowerRestore;
@@ -1145,52 +1145,21 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 //	    command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf ); /// Sends the placeholder time
         
         /////////////////////////////////////////////////// BEGIN NEW CODE
-        powerFailTimeBuf[0] = timePowerFail.hourTens;
-	    powerFailTimeBuf[1] = timePowerFail.hour;
-	    powerFailTimeBuf[2] = ':';
-	    powerFailTimeBuf[3] = timePowerFail.minuteTens;
-	    powerFailTimeBuf[4] = timePowerFail.minute;
-	    powerFailTimeBuf[5] = ' ';
-	    powerFailTimeBuf[6] = timePowerFail.dayTens;
-	    powerFailTimeBuf[7] = timePowerFail.day;
-	    powerFailTimeBuf[8] = '/';
-	    powerFailTimeBuf[9] = timePowerFail.monthTens;
-	    powerFailTimeBuf[10] = timePowerFail.month;
-	    powerFailTimeBuf[11] = CHAR_NULL;
-        
-        powerRestoreTimeBuf[0] = timePowerRestore.hourTens;
-	    powerRestoreTimeBuf[1] = timePowerRestore.hour;
-	    powerRestoreTimeBuf[2] = ':';
-	    powerRestoreTimeBuf[3] = timePowerRestore.minuteTens;
-	    powerRestoreTimeBuf[4] = timePowerRestore.minute;
-	    powerRestoreTimeBuf[5] = ' ';
-	    powerRestoreTimeBuf[6] = timePowerRestore.dayTens;
-	    powerRestoreTimeBuf[7] = timePowerRestore.day;
-	    powerRestoreTimeBuf[8] = '/';
-	    powerRestoreTimeBuf[9] = timePowerRestore.monthTens;
-	    powerRestoreTimeBuf[10] = timePowerRestore.month;
+        powerRestoreTimeBuf[0] = timePowerFail.minuteTens;
+//	    powerRestoreTimeBuf[1] = timePowerFail.minute;
+	    powerRestoreTimeBuf[2] = 'r';
+	    powerRestoreTimeBuf[3] = 'o';
+	    powerRestoreTimeBuf[4] = 'i';
+	    powerRestoreTimeBuf[5] = 's';
+	    powerRestoreTimeBuf[6] = 's';
+	    powerRestoreTimeBuf[7] = 'a';
+	    powerRestoreTimeBuf[8] = 'n';
+	    powerRestoreTimeBuf[9] = 't';
+	    powerRestoreTimeBuf[10] = 's';
 	    powerRestoreTimeBuf[11] = CHAR_NULL;
         
-        ledSetAllOn();
-        __delay_ms(20);
-        ledSetAllOff();
-        __delay_ms(20);
-        ledSetAllOn();
-        __delay_ms(20);
-        ledSetAllOff();
-        __delay_ms(20);
-        ledSetAllOn();
-        __delay_ms(20);
-        ledSetAllOff();
-        __delay_ms(20);
-        ledSetAllOn();
-        __delay_ms(20);
-        ledSetAllOff();
-        __delay_ms(20);
         
-        
-        command_builder4( send_buffer, "Set", "PwrFail", powerRestoreTimeBuf, powerFailTimeBuf);
-        
+        command_builder4( send_buffer, "Set", "PwrFail", powerFailTimeBuf, powerRestoreTimeBuf );
         //////////////////////////////////////////////////// END NEW CODE
 	}
 	else if( strmatch( parameters[1], "PwrData" ) == true )
