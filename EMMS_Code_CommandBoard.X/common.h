@@ -88,15 +88,15 @@
 struct date_time
 {
     unsigned int year;
-    unsigned char month;
-    unsigned char monthTens;
-    unsigned char day;
-    unsigned char dayTens;
-    unsigned char hour;
-    unsigned char hourTens;
-    unsigned char minute;
-    unsigned char minuteTens;
-    unsigned char second;
+    char month;
+    char monthTens;
+    char day;
+    char dayTens;
+    char hour;
+    char hourTens;
+    char minute;
+    char minuteTens;
+    char second;
 };
 
 struct alarm_info
