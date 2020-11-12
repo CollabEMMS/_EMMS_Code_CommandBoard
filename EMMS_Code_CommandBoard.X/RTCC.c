@@ -111,7 +111,7 @@ void rtccInit( void )
 void rtccCopyI2CTime( void )
 {
     struct date_time currentDateTime;
-
+    
     rtccI2CReadTime( &currentDateTime );
     rtccSetTime( &currentDateTime );
 
@@ -285,7 +285,7 @@ void rtccI2CInit( void )
 {
     initI2Crtcc( );
     startI2CClock( );
-
+    
     setI2CClockBuildTime( );
 
     return;
@@ -459,18 +459,24 @@ void setI2CClockBuildTime( void )
     // __DATE__ -> "Mar  2 2015"
     //              01234567890
     // get the day
-    if( __DATE__ [4] == ' ' )
-    {
-	tempInt[0] = __DATE__ [4];
-	tempInt[1] = CHAR_NULL;
-    }
-    else
-    {
+//    if( __DATE__ [4] == ' ' )
+//    {
+//	tempInt[0] = __DATE__ [4];
+//	tempInt[1] = CHAR_NULL;
+//    }
+//    else
+//    {
+//	tempInt[0] = __DATE__ [4];
+//	tempInt[1] = __DATE__ [5];
+//	tempInt[2] = CHAR_NULL;
+//    }
+    
+    
+
 	tempInt[0] = __DATE__ [4];
 	tempInt[1] = __DATE__ [5];
 	tempInt[2] = CHAR_NULL;
-    }
-
+    
     tempIntValue = atoi( tempInt );
     buildDateTime.day = tempIntValue;
 
@@ -554,7 +560,7 @@ void rtccI2CReadTime( struct date_time *readDateTime )
     // once read it needs converted to plain decimal when stored to a char variable
 
     BeginSequentialReadI2C( RTCC_SECOND );
-
+    
     char BCDSecond;
     char BCDMinute;
     char BCDHour;
@@ -562,6 +568,7 @@ void rtccI2CReadTime( struct date_time *readDateTime )
     char BCDMonth;
     char BCDYear;
 
+    ledSetAll(1,0,0,0);
     BCDSecond = SequentialReadI2C( ) & 0x7F; // Get Second
     BCDMinute = SequentialReadI2C( ) & 0x7F; // Get Minute
     BCDHour = SequentialReadI2C( ) & 0x3F; // Get Hour
@@ -571,7 +578,7 @@ void rtccI2CReadTime( struct date_time *readDateTime )
     BCDYear = SequentialReadI2C( ); // Get Year
 
     StopI2C( );
-
+    
     readDateTime->year = BcdToDecI2C( BCDYear );
     readDateTime->month = BcdToDecI2C( BCDMonth );
     readDateTime->day = BcdToDecI2C( BCDDay );
@@ -579,6 +586,8 @@ void rtccI2CReadTime( struct date_time *readDateTime )
     readDateTime->minute = BcdToDecI2C( BCDMinute );
     readDateTime->second = BcdToDecI2C( BCDSecond );
 
+    ledSetAll(1,1,1,1);
+    
     return;
 }
 
@@ -658,11 +667,11 @@ char SequentialReadI2C( void )
     }
 
     I2C1CONbits.RCEN = 1; // Gives control of clock to Slave device
-
+    ledSetAll(I2C1STATbits.I2COV,1,0,0);
     while( !I2C1STATbits.RBF ) // Waits for register to fill up
     {
     }
-
+    ledSetAll(I2C1STATbits.I2COV,1,1,0);
     AckI2C( ); // Ask for next byte
 
     return I2C1RCV; // Returns data
@@ -680,7 +689,7 @@ char ReadI2CRegister( char address ) // ZACH TRY USING THiS METHOD TO READ THING
     WriteI2C( RTCC_READ ); // Enter Read Mode
     char returnValue = ReadI2C( );
     StopI2C( );
-
+    
     return returnValue;
 }
 
@@ -708,9 +717,7 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 
     static bool firstRun = true;
     
-    static char PWDN;
-    static char PWDNHOUR;
-    // TODO impliment AM/PM and Military timekeeping
+    // TODO implement AM/PM and Military timekeeping
     static char powerFailAMPM; // 0 = PM 1 = AM
     static char powerFailIsMilitary; // 0 = 12 Hour Format 1 = 24 Hour format
     
@@ -720,22 +727,31 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     static char powerFailTimeHourTens;
     static char powerFailTimeDay;
     static char powerFailTimeDayTens;
-    
     static char powerFailTimeMonth;
     static char powerFailTimeMonthTens;
 
+//    static char powerRestoreTimeMinute;
+//    static char powerRestoreTimeHour;
+//    static char powerRestoreTimeDay;
+//    static char powerRestoreTimeMonth;
+
+    static char powerRestoreTimeMinuteTens;
     static char powerRestoreTimeMinute;
     static char powerRestoreTimeHour;
+    static char powerRestoreTimeHourTens;
     static char powerRestoreTimeDay;
+    static char powerRestoreTimeDayTens;
     static char powerRestoreTimeMonth;
+    static char powerRestoreTimeMonthTens;
 
-
+    
     if( firstRun == true )
     {
 	firstRun = false;
-	// TODO RTCC I2C Read - document better how this works
-    PWDN = ReadI2CRegister( RTCC_PWRDNMIN ) &               0b01111111;
-    PWDNHOUR = ReadI2CRegister ( RTCC_PWRDNHOUR ) &         0b01111111;
+	StartI2C();
+    // TODO RTCC I2C Read - document better how this works   
+    powerFailTimeMinute = ReadI2CRegister( RTCC_PWRDNMIN ) &               0b01111111;
+    powerFailTimeHour = ReadI2CRegister ( RTCC_PWRDNHOUR ) &         0b01111111;
     powerFailTimeMonth = ReadI2CRegister( RTCC_PWRDNMTH ) & 0b00011111;
     powerFailTimeDay = ReadI2CRegister( RTCC_PWRDNDATE ) &  0b00111111;
     
@@ -744,33 +760,33 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     powerFailTimeMonthTens = powerFailTimeMonthTens + 48; // dont need bcd because its either 0 or 1
 
     powerFailTimeMonth = powerFailTimeMonth & 0b00001111; // removes tens place
-    powerFailTimeMonth = BcdToDecI2C(powerFailTimeMonth) + 48; // to ASCII
+    powerFailTimeMonth = powerFailTimeMonth + 48; // to ASCII
     
     // Get month tens first before overwrite
     powerFailTimeDayTens = powerFailTimeDay >> 4;
-    powerFailTimeDayTens = BcdToDecI2C(powerFailTimeDayTens) + 48; // dont need bcd because its either 0 or 1
+    powerFailTimeDayTens = powerFailTimeDayTens + 48; // dont need bcd because its either 0 or 1
     
     // Get date tens first before overwrite
     powerFailTimeDay = powerFailTimeDay & 0b00001111; // Rmoves tens place
-    powerFailTimeDay = BcdToDecI2C(powerFailTimeDay) + 48; // To ASCII
+    powerFailTimeDay = powerFailTimeDay + 48; // To ASCII
     
     // Grabs tens place from Minute Register
-    powerFailTimeMinuteTens = PWDN &  0b01110000;
+    powerFailTimeMinuteTens = powerFailTimeMinute &  0b01110000;
     powerFailTimeMinuteTens = powerFailTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
-    powerFailTimeMinuteTens = BcdToDecI2C(powerFailTimeMinuteTens) + 48; // goes from binary number to ASCII number
+    powerFailTimeMinuteTens = powerFailTimeMinuteTens + 48; // goes from binary number to ASCII number
     
     // Grabs ones place from Minute Register
-    powerFailTimeMinute = PWDN &  0b00001111;
-    powerFailTimeMinute = BcdToDecI2C(powerFailTimeMinute) + 48; // goes from binary number to ASCII number
+    powerFailTimeMinute = powerFailTimeMinute &  0b00001111;
+    powerFailTimeMinute = powerFailTimeMinute + 48; // goes from binary number to ASCII number
     
     // Grabs tens place from Hour Register
-    powerFailTimeHourTens = PWDN &  0b00110000;
+    powerFailTimeHourTens = powerFailTimeHour &  0b00110000;
     powerFailTimeHourTens = powerFailTimeHourTens >> 4; // Shift 4 to calculate properly
-//    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
+    powerFailTimeHourTens = powerFailTimeHourTens + 48; // goes from binary number to ASCII number
     
     // Grabs ones place from Hour Register
-    powerFailTimeHour = PWDN &  0b00001111;
-    powerFailTimeHour = 0 + 48; // goes from binary number to ASCII number
+    powerFailTimeHour = powerFailTimeHour &  0b00001111;
+    powerFailTimeHour = powerFailTimeHour + 48; // goes from binary number to ASCII number
     
     
     //
@@ -788,6 +804,49 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 //	powerRestoreTimeDay = SequentialReadI2C( ) & 0x3F;
 //	powerRestoreTimeMonth = SequentialReadI2C( ) & 0x1F;
     /////////
+//    
+//    powerRestoreTimeMinute = ReadI2CRegister( RTCC_PWRUPMIN ) & 0b01111111;
+//    powerRestoreTimeHour = ReadI2CRegister ( RTCC_PWRUPHOUR ) & 0b01111111;
+//    powerRestoreTimeDay = ReadI2CRegister( RTCC_PWRUPDATE )   & 0b00011111;
+//    powerRestoreTimeMonth = ReadI2CRegister( RTCC_PWRUPMTH )  & 0b00111111;
+//    
+    
+    // Get month tens first before overwrite
+    powerRestoreTimeMonthTens = powerRestoreTimeMonth >> 4;
+    powerRestoreTimeMonthTens = powerRestoreTimeMonthTens + 48; // dont need bcd because its either 0 or 1
+
+    powerRestoreTimeMonth = powerRestoreTimeMonth & 0b00001111; // removes tens place
+    powerRestoreTimeMonth = powerRestoreTimeMonth + 48; // to ASCII
+    
+    // Get month tens first before overwrite
+    powerRestoreTimeDayTens = powerRestoreTimeDay >> 4;
+    powerRestoreTimeDayTens = powerRestoreTimeDayTens + 48; // dont need bcd because its either 0 or 1
+    
+    // Get date tens first before overwrite
+    powerRestoreTimeDay = powerRestoreTimeDay & 0b00001111; // Rmoves tens place
+    powerRestoreTimeDay = powerRestoreTimeDay + 48; // To ASCII
+    
+    // Grabs tens place from Minute Register
+    powerRestoreTimeMinuteTens = powerRestoreTimeMinute &  0b01110000;
+    powerRestoreTimeMinuteTens = powerRestoreTimeMinuteTens >> 4; // Shift to the right 4 times to get tens
+    powerRestoreTimeMinuteTens = powerRestoreTimeMinuteTens + 48; // goes from binary number to ASCII number
+    
+    // Grabs ones place from Minute Register
+    powerRestoreTimeMinute = powerRestoreTimeMinute &  0b00001111;
+    powerRestoreTimeMinute = powerRestoreTimeMinute + 48; // goes from binary number to ASCII number
+    
+    // Grabs tens place from Hour Register
+    powerRestoreTimeHourTens = powerRestoreTimeHour &  0b00110000;
+    powerRestoreTimeHourTens = powerRestoreTimeHourTens >> 4; // Shift 4 to calculate properly
+    powerRestoreTimeHourTens = powerRestoreTimeHourTens + 48; // goes from binary number to ASCII number
+    
+    // Grabs ones place from Hour Register
+    powerRestoreTimeHour = powerRestoreTimeHour &  0b00001111;
+    powerRestoreTimeHour = powerRestoreTimeHour + 48; // goes from binary number to ASCII number    
+    
+    
+    
+    
     
     // VARIABLES SET IN HERE POPULATE DOWN TO DISPLAY
 	StopI2C( );
@@ -795,8 +854,8 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 	// TODO clear the PWRFAIL bit in the clock to allow new power fail time to be stored
 
     }
-    ////Confirmed to work here, variables put into struct display properly, problem is above.
-//    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
+//    Confirmed to work here, variables put into struct display properly, problem is above.
+    timePowerFail->minuteTens = BcdToDecI2C(powerFailTimeMinuteTens);
     timePowerFail->minute = powerFailTimeMinute;
     timePowerFail->minuteTens = powerFailTimeMinuteTens;
     timePowerFail->hour = powerFailTimeHour;
@@ -808,23 +867,28 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
     timePowerFail->second = 0;
     timePowerFail->year = 0;
 
-    timePowerRestore->minute = BcdToDecI2C(powerRestoreTimeMinute);
-    timePowerRestore->hour = BcdToDecI2C(powerRestoreTimeHour);
-    timePowerRestore->day = BcdToDecI2C(powerRestoreTimeDay);
-    timePowerRestore->month = BcdToDecI2C(powerRestoreTimeMonth);
-    timePowerRestore->second = 0;
+//    timePowerRestore->minute = powerRestoreTimeMinute;
+//    timePowerRestore->minuteTens = powerRestoreTimeMinuteTens;
+//    timePowerRestore->hour = powerRestoreTimeHour;
+//    timePowerRestore->hourTens = powerRestoreTimeHourTens;
+//    timePowerRestore->day = powerRestoreTimeDay;
+//    timePowerRestore->dayTens = powerRestoreTimeDayTens;
+//    timePowerRestore->month = powerRestoreTimeMonth;
+//    timePowerRestore->monthTens = powerRestoreTimeMonthTens;
+//    timePowerRestore->second = 0;
+//    timePowerRestore->year = 0;
 
     // check if we changed years - at least note it in the year
-    if( powerRestoreTimeMonth < powerFailTimeMonth )
-    {
-	timePowerRestore->year = 1;
-    }
-    else
-    {
-	timePowerRestore->year = 0;
-    }
+//    if( powerRestoreTimeMonth < powerFailTimeMonth )
+//    {
+//	timePowerRestore->year = 1;
+//    }
+//    else
+//    {
+//	timePowerRestore->year = 0;
+//    }
 
-    timePowerRestore->year = 0;
+//    timePowerRestore->year = 0;
     return;
 }
 
@@ -920,7 +984,7 @@ void WriteI2C( unsigned char byte )
     while( I2C1STATbits.TBF ) // Wait for data transmission
     {
     }
-
+    __delay_ms(2);
     return;
 }
 

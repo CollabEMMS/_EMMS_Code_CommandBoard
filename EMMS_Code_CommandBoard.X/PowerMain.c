@@ -174,7 +174,7 @@ int main(void) {
     ledSetAllOff();
 
     rtccCopyI2CTime();
-
+    
     while (true) {
 
         commRunRoutine();
@@ -432,12 +432,12 @@ void powerOnCheckForAllocationReset(void) {
     } else {
         resetTempTimeDay = timePowerFail.day;
     }
-
+   
 
     // now that we have the day, we need to check the month
     // account for day rollover in the month
     resetTempTimeMonth = timePowerFail.month;
-
+   
     // account for days in the month
 
     switch (timePowerFail.month) {
