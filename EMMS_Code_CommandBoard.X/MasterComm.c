@@ -981,8 +981,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    timeDateBuf[3] = timeDateMMBuf[0];
 	    timeDateBuf[4] = timeDateMMBuf[1];
 	    timeDateBuf[5] = '-';
-	    timeDateBuf[6] = timeDateYYBuf[2]; // pull from 4 digit year
-	    timeDateBuf[7] = timeDateYYBuf[3]; // pull from 4 digit year
+	    timeDateBuf[6] = timeDateYYBuf[0]; // pull from 4 digit year
+	    timeDateBuf[7] = timeDateYYBuf[1]; // pull from 4 digit year
 	    timeDateBuf[8] = CHAR_NULL;
 
 	    timeTimeBuf[0] = timeTimeHHBuf[0];

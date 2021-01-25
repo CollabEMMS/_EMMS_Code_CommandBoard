@@ -209,7 +209,7 @@ int main(void) {
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 60000) == 0) {
+            if ((msTimer_module % 20000) == 0) {
                 if (oneShot == false) {
                     rtccCopyI2CTime();
                     oneShot = true;
@@ -416,7 +416,7 @@ void powerOnCheckForAllocationReset(void) {
     unsigned char resetTempTimeDay;
     unsigned char resetTempTimeYear;
 
-    rtccI2CReadPowerTimes(&timePowerFail, &timePowerRestore);
+    
 
     // determine which day the reset was to occur in relation to the day the power went out
 
