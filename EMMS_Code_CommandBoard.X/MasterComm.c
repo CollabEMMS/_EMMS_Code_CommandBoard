@@ -607,14 +607,14 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
         
     if (xSumMatches){
-         ledTestSetOn(4);
-         ledTestSetOff(3);
+//         ledTestSetOn(4);
+//         ledTestSetOff(3);
         end_of_transmission_received = process_data_parameters( parameters, send_buffer );
 
     }
     else{
-         ledTestSetOff(4);
-         ledTestSetOn(3);
+//         ledTestSetOff(4);
+//         ledTestSetOn(3);
         end_of_transmission_received = true;
     }
 
@@ -854,6 +854,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    resetTime_global.hour = atoi( parameters[2] );
 	    resetTime_global.minute = atoi( parameters[3] );
 
+        ledShowChar(resetTime_global.hour);
+        ledShowChar(resetTime_global.minute);
+        
 	    char rsh[20];
 	    char rsm[20];
 
