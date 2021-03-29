@@ -19,6 +19,7 @@
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
+#define BUFFER_LENGTH_RECV 10	// length of receive buffers - characters are received by interrupt
 #define BUFFER_LENGTH 40  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
@@ -68,7 +69,7 @@ volatile int UARTRecvBufferReadPos = 0;
 volatile int UARTRecvBufferWritePos = 0;
 
 // character receiving buffers (internal)
-volatile char SPIRecvBuffer[10];
+volatile char SPIRecvBuffer[BUFFER_LENGTH_RECV];
 volatile int SPIRecvBufferReadPos = 0;
 volatile int SPIRecvBufferWritePos = 0;
 
@@ -1814,7 +1815,11 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
 
     if(recvChar != CHAR_NULL) {
         SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
-        SPIRecvBufferWritePos = (SPIRecvBufferWritePos + 1) % 10;
+	SPIRecvBufferWritePos++;
+	if( SPIRecvBufferWritePos > = BUFFER_LENGTH_RECV )
+	{
+		SPIRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
+	}
     }
 }
 
@@ -1837,7 +1842,11 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _U1RXInterrupt(void) {
 //        }
     if(recvChar != CHAR_NULL){
         UARTRecvBuffer[UARTRecvBufferWritePos] = recvChar;
-        UARTRecvBufferWritePos = (UARTRecvBufferWritePos + 1) % 10;
+	UARTRecvBufferWritePos++;
+	if( UARTRecvBufferWritePos > = BUFFER_LENGTH_RECV )
+	{
+		UARTRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
+	}
 //        ledToggle(4);
     }
     
