@@ -1816,7 +1816,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
     if(recvChar != CHAR_NULL) {
         SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
 	SPIRecvBufferWritePos++;
-	if( SPIRecvBufferWritePos > = BUFFER_LENGTH_RECV )
+	if( SPIRecvBufferWritePos >= BUFFER_LENGTH_RECV )
 	{
 		SPIRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
 	}
@@ -1843,7 +1843,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _U1RXInterrupt(void) {
     if(recvChar != CHAR_NULL){
         UARTRecvBuffer[UARTRecvBufferWritePos] = recvChar;
 	UARTRecvBufferWritePos++;
-	if( UARTRecvBufferWritePos > = BUFFER_LENGTH_RECV )
+	if( UARTRecvBufferWritePos >= BUFFER_LENGTH_RECV )
 	{
 		UARTRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
 	}
