@@ -56,6 +56,9 @@
 // TODO - come up with a good versioning plan for the command board
 #define POWER_BOX_CODE_VERSION "20190929"   // 7 characters show on the UI
 
+// Time window where the oneshots can occur
+#define ONESHOT_WINDOW 10
+
 
 
 
@@ -174,7 +177,7 @@ int main(void) {
     ledSetAllOff();
 
     rtccCopyI2CTime();
-
+    
     while (true) {
 
         commRunRoutine();
@@ -191,11 +194,18 @@ int main(void) {
         // the oneShot variables are local to each block
         // and self contained which makes the code leaner
 
+//      Test stub for a counter that is super helpful in this function for 
+//      looking at reliability and etcetera. Just throw it into a oneshot
+//        static int counter = 0;
+//        counter++;
+//        ledSetAll((counter>>3)%2, (counter>>2)%2, (counter>>1)%2, counter%2);
+        
+        
         // oneShot
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 500) == 0) {
+            if ((msTimer_module % 500) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     rtccReadTime(&dateTime_global);
                     oneShot = true;
@@ -209,10 +219,12 @@ int main(void) {
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 60000) == 0) {
+            
+            if ((msTimer_module % 20000) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     rtccCopyI2CTime();
                     oneShot = true;
+
                 }
             } else {
                 oneShot = false;
@@ -224,25 +236,36 @@ int main(void) {
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 120000) == 0) {
+            if ((msTimer_module % 120000) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
+                    
                     storeToEE();
                     oneShot = true;
                 }
             } else {
                 oneShot = false;
             }
+//            if ((msTimer_module % 120000) == 0) {
+//                if (oneShot == false) {
+//                    storeToEE();
+//                    oneShot = true;
+//                }
+//            } else {
+//                oneShot = false;
+//            }
 
         } // oneShot block
 
         // oneShot
         {
             static bool oneShot = false;
-
-            if ((msTimer_module % 50) == 0) {
+            
+            
+            if ((msTimer_module % 50) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     ledSetFrontFindMe();
                     oneShot = true;
+
                 }
             } else {
                 oneShot = false;
@@ -383,64 +406,66 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T1Interrupt(void) {
 
 void powerOnCheckForAllocationReset(void) {
 
-    // TODO this function does not seem to be working properly
-    // first test did not have the meter reset when power was removed over the reset time
-    // if we can't get this working good, then we need to store the time in EEPROM and recall it for this
-    // but this could wear out the EEPROM pretty quick - maybe store time every 10 or 15 minutes.
-
-
+ 
     // the clock chip saves the timestamp for when power failed
     // the clock chip saves the timestamp for when the power is restored
 
     // this function compares the down time against the reset time and
     // resets the allocation if the reset time is passes during the power outage
 
-
-    // if the reset should have happened during the power outage, then we reset the allocation
-    // this needs verified
-    // right now the powerDown and powerUp is not working correctly
-    // don't try to reset during a power outage for now
-
-    // scenarios
-    //	power loss and power restore before a reset would normally occur (no reset needed)
-    //	power loss then power restore after reset would normally occur (reset needed)
-
-    // determine the next expected reset time based on the power loss time
-    // if the power loss time is before the reset time then the reset date is today
-    // if the power loss time is after the reset time then the reset date is tomorrow (the reset was this morning)
+    // It starts by finding the time when the next reset would have occurred after 
+    // an outage and then checks to see if this happened before or after the power
+    // was restored
+    
+    // This function seems to be working well as of March 2, 2021 but may still
+    // have a few bugs --Ben Weaver
 
     struct date_time timePowerFail;
     struct date_time timePowerRestore;
+    
+    getResetTimes(&timePowerFail, &timePowerRestore);
 
     unsigned char resetTempTimeMonth;
     unsigned char resetTempTimeDay;
     unsigned char resetTempTimeYear;
 
-    rtccI2CReadPowerTimes(&timePowerFail, &timePowerRestore);
+    int failMinute  = (timePowerFail.minute-0x30) + 10*(timePowerFail.minuteTens-0x30);
+    int failHour    = (timePowerFail.hour-0x30) + 10*(timePowerFail.hourTens-0x30);
+    int failDay     = (timePowerFail.day-0x30) + 10*(timePowerFail.dayTens-0x30);
+    int failMonth   = (timePowerFail.month-0x30) + 10*(timePowerFail.monthTens-0x30);
 
+    int restoreMinute  = (timePowerRestore.minute-0x30) + 10*(timePowerRestore.minuteTens-0x30);
+    int restoreHour    = (timePowerRestore.hour-0x30) + 10*(timePowerRestore.hourTens-0x30);
+    int restoreDay     = (timePowerRestore.day-0x30) + 10*(timePowerRestore.dayTens-0x30);
+    int restoreMonth   = (timePowerRestore.month-0x30) + 10*(timePowerRestore.monthTens-0x30);
+
+
+    
     // determine which day the reset was to occur in relation to the day the power went out
 
     // if the power fail time was after the reset time then that means
     // that the next reset time is actually tomorrow since it has already occurred today
     // add one to the day we are looking for with the reset
-    if (timePowerFail.hour > resetTime_global.hour) {
-        resetTempTimeDay = (timePowerFail.day + 1);
-    } else if (timePowerFail.hour == resetTime_global.hour) {
-        if (timePowerFail.minute > resetTime_global.minute) {
-            resetTempTimeDay = (timePowerFail.day + 1);
+    if (failHour > resetTime_global.hour) {
+        resetTempTimeDay = (failDay + 1);
+    } else if (failHour == resetTime_global.hour) {
+        if (failMinute > resetTime_global.minute) {
+            resetTempTimeDay = (failDay + 1);
+        }
+        else{
+            resetTempTimeDay = failDay;
         }
     } else {
-        resetTempTimeDay = timePowerFail.day;
+        resetTempTimeDay = failDay;
     }
 
 
     // now that we have the day, we need to check the month
     // account for day rollover in the month
-    resetTempTimeMonth = timePowerFail.month;
-
+    resetTempTimeMonth = failMonth;
+   
     // account for days in the month
-
-    switch (timePowerFail.month) {
+    switch (failMonth) {
             // first check is for 31 days
             // these case statements fall through until the break
         case 1: //  Jan
@@ -491,25 +516,32 @@ void powerOnCheckForAllocationReset(void) {
         resetTempTimeYear = 1;
     }
 
-    // now compare the current time against the calculated reset time
-    // if it is before, then do not reset the allocation
-    // if it is after, then reset the allocation
-
-    // to make this comparison easy, check if we do not need to have a reset
-    // else do the reset
     bool resetNeeded;
-
-    if (
-            (dateTime_global.month <= resetTempTimeMonth) &&
-            (dateTime_global.day <= resetTempTimeDay) &&
-            (dateTime_global.hour <= resetTime_global.hour) &&
-            (dateTime_global.minute <= resetTime_global.minute)
-            ) {
-        resetNeeded = false;
-    } else {
+        
+    // Comparing to see if power was restored before or after the expected reset
+    // Check date (resets if later month, later day in month, or new year)
+    if ((restoreMonth > resetTempTimeMonth) ||
+        ((restoreMonth == resetTempTimeMonth) && (restoreDay > resetTempTimeDay)) ||
+        (restoreMonth < resetTempTimeMonth) 
+        ) {        
+        
         resetNeeded = true;
+    
+    // Checking the time of day to see if the power came on after the reset
+    } else if(restoreDay == resetTempTimeDay){ 
+        int tempRestoreTimeCode = restoreHour*60 + restoreMinute;
+        int tempResetTimeCode = resetTime_global.hour*60 + resetTime_global.minute;
+            
+        if(tempRestoreTimeCode >= tempResetTimeCode){        
+            resetNeeded = true;
+        }
+        else{
+            resetNeeded = false;
+        }
+    } else {
+        resetNeeded = false;
     }
-
+      
     if (resetNeeded == true) {
         dailyReset();
     }
@@ -525,7 +557,7 @@ void dailyResetCheck(void) {
     // make sure this function runs only once for each reset
 
     static bool resetComplete = false;
-
+        
     if ((dateTime_global.minute == resetTime_global.minute) && (dateTime_global.hour == resetTime_global.hour)) {
         if (resetComplete == false) {
             dailyReset();
