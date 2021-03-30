@@ -56,6 +56,9 @@
 // TODO - come up with a good versioning plan for the command board
 #define POWER_BOX_CODE_VERSION "20190929"   // 7 characters show on the UI
 
+// Time window where the oneshots can occur
+#define ONESHOT_WINDOW 10
+
 
 
 
@@ -191,11 +194,18 @@ int main(void) {
         // the oneShot variables are local to each block
         // and self contained which makes the code leaner
 
+//      Test stub for a counter that is super helpful in this function for 
+//      looking at reliability and etcetera. Just throw it into a oneshot
+//        static int counter = 0;
+//        counter++;
+//        ledSetAll((counter>>3)%2, (counter>>2)%2, (counter>>1)%2, counter%2);
+        
+        
         // oneShot
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 500) == 0) {
+            if ((msTimer_module % 500) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     rtccReadTime(&dateTime_global);
                     oneShot = true;
@@ -209,10 +219,12 @@ int main(void) {
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 20000) == 0) {
+            
+            if ((msTimer_module % 20000) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     rtccCopyI2CTime();
                     oneShot = true;
+
                 }
             } else {
                 oneShot = false;
@@ -224,25 +236,36 @@ int main(void) {
         {
             static bool oneShot = false;
 
-            if ((msTimer_module % 120000) == 0) {
+            if ((msTimer_module % 120000) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
+                    
                     storeToEE();
                     oneShot = true;
                 }
             } else {
                 oneShot = false;
             }
+//            if ((msTimer_module % 120000) == 0) {
+//                if (oneShot == false) {
+//                    storeToEE();
+//                    oneShot = true;
+//                }
+//            } else {
+//                oneShot = false;
+//            }
 
         } // oneShot block
 
         // oneShot
         {
             static bool oneShot = false;
-
-            if ((msTimer_module % 50) == 0) {
+            
+            
+            if ((msTimer_module % 50) <= ONESHOT_WINDOW) {
                 if (oneShot == false) {
                     ledSetFrontFindMe();
                     oneShot = true;
+
                 }
             } else {
                 oneShot = false;
