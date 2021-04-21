@@ -160,6 +160,8 @@ bool xSumMatches( struct buffer_struct buffer_to_chk );
  CODE
  ****************/
 
+
+// Setup comm ports and other fun stuff
 void commInit( )
 {
 
@@ -177,6 +179,7 @@ void commInit( )
 
 }
 
+// Runs the comm loop for continuous operation 
 void commRunRoutine( )
 {
     bool initialize;
@@ -191,6 +194,7 @@ void commRunRoutine( )
 
 }
 
+// Handles all of the SPI functionality, for the the initial and the continuous running processes
 void communicationsSPI( bool initialize )
 {
 
@@ -311,7 +315,7 @@ void communicationsSPI( bool initialize )
 
     return;
 }
-
+// Will check if the Checksum in a message is accurate to ensure accuracy
 bool xSumMatches( struct buffer_struct buffer_to_chk){
     
     //xsum vars
@@ -361,6 +365,7 @@ bool xSumMatches( struct buffer_struct buffer_to_chk){
         return matches;
 }
 
+// Handles the UART functionality for UART1, for the the initial and the continuous running processes
 void communicationsUART1( bool initialize )
 {
 
@@ -404,6 +409,7 @@ void communicationsUART1( bool initialize )
     return;
 }
 
+// Handles the UART functionality for UART2, for the the initial and the continuous running processes
 void communicationsUART2( bool initialize )
 {
     static struct buffer_struct send_buffer;
@@ -444,6 +450,7 @@ void communicationsUART2( bool initialize )
     return;
 }
 
+// pulls the received information into buffers
 bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state )
 {
 
@@ -510,6 +517,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
     return data_received;
 }
 
+// Will send information through any port
 bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort )
 {
     bool send_end;
@@ -549,6 +557,7 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 
 }
 
+// Handles Chip Select Functionality
 bool set_current_port( unsigned char *current_port )
 {
     static bool enabledSPI = true;
@@ -595,6 +604,8 @@ bool set_current_port( unsigned char *current_port )
     return enabledSPI;
 }
 
+
+// Passes received data strings into parsing functions
 bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches )
 {
     bool end_of_transmission_received;
@@ -622,6 +633,7 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
     return end_of_transmission_received;
 }
 
+// Split the full strings into lists
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize )
 {
     unsigned char parameter_position = 0;
@@ -682,6 +694,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
     return;
 }
 
+// Read all of the parameters to find out what the command says to do
 bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer )
 {
     bool end_of_transmission_received = false;
@@ -975,17 +988,17 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	    zeroPad_itoa( timeTimeHHBuf, dateTime_global.hour, 2 );
 	    zeroPad_itoa( timeTimeMMBuf, dateTime_global.minute, 2 );
 	    zeroPad_itoa( timeTimeSSBuf, dateTime_global.second, 2 );
-
+  
 	    timeDateBuf[0] = timeDateDDBuf[0];
 	    timeDateBuf[1] = timeDateDDBuf[1];
 	    timeDateBuf[2] = '-';
 	    timeDateBuf[3] = timeDateMMBuf[0];
 	    timeDateBuf[4] = timeDateMMBuf[1];
 	    timeDateBuf[5] = '-';
-	    timeDateBuf[6] = timeDateYYBuf[2]; // pull from 4 digit year
-	    timeDateBuf[7] = timeDateYYBuf[3]; // pull from 4 digit year
+	    timeDateBuf[6] = timeDateYYBuf[0]; // pull from 4 digit year
+	    timeDateBuf[7] = timeDateYYBuf[1]; // pull from 4 digit year
 	    timeDateBuf[8] = CHAR_NULL;
-
+        
 	    timeTimeBuf[0] = timeTimeHHBuf[0];
 	    timeTimeBuf[1] = timeTimeHHBuf[1];
 	    timeTimeBuf[2] = ':';
@@ -1492,9 +1505,9 @@ bool SPI_receive_data_char( char *data )
 //            ledToggle(4);
             recvGood = true;
         }
-        SPIRecvBufferReadPos = (SPIRecvBufferReadPos + 1) % 10;
-        if(SPIRecvBufferReadPos == 8){
-//            ledToggle(4);
+        SPIRecvBufferReadPos++;
+        if(SPIRecvBufferReadPos >= BUFFER_LENGTH_RECV){
+            SPIRecvBufferReadPos = 0;
         }
     }
     
@@ -1559,7 +1572,10 @@ bool UART1_receive_data_char( char *data )
         {
             recvGood = true;
         }
-        UARTRecvBufferReadPos = (UARTRecvBufferReadPos + 1) % 10;
+        UARTRecvBufferReadPos++;
+        if(UARTRecvBufferReadPos >= BUFFER_LENGTH_RECV){
+            UARTRecvBufferReadPos = 0;
+        }
     }
     
     return recvGood;
@@ -1818,7 +1834,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
 	SPIRecvBufferWritePos++;
 	if( SPIRecvBufferWritePos >= BUFFER_LENGTH_RECV )
 	{
-		SPIRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
+		SPIRecvBufferWritePos = 0;
 	}
     }
 }
@@ -1845,7 +1861,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _U1RXInterrupt(void) {
 	UARTRecvBufferWritePos++;
 	if( UARTRecvBufferWritePos >= BUFFER_LENGTH_RECV )
 	{
-		UARTRecvBufferWritePos = ( BUFFER_LENGTH_RECV - 1 );
+		UARTRecvBufferWritePos = 0;
 	}
 //        ledToggle(4);
     }

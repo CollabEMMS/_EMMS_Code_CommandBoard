@@ -102,7 +102,7 @@ char DecToBcdI2C( char val );
 /****************
  CODE
  ****************/
-
+// Start the RTCC
 void rtccInit( void )
 {
     rtccInternalInit( );
@@ -110,13 +110,14 @@ void rtccInit( void )
 
 }
 
+// Pull the time from the RTCC
 void rtccCopyI2CTime( void )
 {
     struct date_time currentDateTime;
     
     rtccI2CReadTime( &currentDateTime );
     rtccSetTime( &currentDateTime );
-
+    
     rtccReadTime( &dateTime_global );
 
     return;
@@ -129,6 +130,7 @@ void rtccCopyI2CTime( void )
 //  RTCC Internal
 //***************
 
+// Set up the RTCC related connections/pins/registers
 void rtccInternalInit( void )
 {
 
@@ -159,6 +161,7 @@ void rtccInternalInit( void )
     return;
 }
 
+// Read the current time from the RTCC
 void rtccReadTime( struct date_time *readDateTime )
 {
 
@@ -189,6 +192,7 @@ void rtccReadTime( struct date_time *readDateTime )
     return;
 }
 
+// Set the RTCC time
 bool rtccSetTime( struct date_time *setDateTime )
 {
     bool validDateTime = true;
@@ -300,6 +304,7 @@ void rtccI2CInit( void )
     return;
 }
 
+// Set up the communication line with the RTCC
 void initI2Crtcc( void )
 {
 
@@ -326,7 +331,6 @@ void initI2Crtcc( void )
 }
 
 // Start RTCC in case it was stopped (dead or missing battery)
-
 void startI2CClock( void )
 {
     // Preserve seconds value in case RTCC was already running
@@ -363,6 +367,7 @@ void startI2CClock( void )
     return;
 }
 
+// Uses the time the code was built to set the meter time
 void setI2CClockBuildTime( void )
 {
     // when programming set the date/time to the build date and time of the program
@@ -563,6 +568,7 @@ void setI2CClockBuildTime( void )
     return;
 }
 
+// Reads the time from the RTCC
 void rtccI2CReadTime( struct date_time *readDateTime )
 {
 
@@ -608,7 +614,6 @@ void rtccI2CReadTime( struct date_time *readDateTime )
 }
 
 // Set time in RTCC registers
-
 void rtccI2CSetTime( struct date_time *setDateTime )
 {
 
@@ -618,6 +623,7 @@ void rtccI2CSetTime( struct date_time *setDateTime )
 	    BCDDay = DecToBcdI2C( setDateTime->day ),
 	    BCDMonth = DecToBcdI2C( setDateTime->month ),
 	    BCDYear = DecToBcdI2C( setDateTime->year );
+    
 
     if( setDateTime->year % 4 )
 	BCDMonth &= 0x1F; // Is not leap year
@@ -658,7 +664,6 @@ void rtccI2CSetTime( struct date_time *setDateTime )
 
 
 // Set up sequential read from MCP7940, starting at given address
-
 void BeginSequentialReadI2C( char address )
 {
     StartI2C( );
@@ -728,7 +733,6 @@ char ReadI2CRegister( char address ) // ZACH TRY USING THiS METHOD TO READ THING
 }
 
 // Read PowerDown and PowerUp time from RTCC into global strings
-
 void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *timePowerRestore )
 {
     // the MCP7940 time chip automatically stores the following:
@@ -936,7 +940,6 @@ void getResetTimes( struct date_time *timeFail, struct date_time *timeRestore ) 
 
 
 // Wait for bus to be idle
-
 void IdleI2C( void )
 {
     while( I2C1STATbits.TRSTAT )
@@ -947,7 +950,6 @@ void IdleI2C( void )
 }
 
 // Generate an I2C start condition
-
 void StartI2C( void )
 {
     I2C1CONbits.SEN = 1; // Generate start condition
@@ -960,7 +962,6 @@ void StartI2C( void )
 }
 
 // Generate an I2C stop condition
-
 void StopI2C( void )
 {
     I2C1CONbits.PEN = 1; // Generate stop condition
@@ -973,7 +974,6 @@ void StopI2C( void )
 }
 
 // Generate an I2C restart condition
-
 void RestartI2C( void )
 {
     I2C1CONbits.RSEN = 1; // Generate restart
@@ -986,7 +986,6 @@ void RestartI2C( void )
 }
 
 // Generate an I2C not acknowledge condition
-
 void NackI2C( void )
 {
     I2C1CONbits.ACKDT = 1;
@@ -999,7 +998,6 @@ void NackI2C( void )
 }
 
 // Generate an I2C acknowledge condition
-
 void AckI2C( void )
 {
     I2C1CONbits.ACKDT = 0;

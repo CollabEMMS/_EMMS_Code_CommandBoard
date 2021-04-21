@@ -73,6 +73,7 @@ void ledSetAllOff( void );
  CODE
  ****************/
 
+// Sets all of the LED I/O pins to be outputs from the pic
 void ledInit( void )
 {
     LED1_DIR = 0;
@@ -83,6 +84,7 @@ void ledInit( void )
     return;
 }
 
+// Set an individual LED to be on or off
 void ledSet( int ledNum, int setValue )
 {
     switch( ledNum )
@@ -104,6 +106,7 @@ void ledSet( int ledNum, int setValue )
     return;
 }
 
+// Set a specific LED to be on
 void ledSetOn( int ledNum )
 {
     int setValue = 1;
@@ -113,6 +116,7 @@ void ledSetOn( int ledNum )
     return;
 }
 
+// Set a specific LED to be off
 void ledSetOff( int ledNum )
 {
     int setValue = 0;
@@ -122,6 +126,7 @@ void ledSetOff( int ledNum )
     return;
 }
 
+// The same as ledSetOn, but only does something when the meter is in a debug mode
 void ledTestSetOn( int ledNum )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -132,6 +137,7 @@ void ledTestSetOn( int ledNum )
     return;
 }
 
+// The same as ledSetOff, but only does something when the meter is in a debug mode
 void ledTestSetOff( int ledNum )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -142,6 +148,7 @@ void ledTestSetOff( int ledNum )
     return;
 }
 
+// Set all of the LEDs at once
 void ledSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 {
     ledSet( 1, led1Value );
@@ -152,6 +159,7 @@ void ledSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
     return;
 }
 
+// Same as ledSetAll, but only does this while the meter is in it's debug mode
 void ledTestSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -162,6 +170,7 @@ void ledTestSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
     return;
 }
 
+// Turn all the LEDs on
 void ledSetAllOn( void )
 {
     ledSetAll( 1, 1, 1, 1 );
@@ -169,6 +178,7 @@ void ledSetAllOn( void )
     return;
 }
 
+// Turn all of the LEDs off
 void ledSetAllOff( void )
 {
     ledSetAll( 0, 0, 0, 0 );
@@ -176,6 +186,7 @@ void ledSetAllOff( void )
     return;
 }
 
+// Turn all lights on, but only in debug mode
 void ledTestSetAllOn( void )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -186,6 +197,7 @@ void ledTestSetAllOn( void )
     return;
 }
 
+// Turn all lights off, but only in debug mode
 void ledTestSetAllOff( void )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -197,6 +209,7 @@ void ledTestSetAllOff( void )
     return;
 }
 
+// Toggle a particular LED (on->off or off->on)
 void ledToggle( int ledNum )
 {
 
@@ -234,6 +247,7 @@ void ledToggle( int ledNum )
     return;
 }
 
+// Toggles an LED, but only if the test mode is on
 void ledTestToggle( int ledNum )
 {
     if( LEDS_FOR_DEBUG == true )
@@ -244,6 +258,7 @@ void ledTestToggle( int ledNum )
     return;
 }
 
+// Displays a specific sequence of lights
 void ledRunUp( int ledRunDelay )
 {
 
@@ -259,6 +274,7 @@ void ledRunUp( int ledRunDelay )
     __delay_ms( ledRunDelay );
 }
 
+// Displays a specific sequence of lights
 void ledRunDown( int ledRunDelay )
 {
 
@@ -275,12 +291,14 @@ void ledRunDown( int ledRunDelay )
 
 }
 
+// Displays a specific sequence of lights
 void ledRun( int ledRunDelay )
 {
     ledRunUp( ledRunDelay );
     ledRunDown( ledRunDelay );
 }
 
+// Displays a basic bar graph of the remaining energy on the LEDs
 void ledSetFrontEnergyRemain( void )
 {
     int percent;
@@ -343,6 +361,7 @@ void ledSetFrontEnergyRemain( void )
     return;
 }
 
+// Made for finding a specific meter when multiple are set up. Mostly for wifi use
 void ledSetFrontFindMe( void )
 {
     static int status = 0;
@@ -384,6 +403,7 @@ void ledSetFrontFindMe( void )
     return;
 }
 
+// Display an 8-bit character as two 4-bit values (flashes high bits, then low bits on LEDs)
 void ledShowChar( char showMe )
 {
     bool b[8];
@@ -414,7 +434,7 @@ void ledShowChar( char showMe )
 
 }
 
-
+// Similar to ledShowChar, but shows the first 8-bits of an integer. Should be used with the lower one too
 void ledShowIntH(int showMe) {
     unsigned char upper;
     
@@ -423,6 +443,7 @@ void ledShowIntH(int showMe) {
     
 }
 
+// Similar to ledShowChar, but shows the last 8-bits of an integer. Should be used with the upper one too
 void ledShowIntL(int showMe) {
     unsigned char lower;
     

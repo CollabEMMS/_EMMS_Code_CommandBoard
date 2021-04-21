@@ -300,6 +300,8 @@ void initOscillator(void) {
     return;
 }
 
+
+// Overall Initialization for the whole command board
 void init(void) {
 
 
@@ -322,6 +324,7 @@ void init(void) {
     return;
 }
 
+// Sets up ports for a few I/O functions
 void initPorts(void) {
 
     // ports specific to a peripheral  (SPI, I2C) are initialized
@@ -340,6 +343,7 @@ void initPorts(void) {
     return;
 }
 
+// Pull information from the stored memory
 void initReadGlobalsFromEEPROM(void) {
     energyCycleAllocation_global = eeReadEnergyCycleAllocationNew();
     emergencyButton_global = eeReadEmergencyButtonNew();
@@ -352,9 +356,9 @@ void initReadGlobalsFromEEPROM(void) {
     return;
 }
 
-void initTimer(void) {
     // set up a timer that ticks off every ms
     // it will use an interrupt to tick off the ms
+void initTimer(void) {
 
     IEC0bits.T1IE = 0; // disable timer 1 interrupt
     T1CON = 0; // disable and reset timer to known state
@@ -404,14 +408,11 @@ void __attribute__((__interrupt__, __no_auto_psv__)) _T1Interrupt(void) {
     return;
 }
 
-void powerOnCheckForAllocationReset(void) {
-
- 
-    // the clock chip saves the timestamp for when power failed
-    // the clock chip saves the timestamp for when the power is restored
-
     // this function compares the down time against the reset time and
     // resets the allocation if the reset time is passes during the power outage
+void powerOnCheckForAllocationReset(void) {
+    // the clock chip saves the timestamp for when power failed
+    // the clock chip saves the timestamp for when the power is restored
 
     // It starts by finding the time when the next reset would have occurred after 
     // an outage and then checks to see if this happened before or after the power
@@ -549,8 +550,9 @@ void powerOnCheckForAllocationReset(void) {
     return;
 }
 
+
 void dailyResetCheck(void) {
-    // are we are the reset time (hour and minute)
+    //  are we at the reset time (hour and minute)
     //	don't check seconds because there is a potential that we skip over a second
     //	in between calling this function
 
@@ -570,6 +572,7 @@ void dailyResetCheck(void) {
     return;
 }
 
+// Resets the allocation
 void dailyReset(void) {
 
     energyUsed_global.previousCycleUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
@@ -587,9 +590,8 @@ void dailyReset(void) {
     return;
 }
 
+// When the emergency button is pressed, add allocation (if enabled)
 void readEmergencyButton(void) {
-
-
     // only register an emergency button press every 250ms
     // this keeps multiple presses from being detected due to button bounce
 
@@ -627,6 +629,7 @@ void readEmergencyButton(void) {
     return;
 }
 
+// Stores all values back into the EEPROM storage
 void storeToEE(void) {
 
     eeWriteEnergyLifetimeNew(energyUsed_global.lifetime);
@@ -634,6 +637,7 @@ void storeToEE(void) {
     return;
 }
 
+// Runs the relay based on allocation
 void relayControl(void) {
     static unsigned char lastSecond;
 
