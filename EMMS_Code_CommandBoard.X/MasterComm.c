@@ -68,10 +68,12 @@ volatile char UARTRecvBuffer[10];
 volatile int UARTRecvBufferReadPos = 0;
 volatile int UARTRecvBufferWritePos = 0;
 
-// character receiving buffers (internal)
-volatile char SPIRecvBuffer[BUFFER_LENGTH_RECV];
-volatile int SPIRecvBufferReadPos = 0;
-volatile int SPIRecvBufferWritePos = 0;
+// character receiving buffers (internal) (split for each setting of the chip-select)
+volatile char SPIRecvBuffer[PORT_COUNT][BUFFER_LENGTH_RECV];
+volatile int SPIRecvBufferReadPos[PORT_COUNT] = {0,0,0};
+volatile int SPIRecvBufferWritePos[PORT_COUNT] = {0,0,0};
+
+volatile int current_port = PORT_COUNT;
 
 enum receive_status_enum
 {
@@ -84,7 +86,7 @@ enum communications_port_enum
 {
     enum_port_commSPI,
     enum_port_commUART1,
-    enum_port_commUART2,
+    enum_port_commUART2
 };
 
 struct buffer_struct
@@ -104,7 +106,7 @@ struct buffer_struct
  any functions used internally and externally (prototype here and in the .h file)
      should be marked
  ****************/
-bool set_current_port( unsigned char * );
+bool set_current_port( void );
 
 bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, bool xSumMatches );
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize );
@@ -122,7 +124,7 @@ int command_builder_add_string( struct buffer_struct *send_buffer, char *data );
 void xsum_builder( struct buffer_struct *send_buffer, int xsum );
 
 
-bool SPI_receive_data_char( char * );
+bool SPI_receive_data_char( char *data );
 bool SPI_send_data_char( char data );
 bool UART1_receive_data_char( char * );
 bool UART1_receive_all_data_char( char *data );
@@ -200,7 +202,6 @@ void communicationsSPI( bool initialize )
 
     bool enabledSPI;
 
-    static unsigned char current_port = PORT_COUNT; // port we are on - zero based - 0 to (PORT_COUNT - 1) we start with max so next port is 0
     static unsigned char current_port_done = true; // start with true and let normal program mechanism automatically init things
 
     static struct buffer_struct send_buffer;
@@ -223,7 +224,7 @@ void communicationsSPI( bool initialize )
 
     if( current_port_done == true )
     {
-	enabledSPI = set_current_port( &current_port );
+	enabledSPI = set_current_port();
 
 	if( enabledSPI == true )
 	{
@@ -503,7 +504,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	    receive_buffer->write_position++;
 	    if( receive_buffer->write_position >= BUFFER_LENGTH )
 	    {
-		receive_buffer->write_position = (BUFFER_LENGTH - 1);
+		receive_buffer->write_position = 0;
 	    }
 	}
 
@@ -558,7 +559,7 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 }
 
 // Handles Chip Select Functionality
-bool set_current_port( unsigned char *current_port )
+bool set_current_port( void )
 {
     static bool enabledSPI = true;
 
@@ -573,12 +574,12 @@ bool set_current_port( unsigned char *current_port )
     }
     else
     {
-	(*current_port)++;
-	if( *current_port >= PORT_COUNT )
+	(current_port)++;
+	if( current_port >= PORT_COUNT )
 	{
-	    *current_port = 0;
+	    current_port = 0;
 	}
-	switch( *current_port )
+	switch( current_port )
 	{
 	    case 0:
 		// set correct DO chip select here
@@ -1122,7 +1123,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	    char powerFailTimeBuf[12];
 	    char powerRestoreTimeBuf[12];
-        char temp[12];
 
 
 	    powerFailTimeBuf[0] = 'H';
@@ -1497,17 +1497,17 @@ bool SPI_receive_data_char( char *data )
 {
     bool recvGood = false;
 
-    if( SPIRecvBufferReadPos != SPIRecvBufferWritePos )
+    if( SPIRecvBufferReadPos[current_port] != SPIRecvBufferWritePos[current_port] )
     {
-        *data = SPIRecvBuffer[SPIRecvBufferReadPos];
+        *data = SPIRecvBuffer[current_port][SPIRecvBufferReadPos[current_port]];
         if(*data != CHAR_NULL)
         {
 //            ledToggle(4);
             recvGood = true;
         }
-        SPIRecvBufferReadPos++;
-        if(SPIRecvBufferReadPos >= BUFFER_LENGTH_RECV){
-            SPIRecvBufferReadPos = 0;
+        SPIRecvBufferReadPos[current_port]++;
+        if(SPIRecvBufferReadPos[current_port] >= BUFFER_LENGTH_RECV){
+            SPIRecvBufferReadPos[current_port] = 0;
         }
     }
     
@@ -1830,11 +1830,11 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _SPI1Interrupt(void) {
     recvChar = SPI1BUF;
 
     if(recvChar != CHAR_NULL) {
-        SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
-	SPIRecvBufferWritePos++;
-	if( SPIRecvBufferWritePos >= BUFFER_LENGTH_RECV )
+        SPIRecvBuffer[current_port][SPIRecvBufferWritePos[current_port]] = recvChar;
+	SPIRecvBufferWritePos[current_port]++;
+	if( SPIRecvBufferWritePos[current_port] >= BUFFER_LENGTH_RECV )
 	{
-		SPIRecvBufferWritePos = 0;
+		SPIRecvBufferWritePos[current_port] = 0;
 	}
     }
 }
