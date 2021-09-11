@@ -245,14 +245,6 @@ int main(void) {
             } else {
                 oneShot = false;
             }
-//            if ((msTimer_module % 120000) == 0) {
-//                if (oneShot == false) {
-//                    storeToEE();
-//                    oneShot = true;
-//                }
-//            } else {
-//                oneShot = false;
-//            }
 
         } // oneShot block
 

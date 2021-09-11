@@ -503,7 +503,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	    receive_buffer->write_position++;
 	    if( receive_buffer->write_position >= BUFFER_LENGTH )
 	    {
-		receive_buffer->write_position = (BUFFER_LENGTH - 1);
+		receive_buffer->write_position = 0;
 	    }
 	}
 
@@ -712,6 +712,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	send_end_of_transmission( send_buffer );
 	end_of_transmission_received = true;
+            ledShowChar('E');
+
 
     }
     else if( strmatch( parameters[0], "Set" ) == true )
@@ -899,7 +901,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	else if( strmatch( parameters[1], "Watts" ) == true )
 	{
-        
+
 	    powerWatts_global = atol( parameters[2] );
 	    command_builder2( send_buffer, "Conf", "Watts" );
         
