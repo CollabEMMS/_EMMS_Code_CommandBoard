@@ -57,7 +57,8 @@
 #define POWER_BOX_CODE_VERSION "20190929"   // 7 characters show on the UI
 
 // Time window where the oneshots can occur
-#define ONESHOT_WINDOW 10
+// sometimes the program main loop takes more than 1 ms to run and we can inadvertantly skip if we are lookng for an exact match
+#define ONESHOT_WINDOW 25
 
 
 
@@ -603,12 +604,6 @@ void readEmergencyButton(void) {
             if (onePress == false) {
                 energyCycleAllocation_global += emergencyButton_global.energyAmount;
                 buttonTimer = msTimer_module + EMERGENCY_BUTTON_TIMER; // wait 250ms between presses
-
-
-                ledSetAll(0, 0, 0, 0);
-                ledRunUp(50);
-                ledRunDown(100);
-
             }
         } else {
             // we need to check if msTimer rolled over as well

@@ -1,2 +1,1 @@
-build/default/production/_ConfigPragma.o:  \
-_ConfigPragma.c 
+build/default/production/_ConfigPragma.o: _ConfigPragma.c

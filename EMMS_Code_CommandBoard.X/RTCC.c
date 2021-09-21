@@ -705,11 +705,9 @@ char SequentialReadI2C( void )
     }
 
     I2C1CONbits.RCEN = 1; // Gives control of clock to Slave device
-    ledSetAll(I2C1STATbits.I2COV,1,0,0);
     while( !I2C1STATbits.RBF ) // Waits for register to fill up
     {
     }
-    ledSetAll(I2C1STATbits.I2COV,1,1,0);
     AckI2C( ); // Ask for next byte
 
     return I2C1RCV; // Returns data
