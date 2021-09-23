@@ -44,18 +44,36 @@ void ledSetAllOff( void );
 
 // external only
 void ledInit( void );
+
+void ledRunUp( int ledRunDelay );
+void ledRunDown( int ledRunDelay );
+void ledRun( int ledRunDelay );
+void ledSetFrontEnergyRemain( void );
+void ledSetFrontFindMe( void );
+
 void ledTestSetOn( int ledNum );
 void ledTestSetOff( int ledNum );
 void ledTestSetAll( int led1Value, int led2Value, int led3Value, int led4Value );
 void ledTestSetAllOn( void );
 void ledTestSetAllOff( void );
 void ledTestToggle( int ledNum );
-void ledRunUp( int ledRunDelay );
-void ledRunDown( int ledRunDelay );
-void ledRun( int ledRunDelay );
-void ledSetFrontEnergyRemain( void );
-void ledSetFrontFindMe( void );
-void ledShowChar( char showMe );
+void ledTestShowChar( char showMe );
+void ledTestShowIntH( int showMe );
+void ledTestShowIntL( int showMe );
+
+/***************
+NOTE
+ 
+ DO NOT use regular LED functions for debugging purposes
+ Use the "Test" functions for debug purposes
+ The "Test" functions can be enabled and disabled using the LEDS_FOR_DEBUG macro found in common.h
+ 
+ Using regular LED functions for debugging purposes will break the Bar Graph and can make future debugging difficult
+ 
+ 
+ 
+*****************/
+
 
 #endif	/* LEDControl_H */
 

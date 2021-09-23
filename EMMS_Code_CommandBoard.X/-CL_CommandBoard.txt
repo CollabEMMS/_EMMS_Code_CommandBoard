@@ -72,6 +72,37 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
+
+9/21/2021   TBA
+*************
+Changes
+    added comments to ResetReport.c to better explain how to read the reset code output
+    
+    the receive buffer position had been made to reset to 0 if it reached the end
+        this was incorrect as it should just overwrite the last character
+        resetting tot he beginning would overwrite the start of the message being received and could cause other problems
+
+    removed testing ledShowChar('E') for then end of transmission received
+
+    added a few clarifying comments here and there
+
+    mastercomm.c - void xsum_builder( struct buffer_struct *send_buffer, int xsum )
+        - line 1353 - extra COMMAND_DELIMETER character was added with comment to remove when XSUM implemented
+
+    removed all LED test entries
+        note, many of these were not using the LED Test functions and would break the bar graph even if DEBUG was turned off
+
+    led test integer output testing ledTestShowIntL and ledTestShowIntH were wrong and displaying inconsistent results
+        this is now fixed and tested
+
+     XSum had some issues
+        had to rework the check function as it was doing some funky things
+        now working
+
+
+9/20/2021   TBA
+    Various changes have been made over the past 2 years, but not recorded in this document
+
 9/29/2019   TBA
 Command Board code clean-up complete
     cleaned up .h and .c files
@@ -82,8 +113,6 @@ Command Board code clean-up complete
     added reset code routine
     increased program oscillator to 16Mhz (was 2Mhz)
     lots of other tweaks and changes to make code more readable and functional
-
-
 
 7/18/2019   TBA
 
