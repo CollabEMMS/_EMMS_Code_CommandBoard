@@ -28,14 +28,14 @@
 #define BUF_SIZE_LONG 12
 
 #define PARAMETER_MAX_COUNT 7
-#define PARAMETER_MAX_LENGTH 10
+#define PARAMETER_MAX_LENGTH 15
 
 //#define CHAR_NULL '\0' // defined in common.h since it is used in a lot of places
 #define COMMAND_SEND_RECEIVE_PRIMER_CHAR '#' // something to run the SPI clock so data can be received
 #define COMMAND_START_CHAR '!'
 #define COMMAND_END_CHAR '*'
 #define COMMAND_DELIMETER ';'
-#define XSUM_DELIMETER '$'
+#define COMMAND_XSUM_CHAR '$'
 
 
 #define RECEIVE_WAIT_COUNT_LIMIT 25
@@ -63,15 +63,16 @@
 
 // internal only
 
-// character receiving buffers (internal)
-volatile char UARTRecvBuffer[10];
-volatile int UARTRecvBufferReadPos = 0;
-volatile int UARTRecvBufferWritePos = 0;
 
 // character receiving buffers (internal)
-volatile char SPIRecvBuffer[BUFFER_LENGTH_RECV];
-volatile int SPIRecvBufferReadPos = 0;
-volatile int SPIRecvBufferWritePos = 0;
+volatile char SPIRecvBuffer_module[BUFFER_LENGTH_RECV];
+volatile int SPIRecvBufferReadPos_module = 0;
+volatile int SPIRecvBufferWritePos_module = 0;
+
+// character receiving buffers (internal)
+volatile char UART1RecvBuffer_module[BUFFER_LENGTH_RECV];
+volatile int UART1RecvBufferReadPos_module = 0;
+volatile int UART1RecvBufferWritePos_module = 0;
 
 enum receive_status_enum
 {
@@ -154,7 +155,7 @@ void commSPIInit( void );
 void initUART2( void );
 void initUART1( void );
 
-bool xSumCheck( struct buffer_struct buffer_to_chk );
+bool xSumCheck( char* check_buffer );
 
 /****************
  CODE
@@ -273,13 +274,9 @@ void communicationsSPI( bool initialize )
 			break;
 		case enum_receive_status_end_command:
 
-			; // this has to be here or we get a label error - this is just a blank line and does nothing
-			bool xSumCheckGood;
-
-			xSumCheckGood = xSumCheck( receive_buffer );
-
-			if( xSumCheckGood == true )
+			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
+
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
 					end_of_transmission_received = true;
@@ -289,7 +286,7 @@ void communicationsSPI( bool initialize )
 			{
 				end_of_transmission_received = true;
 			}
-			
+
 			receive_wait_count = 0;
 			receive_in_command_count = 0;
 			break;
@@ -330,62 +327,7 @@ void communicationsSPI( bool initialize )
 
 	return;
 }
-// Will check if the Checksum in a message is accurate to ensure accuracy
-bool xSumCheck( struct buffer_struct buffer_to_chk )
-{
 
-	//xsum vars
-	//XSUM = sum of ascii value of all chars in command EXCEPT start char '!' and final delimeter ';'
-	int xsum = 0;
-	int recXsum = 0;
-	char recXsumbuf[16];
-	int recXsumPointer = 0;
-	bool xsumRecieving = false; //this is true after the xsum delimiter
-	char currentData;
-	char* data = buffer_to_chk.data_buffer;
-	int i = 1;
-	//cycle through receive buffer
-	//we start at 1 because the start char '!' is not needed
-	while( currentData != COMMAND_END_CHAR )
-	{
-
-		currentData = data[i];
-		i++;
-
-		if( xsumRecieving )
-		{
-			recXsumbuf[recXsumPointer] = currentData;
-			recXsumPointer++;
-		}
-		else
-		{
-			//if the next character in line is the delimiter...
-			if( data[i] == XSUM_DELIMETER )
-			{
-				data[i] = CHAR_NULL;
-				xsumRecieving = true;
-				recXsumbuf[recXsumPointer] = CHAR_NULL;
-				i++;
-			}
-			else
-			{
-				xsum += currentData;
-			}
-
-		}
-
-	}
-
-	bool matches = false;
-
-	recXsum = atoi( recXsumbuf );
-	if( xsum == recXsum )
-	{
-		matches = true;
-	}
-
-	return matches;
-}
 
 // Handles the UART functionality for UART1, for the the initial and the continuous running processes
 void communicationsUART1( bool initialize )
@@ -418,21 +360,10 @@ void communicationsUART1( bool initialize )
 			break;
 		case enum_receive_status_end_command:
 
-			; // this has to be here or we get a label error - this is just a blank line and does nothing
-
-			bool xSumCheckGood;
-
-			xSumCheckGood = xSumCheck( receive_buffer );
-
-			//TODO Test
-			ledTestToggle(1);
-			xSumCheckGood = true;
-			
-			if( xSumCheckGood == true )
+			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-				//TODO Test
-				ledTestToggle(2);
 
+				
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
 					end_of_transmission_received = true;
@@ -442,7 +373,7 @@ void communicationsUART1( bool initialize )
 			{
 				end_of_transmission_received = true;
 			}
-			
+
 			break;
 	}
 
@@ -482,12 +413,7 @@ void communicationsUART2( bool initialize )
 			break;
 		case enum_receive_status_end_command:
 
-			; // this has to be here or we get a label error - this is just a blank line and does nothing
-			bool xSumCheckGood;
-
-			xSumCheckGood = xSumCheck( receive_buffer );
-
-			if( xSumCheckGood == true )
+			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
@@ -498,7 +424,7 @@ void communicationsUART2( bool initialize )
 			{
 				end_of_transmission_received = true;
 			}
-			
+
 			break;
 	}
 
@@ -506,6 +432,62 @@ void communicationsUART2( bool initialize )
 
 	return;
 }
+
+// Will check if the Checksum in a message is accurate to ensure accuracy
+bool xSumCheck( char* check_buffer )
+{
+	// calculate the xsum for the received command
+	//		ignore the starting '!' and everything including and after the xsum delimeter '$'
+	// grab the xsum characters after the xsum delimeter
+	//		convert to int
+	// compare and return bool result
+
+
+
+	int receiveBufferPos;
+	int xSumAdderValue;
+	char xSumChars [7]; // size must be maximum size of int data type + null character
+	int xSumCharsPos;
+	int xSumCharsValue;
+
+
+	receiveBufferPos = 1; // start at one to skip the start '!' character in position 0
+	xSumAdderValue = 0;
+	xSumCharsPos = 0;
+
+	while(
+		 (check_buffer[ receiveBufferPos ] != COMMAND_XSUM_CHAR)
+		 && (check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR)
+		 && (receiveBufferPos < BUFFER_LENGTH)
+		 )
+	{
+		xSumAdderValue += check_buffer[ receiveBufferPos ];
+		receiveBufferPos++;
+	}
+
+	receiveBufferPos++; // add one to skip over the COMMAND_XSUM_CHAR 
+	xSumCharsPos = 0;
+	while(
+		 (check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR)
+		 && (receiveBufferPos < BUFFER_LENGTH)
+		 )
+	{
+		xSumChars[xSumCharsPos] = check_buffer[ receiveBufferPos ];
+		xSumCharsPos++;
+		xSumChars[xSumCharsPos] = CHAR_NULL;
+		receiveBufferPos++;
+	}
+
+	xSumCharsValue = atoi( xSumChars );
+
+	bool xSumMatches;
+
+	xSumMatches = (xSumAdderValue == xSumCharsValue);
+
+	return xSumMatches;
+
+}
+
 
 // pulls the received information into buffers
 bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state )
@@ -590,10 +572,6 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 	{
 		send_end = false;
 
-
-		// TODO Testing
-		ledTestToggle( 4 );
-
 		bool data_sent;
 		switch( communicationsPort )
 		{
@@ -601,7 +579,6 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 				data_sent = SPI_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 				break;
 			case enum_port_commUART1:
-
 
 				data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 				break;
@@ -707,7 +684,12 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 		parameters[inx][0] = CHAR_NULL;
 	}
 
-	while( (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR) && (buffer_to_parameterize->read_position < BUFFER_LENGTH) && (buffer_to_parameterize->read_position != buffer_to_parameterize->write_position) )
+	while(
+		 (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR)
+		 && (buffer_to_parameterize->read_position < BUFFER_LENGTH)
+		 && (buffer_to_parameterize->read_position != buffer_to_parameterize->write_position)
+		 && (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_XSUM_CHAR)
+		 )
 	{
 		switch( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
 		{
@@ -760,7 +742,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 	// ideally, any new commands are set in a separate function called from one of these tests
 	// it's not very clean to call the command builder functions from here
 	// especially if there is some processing to do, like setting a clock or something
-
 
 	if( strmatch( parameters[0], "END" ) == true )
 	{
@@ -1217,6 +1198,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		}
 		else if( strmatch( parameters[1], "PwrData" ) == true )
 		{
+
 			long energyUsedTemp;
 
 			energyUsedTemp = energyUsed_global.lifetime - energyUsed_global.lastReset;
@@ -1242,15 +1224,19 @@ void command_builder1( struct buffer_struct *send_buffer, char* data1 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
+
 	xsum_builder( send_buffer, xsum );
+
 	return;
 }
 void command_builder2( struct buffer_struct *send_buffer, char* data1, char* data2 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -1264,12 +1250,14 @@ void command_builder3( struct buffer_struct *send_buffer, char* data1, char* dat
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data2 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data3 );
+
 	xsum_builder( send_buffer, xsum );
 
 
@@ -1279,6 +1267,7 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -1287,6 +1276,7 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
 	xsum += command_builder_add_string( send_buffer, data3 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data4 );
+
 	xsum_builder( send_buffer, xsum );
 
 
@@ -1296,6 +1286,7 @@ void command_builder5( struct buffer_struct *send_buffer, char* data1, char* dat
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -1306,6 +1297,7 @@ void command_builder5( struct buffer_struct *send_buffer, char* data1, char* dat
 	xsum += command_builder_add_string( send_buffer, data4 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data5 );
+
 	xsum_builder( send_buffer, xsum );
 
 
@@ -1315,6 +1307,7 @@ void command_builder6( struct buffer_struct *send_buffer, char* data1, char* dat
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -1327,6 +1320,7 @@ void command_builder6( struct buffer_struct *send_buffer, char* data1, char* dat
 	xsum += command_builder_add_string( send_buffer, data5 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data6 );
+
 	xsum_builder( send_buffer, xsum );
 
 	return;
@@ -1335,6 +1329,7 @@ void command_builder7( struct buffer_struct *send_buffer, char* data1, char* dat
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 	command_builder_add_char( send_buffer, COMMAND_START_CHAR );
+
 	int xsum = 0;
 	xsum += command_builder_add_string( send_buffer, data1 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
@@ -1349,6 +1344,7 @@ void command_builder7( struct buffer_struct *send_buffer, char* data1, char* dat
 	xsum += command_builder_add_string( send_buffer, data6 );
 	xsum += command_builder_add_char( send_buffer, COMMAND_DELIMETER );
 	xsum += command_builder_add_string( send_buffer, data7 );
+
 	xsum_builder( send_buffer, xsum );
 
 	return;
@@ -1357,7 +1353,7 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 {
 
 	//	command_builder_add_char( send_buffer, COMMAND_DELIMETER ); // REMOVE THIS ONCE XSUM CHECK IS IMPLEMENTED
-	command_builder_add_char( send_buffer, XSUM_DELIMETER ); //@
+	command_builder_add_char( send_buffer, COMMAND_XSUM_CHAR ); //@
 	char xsumBuf[16]; //allocate space for XSUM
 	itoa( xsumBuf, xsum, 10 ); //convert XSUM from int into to string.
 	command_builder_add_string( send_buffer, xsumBuf ); //add XSUM to send buffer 
@@ -1521,17 +1517,17 @@ bool SPI_receive_data_char( char *data )
 {
 	bool recvGood = false;
 
-	if( SPIRecvBufferReadPos != SPIRecvBufferWritePos )
+	if( SPIRecvBufferReadPos_module != SPIRecvBufferWritePos_module )
 	{
-		*data = SPIRecvBuffer[SPIRecvBufferReadPos];
+		*data = SPIRecvBuffer_module[SPIRecvBufferReadPos_module];
 		if( *data != CHAR_NULL )
 		{
 			recvGood = true;
 		}
-		SPIRecvBufferReadPos++;
-		if( SPIRecvBufferReadPos >= BUFFER_LENGTH_RECV )
+		SPIRecvBufferReadPos_module++;
+		if( SPIRecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
 		{
-			SPIRecvBufferReadPos = 0;
+			SPIRecvBufferReadPos_module = 0;
 		}
 	}
 
@@ -1585,17 +1581,17 @@ bool UART1_receive_data_char( char *data )
 	bool recvGood = false;
 
 
-	if( UARTRecvBufferReadPos != UARTRecvBufferWritePos )
+	if( UART1RecvBufferReadPos_module != UART1RecvBufferWritePos_module )
 	{
-		*data = UARTRecvBuffer[UARTRecvBufferReadPos];
+		*data = UART1RecvBuffer_module[UART1RecvBufferReadPos_module];
 		if( *data != CHAR_NULL )
 		{
 			recvGood = true;
 		}
-		UARTRecvBufferReadPos++;
-		if( UARTRecvBufferReadPos >= BUFFER_LENGTH_RECV )
+		UART1RecvBufferReadPos_module++;
+		if( UART1RecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
 		{
-			UARTRecvBufferReadPos = 0;
+			UART1RecvBufferReadPos_module = 0;
 		}
 	}
 
@@ -1618,6 +1614,7 @@ bool UART2_receive_data_char( char *data )
 	bool recvGood = false;
 
 
+	// TODO UART2 receive buffer to use interrupt temp buffer
 	if( U2STAbits.URXDA == 1 )
 	{
 		*data = U2RXREG;
@@ -1834,6 +1831,9 @@ void initUART1( void )
 void __attribute__( (__interrupt__, __no_auto_psv__) ) _SPI1Interrupt( void )
 {
 
+	// any global variables modified in an interrupt should be defined with the keyword 'volatile'
+	// look up 'volatile' keyword to understand why
+
 	unsigned char recvChar;
 
 	_SPI1IF = 0; // clear interrupt flag
@@ -1843,19 +1843,23 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _SPI1Interrupt( void )
 
 	if( recvChar != CHAR_NULL )
 	{
-		SPIRecvBuffer[SPIRecvBufferWritePos] = recvChar;
-		SPIRecvBufferWritePos++;
-		if( SPIRecvBufferWritePos >= BUFFER_LENGTH_RECV )
+		SPIRecvBuffer_module[SPIRecvBufferWritePos_module] = recvChar;
+		SPIRecvBufferWritePos_module++;
+		if( SPIRecvBufferWritePos_module >= BUFFER_LENGTH_RECV )
 		{
-			SPIRecvBufferWritePos = 0;
+			SPIRecvBufferWritePos_module = 0;
 		}
 	}
+
+	return;
 }
 
 // this triggers when any data is received (through UART1) 
 // and stores that data in a buffer for the main loop
 void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1RXInterrupt( void )
 {
+	// any global variables modified in an interrupt should be defined with the keyword 'volatile'
+	// look up 'volatile' keyword to understand why
 
 	unsigned char recvChar = 1;
 
@@ -1865,18 +1869,16 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1RXInterrupt( void )
 
 	if( recvChar != CHAR_NULL )
 	{
-		UARTRecvBuffer[UARTRecvBufferWritePos] = recvChar;
-		UARTRecvBufferWritePos++;
-		if( UARTRecvBufferWritePos >= BUFFER_LENGTH_RECV )
+		UART1RecvBuffer_module[UART1RecvBufferWritePos_module] = recvChar;
+		UART1RecvBufferWritePos_module++;
+		if( UART1RecvBufferWritePos_module >= BUFFER_LENGTH_RECV )
 		{
-			UARTRecvBufferWritePos = 0;
+			UART1RecvBufferWritePos_module = 0;
 		}
 	}
 
-
+	return;
 }
-
-
 
 // this is required to clear any errors that occur - without it things do not work right
 void __attribute__( (__interrupt__, __no_auto_psv__) ) _U2ErrInterrupt( void )
@@ -1889,8 +1891,6 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _U2ErrInterrupt( void )
 
 	return;
 }
-
-
 
 // this is required to clear any errors that occur - without it things do not work right
 void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1ErrInterrupt( void )

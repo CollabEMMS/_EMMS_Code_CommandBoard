@@ -72,17 +72,6 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
-9/29/2019   TBA
-Command Board code clean-up complete
-    cleaned up .h and .c files
-    cleaned up variable use
-        made most variables local
-        made global and module global variables evident
-    cleaned up timer use
-    added reset code routine
-    increased program oscillator to 16Mhz (was 2Mhz)
-    lots of other tweaks and changes to make code more readable and functional
-
 
 9/21/2021   TBA
 *************
@@ -103,12 +92,27 @@ Changes
     removed all LED test entries
         note, many of these were not using the LED Test functions and would break the bar graph even if DEBUG was turned off
 
-     XSum check was hard to debug because it was included in a function call
-        pulled XSum check into separate boolean that can easily be checked - done for SPI, UART1, and UART2
+    led test integer output testing ledTestShowIntL and ledTestShowIntH were wrong and displaying inconsistent results
+        this is now fixed and tested
+
+     XSum had some issues
+        had to rework the check function as it was doing some funky things
+        now working
 
 
 9/20/2021   TBA
     Various changes have been made over the past 2 years, but not recorded in this document
+
+9/29/2019   TBA
+Command Board code clean-up complete
+    cleaned up .h and .c files
+    cleaned up variable use
+        made most variables local
+        made global and module global variables evident
+    cleaned up timer use
+    added reset code routine
+    increased program oscillator to 16Mhz (was 2Mhz)
+    lots of other tweaks and changes to make code more readable and functional
 
 7/18/2019   TBA
 

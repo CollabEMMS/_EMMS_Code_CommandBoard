@@ -451,21 +451,6 @@ void ledTestShowChar( char showMe )
 
 }
 
-// Similar to ledShowChar, but shows the first 8-bits of an integer. Should be used with the lower one too
-void ledTestShowIntH( int showMe )
-{
-	if( LEDS_FOR_DEBUG == true )
-	{
-		unsigned char upper;
-
-		upper = showMe & 0xFF;
-		ledTestShowChar( showMe );
-	}
-
-	return;
-
-}
-
 // Similar to ledShowChar, but shows the last 8-bits of an integer. Should be used with the upper one too
 void ledTestShowIntL( int showMe )
 {
@@ -473,8 +458,23 @@ void ledTestShowIntL( int showMe )
 	{
 		unsigned char lower;
 
-		lower = showMe >> 8;
-		ledTestShowChar( showMe );
+		lower = showMe & 0xFF;
+		ledTestShowChar( lower );
+	}
+
+	return;
+
+}
+
+// Similar to ledShowChar, but shows the first 8-bits of an integer. Should be used with the lower one too
+void ledTestShowIntH( int showMe )
+{
+	if( LEDS_FOR_DEBUG == true )
+	{
+		unsigned char upper;
+
+		upper = showMe >> 8;
+		ledTestShowChar( upper );
 	}
 
 	return;

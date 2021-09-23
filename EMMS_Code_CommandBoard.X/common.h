@@ -74,7 +74,7 @@
 
 // LEDs for power remaining indicator
 // can also be used for debugging
-#define LEDS_FOR_DEBUG true
+#define LEDS_FOR_DEBUG false
 // set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
 
 #define CHAR_NULL '\0'   //yes, used in many many places
