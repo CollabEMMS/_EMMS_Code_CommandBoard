@@ -1,0 +1,185 @@
+9/29/2019   TBA
+CURRENT STATUS
+    TODOs in program code - look at 'action items' window
+    some TODOs overlap with what is shown below, some do not
+
+ VERIFIED
+ HAS BEEN CHECKED AND WORKING
+  led bar graph
+      at least in normal operation
+  spi communications
+      getting data from power sense module
+  uart communications
+      only uart1 is working
+  rtcc chip
+      time is kept while power is removed
+  rtcc on PIC
+  set rtcc time
+      keeps new time while power is removed
+  set date/time on first run after build to build time
+      confirmed this works
+  set password
+      works after power cycle
+  set allocation
+      works after power cycle
+  emergency button amount
+      value saved after power cycle
+  emergency allocate now
+      sets and added value survives power cycle
+      on UI disconnect or power cycle, the last value used is lost, but any amount added is still added to the available energy
+  daily reset works
+      even clears out any emergency allocation
+  change reset time works
+      survives power cycle
+
+
+
+ OUTSTANDING - NEEDS FURTHER TESTING
+  uart2
+      uart2 did not work at all on my test power box
+  emergency button
+      the emergency button input never triggered on my test power box
+      the I/O pin never gets set 1 when the button is pressed
+  led bar graph - include emergency allocation
+      the led bar graph does not appear to include th emergency allocation
+  UI password entry
+      it can take a long time for this to get up tot he UI so you can enter the admin menu
+      might not matter for normal operation since the admin will typically be used
+      after the UI has been working for a while, but it is annoying for testing
+  UI daily reset time
+      this is displaying wrong when first entering the menu
+      the minutes shows wrong, but reverts to :00 or :30 if the up/down button pressed
+      the actual reset time in the command board is correct
+ handle communications command DebugMode?
+      this likely should be renamed to something better
+      unknown status of implementation - is it in any of the communication code right now?
+  relying on programming the PIC to set the time can be tricky
+      the program must be compiled to set the new build time
+      just hitting program on many PICs in a row will cause units to have the wrong times
+      also, sometimes recompiling doesn't set the new built time as expected
+ emergency allocation shows up funny on the UI
+      when UI plugged in the allocation reads only the allocation value
+      then after a bit the UI starts to show the allocation+emergency value
+      looks like initial data gathering when the UI is plugged in gets only the allocation
+      but later updates gets the allocation + the emergency allocation
+ UART communication is a little flakey
+      values tend to get a little messed up periodically
+      might be good to add a checksum value or some other simple check to make sure the message was good
+      also, should verify info made it as expected - check for the 'conf' return
+      this can be really bad - we think something was set and processed, but it was garbled and ignored or something like that
+ UI Hi/Low - remove from menu
+ UI statistics - not working right now
+ UI last power failure - not working right now
+
+
+
+9/21/2021   TBA
+*************
+Changes
+    added comments to ResetReport.c to better explain how to read the reset code output
+    
+    the receive buffer position had been made to reset to 0 if it reached the end
+        this was incorrect as it should just overwrite the last character
+        resetting tot he beginning would overwrite the start of the message being received and could cause other problems
+
+    removed testing ledShowChar('E') for then end of transmission received
+
+    added a few clarifying comments here and there
+
+    mastercomm.c - void xsum_builder( struct buffer_struct *send_buffer, int xsum )
+        - line 1353 - extra COMMAND_DELIMETER character was added with comment to remove when XSUM implemented
+
+    removed all LED test entries
+        note, many of these were not using the LED Test functions and would break the bar graph even if DEBUG was turned off
+
+    led test integer output testing ledTestShowIntL and ledTestShowIntH were wrong and displaying inconsistent results
+        this is now fixed and tested
+
+     XSum had some issues
+        had to rework the check function as it was doing some funky things
+        now working
+
+
+9/20/2021   TBA
+    Various changes have been made over the past 2 years, but not recorded in this document
+
+9/29/2019   TBA
+Command Board code clean-up complete
+    cleaned up .h and .c files
+    cleaned up variable use
+        made most variables local
+        made global and module global variables evident
+    cleaned up timer use
+    added reset code routine
+    increased program oscillator to 16Mhz (was 2Mhz)
+    lots of other tweaks and changes to make code more readable and functional
+
+7/18/2019   TBA
+
+*****************
+current changes
+    clean up LEDs
+        do not directly access LEDs - call functions
+            on/off
+            toggle
+            run (up or down)
+            what ever else we need
+
+
+******************
+    changes to make
+    set oscillator to 32MHZ  (right now it is at 2MHZ ?)
+        need to set oscillator
+        need to change UART configuration
+        need to change SPI configuration
+        need to change periodic function running in main loop
+    implement timer at known easy frequency to time periodic main loop running
+    clean up variables
+    clean up 'hidden' code
+    
+
+6/6/2019    TBA
+    mostly completed UART communications rewrite
+    moved variables into header files (mostly complete, but needs more clean up)
+
+6/6/2017
+    changed power logging to every 15 minutes to save EEPROM write cycles
+        was set at 2 minutes for debugging
+    relay control would keep the relay on when power left was 0 and turned off when power left was < 0
+        power now turns off when power =0 to make operation seem consistent.
+
+6/2/2017
+    when sending powerWatts to the UI sometimes the UI would display the power used in the Watts position.
+        explicitly set the outgoing string to "0" if the power is zero
+        seemed to fix the problem
+
+5/30/2017
+    daily reset did not work as expected
+        daily reset code needed second == 0 at the right minute and hour to activate
+        with new SPI communication this 0 second might be missed
+        removed second == 0 criteria
+        also changed 'one shot' variable from unsigned char to bool
+            for some reason it would keep resetting while the hour/minute was valid
+            this is now fixed
+    read_time had a error where hours was actually seconds
+        the RTCC was read twice while getting month/days which caused hours to then read the seconds
+        this has been fixed
+
+5/28/2019  TBA
+    rewrote UART communication code to use SPI communication code
+    had to update SPI communication code to pull out SPI specific elements
+    UART communications was causing meter to reset
+        startup code was opcode error - indicative of buffer overrun error
+        code was closely inspected - 2 observations
+            some buffer size allocation problems
+            very few if no buffer bounds checking
+                easily can overrun buffer length if messages are changed
+                problem is deep and cannot be fixed with a simple fix
+
+5/28/2019   TBA
+    added "common.h" file to contain elements that may be used throughout the project
+        CHAR_NULL
+        LED control bits
+    simply include this file in .c listing to have access to those macros
+
+
