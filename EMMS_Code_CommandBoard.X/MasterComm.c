@@ -1066,7 +1066,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			itoa( alarm1EnergyBuf, alarm1EnergyTemp, 10 );
 			itoa( alarm2EnergyBuf, alarm2EnergyTemp, 10 );
 
-			command_builder7( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnabledBuf, alarm1EnergyBuf, alarm2EnabledBuf, alarm2EnabledBuf );
+			command_builder7( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnabledBuf, alarm1EnergyBuf, alarm2EnabledBuf, alarm2EnergyBuf );
 
 		}
 		else if( strmatch( parameters[1], "Pass" ) == true )

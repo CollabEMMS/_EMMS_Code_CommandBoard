@@ -1,3 +1,10 @@
+
+11/25/2021
+    BugFix
+        The Alarm saving was not working properly
+        On recovery from power off Alarm2 would be reset to 0%
+
+
 9/29/2019   TBA
 CURRENT STATUS
     TODOs in program code - look at 'action items' window
