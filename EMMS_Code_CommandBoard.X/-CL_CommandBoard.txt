@@ -1,9 +1,4 @@
 
-11/25/2021
-    BugFix
-        The Alarm saving was not working properly
-        On recovery from power off Alarm2 would be reset to 0%
-
 
 9/29/2019   TBA
 CURRENT STATUS
@@ -78,6 +73,12 @@ CURRENT STATUS
  UI statistics - not working right now
  UI last power failure - not working right now
 
+
+11/25/2021  TBA
+*************
+    BugFix
+        The Alarm saving was not working properly
+        On recovery from power off Alarm2 would be reset to 0%
 
 
 9/21/2021   TBA
