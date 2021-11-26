@@ -23,40 +23,40 @@
 
 
 // EEPROM reservations
-int __attribute__( (space( eedata )) ) EEpassword0 = '1';
-int __attribute__( (space( eedata )) ) EEpassword1 = '2';
-int __attribute__( (space( eedata )) ) EEpassword2 = '3';
-int __attribute__( (space( eedata )) ) EEpassword3 = '4';
-int __attribute__( (space( eedata )) ) EEpassword4 = '1';
-int __attribute__( (space( eedata )) ) EEpassword5 = '2';
-int __attribute__( (space( eedata )) ) EEpowerAlloc = 500;
-int __attribute__( (space( eedata )) ) EEemerButton = 0;
-int __attribute__( (space( eedata )) ) EEresetTime = 1200;
-int __attribute__( (space( eedata )) ) EEaudibleAlarm = 0;
-int __attribute__( (space( eedata )) ) EEalarmOnePower = 0;
-int __attribute__( (space( eedata )) ) EEalarmTwoPower = 0;
-int __attribute__( (space( eedata )) ) EEenergyLastResetH = 0;
-int __attribute__( (space( eedata )) ) EEenergyLastResetL = 0;
-int __attribute__( (space( eedata )) ) EEpreviousCycleUsedH = 0;
-int __attribute__( (space( eedata )) ) EEpreviousCycleUsedL = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime1H = 0xFF;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime1L = 0xFF;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime2H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime2L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime3H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime3L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime4H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime4L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime5H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime5L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime6H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime6L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime7H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime7L = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime8H = 0;
-int __attribute__( (space( eedata )) ) EEenergyUsedLifetime8L = 0;
-int __attribute__( (space( eedata )) ) EErelayActive = 0xFF;
-int __attribute__( (space( eedata )) ) EErtccIsSet = 0;
+int __attribute__( ( space( eedata ) ) ) EEpassword0 = '1';
+int __attribute__( ( space( eedata ) ) ) EEpassword1 = '2';
+int __attribute__( ( space( eedata ) ) ) EEpassword2 = '3';
+int __attribute__( ( space( eedata ) ) ) EEpassword3 = '4';
+int __attribute__( ( space( eedata ) ) ) EEpassword4 = '1';
+int __attribute__( ( space( eedata ) ) ) EEpassword5 = '2';
+int __attribute__( ( space( eedata ) ) ) EEpowerAlloc = 500;
+int __attribute__( ( space( eedata ) ) ) EEemerButton = 0;
+int __attribute__( ( space( eedata ) ) ) EEresetTime = 1200;
+int __attribute__( ( space( eedata ) ) ) EEaudibleAlarm = 0;
+int __attribute__( ( space( eedata ) ) ) EEalarmOnePower = 0;
+int __attribute__( ( space( eedata ) ) ) EEalarmTwoPower = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyLastResetH = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyLastResetL = 0;
+int __attribute__( ( space( eedata ) ) ) EEpreviousCycleUsedH = 0;
+int __attribute__( ( space( eedata ) ) ) EEpreviousCycleUsedL = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime1H = 0xFF;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime1L = 0xFF;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime2H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime2L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime3H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime3L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime4H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime4L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime5H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime5L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime6H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime6L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime7H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime7L = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime8H = 0;
+int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime8L = 0;
+int __attribute__( ( space( eedata ) ) ) EErelayActive = 0xFF;
+int __attribute__( ( space( eedata ) ) ) EErtccIsSet = 0;
 
 /****************
  FUNCTION PROTOTYPES
@@ -92,12 +92,12 @@ void writeWait( void )
     bool writeDone = false;
 
     // wait for the write control bit to reset before continuing
-    while( writeDone == false )
+    while ( writeDone == false )
     {
-	if( NVMCONbits.WR == 0 )
-	{
-	    writeDone = true;
-	}
+        if ( NVMCONbits.WR == 0 )
+        {
+            writeDone = true;
+        }
     };
 
     return;
@@ -149,7 +149,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword0 );
     __builtin_tblwtl( offset, password[0] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     // char 1
@@ -161,7 +161,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword1 );
     __builtin_tblwtl( offset, password[1] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     // char 2
@@ -173,7 +173,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword2 );
     __builtin_tblwtl( offset, password[2] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     // char 3
@@ -185,7 +185,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword3 );
     __builtin_tblwtl( offset, password[3] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     // char 4
@@ -197,7 +197,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword4 );
     __builtin_tblwtl( offset, password[4] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     // char 5
@@ -209,7 +209,7 @@ void eeWritePasswordNew( char *password )
     offset = __builtin_tbloffset( &EEpassword5 );
     __builtin_tblwtl( offset, password[5] );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -251,7 +251,7 @@ void eeWriteEnergyAllocNew( long energyAllocation )
     offset = __builtin_tbloffset( &EEpowerAlloc );
     __builtin_tblwtl( offset, tempEnergyAllocation );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -273,13 +273,13 @@ struct emergency_button eeReadEmergencyButtonNew( void )
     tempEmerAlloc = __builtin_tblrdl( offset );
 
     emergencyButtonTemp.energyAmount = tempEmerAlloc;
-    if( tempEmerAlloc > 0 )
+    if ( tempEmerAlloc > 0 )
     {
-	emergencyButtonTemp.enabled = true;
+        emergencyButtonTemp.enabled = true;
     }
     else
     {
-	emergencyButtonTemp.enabled = false;
+        emergencyButtonTemp.enabled = false;
     }
 
     return emergencyButtonTemp;
@@ -297,7 +297,7 @@ void eeWriteEmerButtonNew( struct emergency_button emergencyButton )
     offset = __builtin_tbloffset( &EEemerButton );
     __builtin_tblwtl( offset, emergencyButton.energyAmount );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -332,13 +332,13 @@ void eeWriteResetTimeNew( int resetHour, int resetMinute )
 
     unsigned int tempResetTime;
 
-    tempResetTime = resetMinute + (100 * resetHour);
+    tempResetTime = resetMinute + ( 100 * resetHour );
 
     TBLPAG = __builtin_tblpage( &EEresetTime );
     offset = __builtin_tbloffset( &EEresetTime );
     __builtin_tblwtl( offset, tempResetTime );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -369,33 +369,33 @@ struct alarm_info eeReadAlarmNew( void )
     offset = __builtin_tbloffset( &EEalarmTwoPower );
     alarm2Energy = __builtin_tblrdl( offset );
 
-    if( audibleAlarm == 0 )
+    if ( audibleAlarm == 0 )
     {
-	alarmInfoTemp.alarmAudible = false;
+        alarmInfoTemp.alarmAudible = false;
     }
     else
     {
-	alarmInfoTemp.alarmAudible = true;
+        alarmInfoTemp.alarmAudible = true;
     }
 
     alarmInfoTemp.alarm1Energy = alarm1Energy;
-    if( alarmInfoTemp.alarm1Energy > 0 )
+    if ( alarmInfoTemp.alarm1Energy > 0 )
     {
-	alarmInfoTemp.alarm1Enabled = true;
+        alarmInfoTemp.alarm1Enabled = true;
     }
     else
     {
-	alarmInfoTemp.alarm1Enabled = false;
+        alarmInfoTemp.alarm1Enabled = false;
     }
 
     alarmInfoTemp.alarm2Energy = alarm2Energy;
-    if( alarmInfoTemp.alarm2Energy > 0 )
+    if ( alarmInfoTemp.alarm2Energy > 0 )
     {
-	alarmInfoTemp.alarm2Enabled = false;
+        alarmInfoTemp.alarm2Enabled = true;
     }
     else
     {
-	alarmInfoTemp.alarm2Enabled = false;
+        alarmInfoTemp.alarm2Enabled = false;
     }
 
     return alarmInfoTemp;
@@ -407,13 +407,13 @@ void eeWriteAlarmNew( struct alarm_info alarms )
 
     unsigned int audibleAlarmTemp;
 
-    if( alarms.alarmAudible == true )
+    if ( alarms.alarmAudible == true )
     {
-	audibleAlarmTemp = 0xFFFF;
+        audibleAlarmTemp = 0xFFFF;
     }
     else
     {
-	audibleAlarmTemp = 0;
+        audibleAlarmTemp = 0;
     }
 
     writeWait( );
@@ -424,7 +424,7 @@ void eeWriteAlarmNew( struct alarm_info alarms )
     offset = __builtin_tbloffset( &EEaudibleAlarm );
     __builtin_tblwtl( offset, audibleAlarmTemp );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
 
@@ -436,7 +436,7 @@ void eeWriteAlarmNew( struct alarm_info alarms )
     offset = __builtin_tbloffset( &EEalarmOnePower );
     __builtin_tblwtl( offset, alarms.alarm1Energy );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
 
@@ -448,7 +448,7 @@ void eeWriteAlarmNew( struct alarm_info alarms )
     offset = __builtin_tbloffset( &EEalarmTwoPower );
     __builtin_tblwtl( offset, alarms.alarm2Energy );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -507,7 +507,7 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData )
     offset = __builtin_tbloffset( &EEenergyLastResetH );
     __builtin_tblwtl( offset, tempH );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
 
@@ -519,7 +519,7 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData )
     offset = __builtin_tbloffset( &EEenergyLastResetL );
     __builtin_tblwtl( offset, tempL );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
 
@@ -533,7 +533,7 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData )
     offset = __builtin_tbloffset( &EEpreviousCycleUsedH );
     __builtin_tblwtl( offset, tempH );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
 
@@ -545,7 +545,7 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData )
     offset = __builtin_tbloffset( &EEpreviousCycleUsedL );
     __builtin_tblwtl( offset, tempL );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -567,82 +567,82 @@ unsigned long eeReadEnergyUsedNew( )
 
     EEpowerSelect = findSlotToRead( );
 
-    switch( EEpowerSelect )
+    switch ( EEpowerSelect )
     {
-	case 0:
-	    tempH = tempL = 0;
-	    break;
+        case 0:
+            tempH = tempL = 0;
+            break;
 
-	case 1:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime1L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 1:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime1L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 2:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime2L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 2:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime2L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 3:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 3:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 4:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime4L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 4:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime4L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 5:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime5L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 5:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime5L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 6:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime6L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 6:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime6L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 7:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime7L );
-	    tempL = __builtin_tblrdl( offset );
-	    break;
+        case 7:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime7L );
+            tempL = __builtin_tblrdl( offset );
+            break;
 
-	case 8:
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
-	    tempH = __builtin_tblrdl( offset );
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime8L );
-	    tempL = __builtin_tblrdl( offset );
+        case 8:
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
+            tempH = __builtin_tblrdl( offset );
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime8L );
+            tempL = __builtin_tblrdl( offset );
     }
 
     temp = combineIntsToLong( tempH, tempL );
@@ -667,239 +667,239 @@ void eeWriteEnergyLifetimeNew( unsigned long energyLifetime )
     // this is not very important, but keep from repeating lots of code
     // future work
 
-    switch( EESlotToWrite )
+    switch ( EESlotToWrite )
     {
-	case 1:
-	    writeWait( );
+        case 1:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime1L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime1L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 2:
-	    writeWait( );
+        case 2:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime2L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime2L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 3:
-	    writeWait( );
+        case 3:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 4:
+        case 4:
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime4L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime4L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 5:
-	    writeWait( );
+        case 5:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime5L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime5L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 6:
-	    writeWait( );
+        case 6:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime6L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime6L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 7:
-	    writeWait( );
+        case 7:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime7L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime7L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
-	    break;
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
+            break;
 
-	case 8:
-	    writeWait( );
+        case 8:
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
-	    __builtin_tblwtl( offset, tempH );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
+            __builtin_tblwtl( offset, tempH );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8L );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime8L );
-	    __builtin_tblwtl( offset, tempL );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8L );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime8L );
+            __builtin_tblwtl( offset, tempL );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
 
-	    writeWait( );
+            writeWait( );
 
-	    NVMCON = 0x4004;
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
-	    __builtin_tblwtl( offset, 0xFFFF );
-	    asm volatile ("disi #5");
-	    __builtin_write_NVM( );
+            NVMCON = 0x4004;
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime1H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
+            __builtin_tblwtl( offset, 0xFFFF );
+            asm volatile ("disi #5" );
+            __builtin_write_NVM( );
     }
 }
 
@@ -917,13 +917,13 @@ bool eeReadRelayNew( )
     offset = __builtin_tbloffset( &EErelayActive );
     tempRelayActive = __builtin_tblrdl( offset );
 
-    if( tempRelayActive == 0 )
+    if ( tempRelayActive == 0 )
     {
-	relay = false;
+        relay = false;
     }
     else
     {
-	relay = true;
+        relay = true;
     }
 
     return relay;
@@ -935,13 +935,13 @@ void eeWriteRelayNew( bool relay )
 
     unsigned int relayTemp;
 
-    if( relay == true )
+    if ( relay == true )
     {
-	relayTemp = 0xFFFF;
+        relayTemp = 0xFFFF;
     }
     else
     {
-	relayTemp = 0;
+        relayTemp = 0;
     }
 
 
@@ -954,7 +954,7 @@ void eeWriteRelayNew( bool relay )
     offset = __builtin_tbloffset( &EErelayActive );
     __builtin_tblwtl( offset, relayTemp );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -974,13 +974,13 @@ bool eeReadRTCCIsSet( )
     offset = __builtin_tbloffset( &EErtccIsSet );
     tempRTCCIsSet = __builtin_tblrdl( offset );
 
-    if( tempRTCCIsSet == 0 )
+    if ( tempRTCCIsSet == 0 )
     {
-	rtccIsSet = false;
+        rtccIsSet = false;
     }
     else
     {
-	rtccIsSet = true;
+        rtccIsSet = true;
     }
 
     return rtccIsSet;
@@ -992,13 +992,13 @@ void eeWriteRTCCIsSet( bool rtccIsSet )
 
     unsigned int tempRTCCIsSet;
 
-    if( rtccIsSet == true )
+    if ( rtccIsSet == true )
     {
-	tempRTCCIsSet = 0xFFFF;
+        tempRTCCIsSet = 0xFFFF;
     }
     else
     {
-	tempRTCCIsSet = 0;
+        tempRTCCIsSet = 0;
     }
 
 
@@ -1010,7 +1010,7 @@ void eeWriteRTCCIsSet( bool rtccIsSet )
     offset = __builtin_tbloffset( &EErtccIsSet );
     __builtin_tblwtl( offset, tempRTCCIsSet );
 
-    asm volatile ("disi #5");
+    asm volatile ("disi #5" );
     __builtin_write_NVM( );
 
     return;
@@ -1030,90 +1030,90 @@ unsigned char findSlotToRead( )
     offset = __builtin_tbloffset( &EEenergyUsedLifetime1H );
     tempPower = __builtin_tblrdl( offset );
 
-    if( tempPower == 0xFFFF )
+    if ( tempPower == 0xFFFF )
     {
-	EEpowerSelect = 8;
+        EEpowerSelect = 8;
     }
     else
     {
-	TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
-	offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
-	tempPower = __builtin_tblrdl( offset );
+        TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime2H );
+        offset = __builtin_tbloffset( &EEenergyUsedLifetime2H );
+        tempPower = __builtin_tblrdl( offset );
 
-	if( tempPower == 0xFFFF )
-	{
-	    EEpowerSelect = 1;
-	}
-	else
-	{
-	    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
-	    offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
-	    tempPower = __builtin_tblrdl( offset );
+        if ( tempPower == 0xFFFF )
+        {
+            EEpowerSelect = 1;
+        }
+        else
+        {
+            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime3H );
+            offset = __builtin_tbloffset( &EEenergyUsedLifetime3H );
+            tempPower = __builtin_tblrdl( offset );
 
-	    if( tempPower == 0xFFFF )
-	    {
-		EEpowerSelect = 2;
-	    }
-	    else
-	    {
-		TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
-		offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
-		tempPower = __builtin_tblrdl( offset );
+            if ( tempPower == 0xFFFF )
+            {
+                EEpowerSelect = 2;
+            }
+            else
+            {
+                TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime4H );
+                offset = __builtin_tbloffset( &EEenergyUsedLifetime4H );
+                tempPower = __builtin_tblrdl( offset );
 
-		if( tempPower == 0xFFFF )
-		{
-		    EEpowerSelect = 3;
-		}
-		else
-		{
-		    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
-		    offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
-		    tempPower = __builtin_tblrdl( offset );
+                if ( tempPower == 0xFFFF )
+                {
+                    EEpowerSelect = 3;
+                }
+                else
+                {
+                    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime5H );
+                    offset = __builtin_tbloffset( &EEenergyUsedLifetime5H );
+                    tempPower = __builtin_tblrdl( offset );
 
-		    if( tempPower == 0xFFFF )
-		    {
-			EEpowerSelect = 4;
-		    }
-		    else
-		    {
-			TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
-			offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
-			tempPower = __builtin_tblrdl( offset );
+                    if ( tempPower == 0xFFFF )
+                    {
+                        EEpowerSelect = 4;
+                    }
+                    else
+                    {
+                        TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime6H );
+                        offset = __builtin_tbloffset( &EEenergyUsedLifetime6H );
+                        tempPower = __builtin_tblrdl( offset );
 
-			if( tempPower == 0xFFFF )
-			{
-			    EEpowerSelect = 5;
-			}
-			else
-			{
-			    TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
-			    offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
-			    tempPower = __builtin_tblrdl( offset );
+                        if ( tempPower == 0xFFFF )
+                        {
+                            EEpowerSelect = 5;
+                        }
+                        else
+                        {
+                            TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime7H );
+                            offset = __builtin_tbloffset( &EEenergyUsedLifetime7H );
+                            tempPower = __builtin_tblrdl( offset );
 
-			    if( tempPower == 0xFFFF )
-			    {
-				EEpowerSelect = 6;
-			    }
-			    else
-			    {
-				TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
-				offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
-				tempPower = __builtin_tblrdl( offset );
+                            if ( tempPower == 0xFFFF )
+                            {
+                                EEpowerSelect = 6;
+                            }
+                            else
+                            {
+                                TBLPAG = __builtin_tblpage( &EEenergyUsedLifetime8H );
+                                offset = __builtin_tbloffset( &EEenergyUsedLifetime8H );
+                                tempPower = __builtin_tblrdl( offset );
 
-				if( tempPower == 0xFFFF )
-				{
-				    EEpowerSelect = 7;
-				}
-				else
-				{
-				    EEpowerSelect = 0;
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	}
+                                if ( tempPower == 0xFFFF )
+                                {
+                                    EEpowerSelect = 7;
+                                }
+                                else
+                                {
+                                    EEpowerSelect = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     return EEpowerSelect;
@@ -1130,7 +1130,7 @@ unsigned char findPowerToWrite( )
     unsigned char temp;
 
     temp = findSlotToRead( );
-    temp = (temp % 8) + 1;
+    temp = ( temp % 8 ) + 1;
 
     return temp;
 }
@@ -1142,7 +1142,7 @@ unsigned long combineIntsToLong( unsigned int intH, unsigned int intL )
 
     unsigned long temp;
 
-    temp = (((unsigned long) intH) << 16) + intL;
+    temp = ( ( (unsigned long) intH ) << 16 ) + intL;
 
     return temp;
 }

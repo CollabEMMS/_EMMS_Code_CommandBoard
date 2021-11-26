@@ -725,12 +725,12 @@ usercode
 
 __FBS             0xf80000          0x2
  *(__FBS.sec*)
- __FBS.sec        0xf80000          0x2 /CW/_FBSàtô
+ __FBS.sec        0xf80000          0x2 /CW/_FBS8KË
                   0xf80000                  __FBS.sec
 
 __FGS             0xf80004          0x2
  *(__FGS.sec*)
- __FGS.sec        0xf80004          0x2 /CW/_FGSÐTô
+ __FGS.sec        0xf80004          0x2 /CW/_FGS0;Ë
                   0xf80004                  __FGS.sec
 
 __FOSCSEL
@@ -754,14 +754,14 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x820a
+.debug_info       0x000000       0x8186
  *(.debug_info)
- .debug_info      0x000000       0x184c build/default/production/PowerMain.o
- .debug_info      0x00184c       0x1137 build/default/production/EEPROM.o
- .debug_info      0x002983       0x330f build/default/production/MasterComm.o
- .debug_info      0x005c92        0xe76 build/default/production/LEDControl.o
- .debug_info      0x006b08        0x26e build/default/production/ResetReport.o
- .debug_info      0x006d76       0x1494 build/default/production/RTCC.o
+ .debug_info      0x000000       0x1836 build/default/production/PowerMain.o
+ .debug_info      0x001836       0x1121 build/default/production/EEPROM.o
+ .debug_info      0x002957       0x32f9 build/default/production/MasterComm.o
+ .debug_info      0x005c50        0xe60 build/default/production/LEDControl.o
+ .debug_info      0x006ab0        0x258 build/default/production/ResetReport.o
+ .debug_info      0x006d08       0x147e build/default/production/RTCC.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev     0x000000        0x9c6
@@ -1455,8 +1455,8 @@ LOAD c:/program files (x86)/microchip/xc16/v1.41/bin/bin/../../lib\libm-elf.a
 LOAD c:/program files (x86)/microchip/xc16/v1.41/bin/bin/../../lib\libc-elf.a
 END GROUP
 OUTPUT(dist/default/production/EMMS_Code_CommandBoard.X.production.elf elf32-pic30)
-LOAD /CW/_FGSÐTô
-LOAD /CW/_FBSàtô
+LOAD /CW/_FGS0;Ë
+LOAD /CW/_FBS8KË
 LOAD default_isr
 LOAD data_init
 
