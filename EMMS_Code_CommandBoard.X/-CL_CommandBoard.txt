@@ -74,6 +74,13 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
+11/26/2021  TBA
+**************
+    BugFix
+        Emergency Button was adding way too much power
+        The oneShot was not correctly programmed and not working
+        oneShot is now working
+
 11/25/2021  TBA
 *************
     BugFix
