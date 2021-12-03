@@ -563,9 +563,9 @@ void powerOnCheckForAllocationReset( void )
 	// Comparing to see if power was restored before or after the expected reset
 	// Check date (resets if later month, later day in month, or new year)
 	if( ( restoreMonth > resetTempTimeMonth ) ||
-		( ( restoreMonth == resetTempTimeMonth ) && ( restoreDay > resetTempTimeDay ) ) ||
-		( restoreMonth < resetTempTimeMonth )
-		)
+	 ( ( restoreMonth == resetTempTimeMonth ) && ( restoreDay > resetTempTimeDay ) ) ||
+	 ( restoreMonth < resetTempTimeMonth )
+	 )
 	{
 
 		resetNeeded = true;
@@ -725,3 +725,61 @@ void relayControl( void )
 
 	return;
 }
+
+
+
+/******************
+ The following are error traps which will prevent the PIC from resetting most of the time
+ They simply return back to the program
+ This doesn't solve the problem, but it prevents the meter from resetting
+ There is a potential that some data corruption may have occurred, but most of the time it will work itself out
+ ***********************/
+#if ERROR_TRAP_INTERRUPTS_ACTIVE == true
+
+void __attribute__( ( interrupt, no_auto_psv ) ) _OscillatorFail( void )
+{
+	INTCON1bits.OSCFAIL = 0; //Clear the trap flag
+
+	return;
+}
+
+void __attribute__( ( interrupt, no_auto_psv ) ) _AddressError( void )
+{
+	// if lEDS are put in debug mode one can count or toggle LEDS to show one of these routines was entered
+
+	// debug methods
+	// place a debug breakpoint in this function to stop execution
+	// then line-by-line execute to get back to the function which caused the error
+	// it will return to the next executing line
+	// to get the actual line where the error occurred, you need to use the getErrLoc function
+	//  getErrLoc is in an assembly ASM file
+	//  this is a file which needs to be added to the project
+	// then it can retrieve the actual instruction where the error occurred 
+	// the errLoc return is a function pointer which can be called to return to the line where the error occurred
+
+	//		errLoc = getErrLoc();	// get the location of error function
+
+
+	INTCON1bits.ADDRERR = 0; //Clear the trap flag
+
+	//	errLoc();		// return to error function directly
+	// it is preferred to return by RETFIE instruction. 
+
+	return;
+}
+
+void __attribute__( ( interrupt, no_auto_psv ) ) _StackError( void )
+{
+	INTCON1bits.STKERR = 0; //Clear the trap flag
+
+	return;
+}
+
+void __attribute__( ( interrupt, no_auto_psv ) ) _MathError( void )
+{
+	INTCON1bits.MATHERR = 0; //Clear the trap flag
+
+	return;
+}
+
+#endif

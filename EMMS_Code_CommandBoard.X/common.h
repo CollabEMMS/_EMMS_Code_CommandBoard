@@ -77,6 +77,14 @@
 #    define LEDS_FOR_DEBUG false
 // set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
 
+// Error Trap Interrupts
+// when true - this will hide most memory errors
+// just hiding the error is not good as there could be bigger underlying problems which cause other issues
+// this should only be set to true for production builds
+// if there is a reset error, these traps can also be used to find what is causing it by setting a breakpoint and debugging the program line-by-line
+#    define ERROR_TRAP_INTERRUPTS_ACTIVE false
+
+
 #    define CHAR_NULL '\0'   //yes, used in many many places
 
 /****************
