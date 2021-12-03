@@ -85,7 +85,9 @@ enum communications_port_enum
 {
 	enum_port_commSPI,
 	enum_port_commUART1,
+#if UART2_ENABLE == true
 	enum_port_commUART2,
+#endif
 };
 
 struct buffer_struct
@@ -128,8 +130,11 @@ bool SPI_send_data_char( char data );
 bool UART1_receive_data_char( char * );
 bool UART1_receive_all_data_char( char *data );
 bool UART1_send_data_char( char data );
+
+#if UART2_ENABLE == true
 bool UART2_receive_data_char( char * );
 bool UART2_send_data_char( char data );
+#endif
 
 bool strmatch( char* a, char* b );
 int strcmp2( char* a, char* b );
@@ -146,13 +151,21 @@ void send_end_of_transmission( struct buffer_struct *send_buffer );
 
 void communicationsSPI( bool initialize );
 void communicationsUART1( bool initialize );
+
+#if UART2_ENABLE == true
 void communicationsUART2( bool initialize );
+#endif
+
 bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state );
 bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort );
 
 void uartInit( void );
 void commSPIInit( void );
+
+#if UART2_ENABLE == true
 void initUART2( void );
+#endif
+
 void initUART1( void );
 
 bool xSumCheck( char* check_buffer );
@@ -177,7 +190,10 @@ void commInit( )
 	communicationsSPI( initialize );
 
 	communicationsUART1( initialize );
+
+#if UART2_ENABLE == true
 	communicationsUART2( initialize );
+#endif
 
 }
 
@@ -192,7 +208,10 @@ void commRunRoutine( )
 	communicationsSPI( initialize );
 
 	communicationsUART1( initialize ); // This one works (Lower RJ45)
+
+#if UART2_ENABLE == true
 	communicationsUART2( initialize ); // This one no worky (Upper RJ45)
+#endif
 
 	return;
 
@@ -388,6 +407,7 @@ void communicationsUART1( bool initialize )
 	return;
 }
 
+#if UART2_ENABLE == true
 // Handles the UART functionality for UART2, for the the initial and the continuous running processes
 
 void communicationsUART2( bool initialize )
@@ -437,6 +457,8 @@ void communicationsUART2( bool initialize )
 
 	return;
 }
+#endif
+
 
 // Will check if the Checksum in a message is accurate to ensure accuracy
 
@@ -526,9 +548,13 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 		case enum_port_commUART1:
 			gotSomething = UART1_receive_data_char( &data );
 			break;
+
+#if UART2_ENABLE == true
 		case enum_port_commUART2:
 			gotSomething = UART2_receive_data_char( &data );
 			break;
+#endif
+
 	}
 
 	if( gotSomething == true )
@@ -590,9 +616,13 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 
 				data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 				break;
+
+#if UART2_ENABLE == true
 			case enum_port_commUART2:
 				data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
 				break;
+#endif
+
 		}
 		if( data_sent == true )
 		{
@@ -1641,6 +1671,8 @@ bool UART1_send_data_char( char data )
 	return sendGood;
 }
 
+#if UART2_ENABLE == true
+
 bool UART2_receive_data_char( char *data )
 {
 	bool recvGood = false;
@@ -1668,7 +1700,7 @@ bool UART2_send_data_char( char data )
 
 	return sendGood;
 }
-
+#endif
 
 /************************/
 // RESPONSES
@@ -1738,9 +1770,14 @@ void uartInit( void )
 {
 
 	initUART1( );
+
+#if UART2_ENABLE == true
 	initUART2( );
+#endif
 
 }
+
+#if UART2_ENABLE == true
 
 void initUART2( void )
 {
@@ -1802,6 +1839,7 @@ void initUART2( void )
 
 	return;
 }
+#endif
 
 void initUART1( void )
 {

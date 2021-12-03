@@ -140,13 +140,53 @@ int main( void )
 	ANSA = 0b0000000000000000;
 	ANSB = 0b0000000000000000;
 
+
 	// set all ports as input by default
 	TRISA = 0b1111111111111111; // this is equivalent to setting all of the individual bits
+
+#if IDE_DEBUG_ENABLE == true
+	// need to leave B0 and B1 alone for debug mode
+	TRISBbits.TRISB2 = 1;
+	TRISBbits.TRISB3 = 1;
+	TRISBbits.TRISB4 = 1;
+	TRISBbits.TRISB5 = 1;
+	TRISBbits.TRISB6 = 1;
+	TRISBbits.TRISB7 = 1;
+	TRISBbits.TRISB8 = 1;
+	TRISBbits.TRISB9 = 1;
+	TRISBbits.TRISB10 = 1;
+	TRISBbits.TRISB11 = 1;
+	TRISBbits.TRISB12 = 1;
+	TRISBbits.TRISB13 = 1;
+	TRISBbits.TRISB14 = 1;
+	TRISBbits.TRISB15 = 1;
+#else
 	TRISB = 0b1111111111111111; // 0b1111111111111111 = 0xFFFF
+#endif	
+
 
 	// set all ports to low by default to start
 	PORTA = 0b0000000000000000; // this is equivalent to setting all of the individual bits
+#if IDE_DEBUG_ENABLE == true
+	// need to leave B0 and B1 alone for debug mode
+	PORTBbits.RB2 = 0;
+	PORTBbits.RB3 = 0;
+	PORTBbits.RB4 = 0;
+	PORTBbits.RB5 = 0;
+	PORTBbits.RB6 = 0;
+	PORTBbits.RB7 = 0;
+	PORTBbits.RB8 = 0;
+	PORTBbits.RB9 = 0;
+	PORTBbits.RB10 = 0;
+	PORTBbits.RB11 = 0;
+	PORTBbits.RB12 = 0;
+	PORTBbits.RB13 = 0;
+	PORTBbits.RB14 = 0;
+	PORTBbits.RB15 = 0;
+#else
 	PORTB = 0b0000000000000000; // 0b0000000000000000 = 0
+#endif
+
 
 	ledInit( );
 
