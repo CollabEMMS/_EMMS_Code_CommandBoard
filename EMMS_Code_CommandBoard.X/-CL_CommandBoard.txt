@@ -86,7 +86,9 @@ CURRENT STATUS
 		One can now use the debug mode of the IDE to debug the program
 		This allows viewing of memory and variables and stepping the program line by line
 		requires that UART2 be disconnected and completely removed from the program code as the UART TX and RX are used by the debugger PICKit
-
+	BugFix
+		xSumCheck had potential buffer overrun issue
+		parameter processing also had a potential buffer overrun
 
 
 
