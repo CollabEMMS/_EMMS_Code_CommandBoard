@@ -5,10 +5,10 @@
 /******
  Common Header File
  Only put something in here if:
-    it is required for all C files
-    and
-    it is not best included in any other header file
-*/
+	it is required for all C files
+	and
+	it is not best included in any other header file
+ */
 
 
 /**********************
@@ -43,7 +43,7 @@
 
 
 #ifndef COMMON_H
-#define	COMMON_H
+#    define	COMMON_H
 
 
 /****************
@@ -52,17 +52,17 @@
  this list here should be very limited
  things like stdlib should be included in the c module where it is needed
  not all c modules really need stdlib
-****************/
+ ****************/
 
 // operating frequency
 // this must come before the include for libpic30.h because it uses it
 // the UL postfix stipulates that the number is unsigned long
-#define FCY 16000000UL
+#    define FCY 16000000UL
 
 
-#include <p24FV32KA302.h>
-#include <libpic30.h>
-#include <stdbool.h>
+#    include <p24FV32KA302.h>
+#    include <libpic30.h>
+#    include <stdbool.h>
 
 
 /****************
@@ -74,66 +74,65 @@
 
 // LEDs for power remaining indicator
 // can also be used for debugging
-#define LEDS_FOR_DEBUG false
+#    define LEDS_FOR_DEBUG false
 // set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
 
-#define CHAR_NULL '\0'   //yes, used in many many places
-
+#    define CHAR_NULL '\0'   //yes, used in many many places
 
 /****************
  STRUCTS
  define the structures here
-***************/
+ ***************/
 
 struct date_time
 {
-    unsigned int year;
-    char month;
-    char monthTens;
-    char day;
-    char dayTens;
-    char hour;
-    char hourTens;
-    char minute;
-    char minuteTens;
-    char second;
+	unsigned int year;
+	char month;
+	char monthTens;
+	char day;
+	char dayTens;
+	char hour;
+	char hourTens;
+	char minute;
+	char minuteTens;
+	char second;
 };
 
 struct alarm_info
 {
-    bool alarmAudible;
+	bool alarmAudible;
 
-    bool alarm1Enabled;
-    int alarm1Energy;
-    bool alarm2Enabled;
-    int alarm2Energy;
-    
+	bool alarm1Enabled;
+	int alarm1Energy;
+	bool alarm2Enabled;
+	int alarm2Energy;
+
 };
 
 struct energy_info
 {
-    // energy is stored as the lifetime energy used by this meter
-    // it only increments and never goes down
-    // we calculate the energy used per day by storing the last energy lifetime used subtracting that from the current energy used
-    //      lifetime - last_reset = day last used
-    // we also store the previous day's usage for reporting purposes
-    
-    unsigned long lifetime;     // the total lifetime energy adder - this only increments, never goes down
-    unsigned long lastReset;    // the lifetime value at the last reset ( lifetime - lastReset = todayUsed )
-    unsigned long previousCycleUsed;  // the energy used during the previous cycle
+	// energy is stored as the lifetime energy used by this meter
+	// it only increments and never goes down
+	// we calculate the energy used per day by storing the last energy lifetime used subtracting that from the current energy used
+	//      lifetime - last_reset = day last used
+	// we also store the previous day's usage for reporting purposes
+
+	unsigned long lifetime; // the total lifetime energy adder - this only increments, never goes down
+	unsigned long lastReset; // the lifetime value at the last reset ( lifetime - lastReset = todayUsed )
+	unsigned long previousCycleUsed; // the energy used during the previous cycle
 
 };
 
 struct reset_time
 {
-    int hour;
-    int minute;
+	int hour;
+	int minute;
 };
 
 struct emergency_button
 {
-    bool enabled;
-    int energyAmount;
+	bool enabled;
+	int energyAmount;
 };
 
 
@@ -183,7 +182,7 @@ struct emergency_button
  external functions should be in the header
  ideally these are in the same order as in the code listing
  any functions used internally and externally (prototype here and in the .h file)
-     should be marked
+	 should be marked
  *****************/
 
 
@@ -218,7 +217,7 @@ struct emergency_button
  these are the globals required by external c files
  there should be as few of these as possible to help keep things clean
  these are all 'extern' and require that the variable is declared in the c file
-  ****************/
+ ****************/
 
 
 /****************

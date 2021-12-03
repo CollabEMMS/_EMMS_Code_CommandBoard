@@ -1,5 +1,5 @@
 #ifndef EEPROM_H
-#define	EEPROM_H
+#    define	EEPROM_H
 
 
 /****************
@@ -13,7 +13,7 @@
  these are the globals required by external c files
  there should be as few of these as possible to help keep things clean
  these are all 'extern' and require that the variable is declared in the c file
-  ****************/
+ ****************/
 
 
 /****************
@@ -40,7 +40,7 @@ long eeReadEnergyCycleAllocationNew( void );
 void eeWriteEnergyAllocNew( long energyAllocation );
 
 struct emergency_button eeReadEmergencyButtonNew( void );
-void eeWriteEmerButtonNew( struct emergency_button  emergencyButton );
+void eeWriteEmerButtonNew( struct emergency_button emergencyButton );
 
 struct alarm_info eeReadAlarmNew( void );
 void eeWriteAlarmNew( struct alarm_info alarms );

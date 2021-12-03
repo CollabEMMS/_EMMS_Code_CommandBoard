@@ -76,24 +76,24 @@ volatile int UART1RecvBufferWritePos_module = 0;
 
 enum receive_status_enum
 {
-  enum_receive_status_waiting,
-  enum_receive_status_in_command,
-  enum_receive_status_end_command
+	enum_receive_status_waiting,
+	enum_receive_status_in_command,
+	enum_receive_status_end_command
 };
 
 enum communications_port_enum
 {
-  enum_port_commSPI,
-  enum_port_commUART1,
-  enum_port_commUART2,
+	enum_port_commSPI,
+	enum_port_commUART1,
+	enum_port_commUART2,
 };
 
 struct buffer_struct
 {
-  enum communications_port_enum port;
-  char data_buffer[ BUFFER_LENGTH + 1];
-  unsigned char write_position;
-  unsigned char read_position;
+	enum communications_port_enum port;
+	char data_buffer[ BUFFER_LENGTH + 1];
+	unsigned char write_position;
+	unsigned char read_position;
 };
 
 
@@ -163,6 +163,7 @@ bool xSumCheck( char* check_buffer );
 
 
 // Setup comm ports and other fun stuff
+
 void commInit( )
 {
 
@@ -181,6 +182,7 @@ void commInit( )
 }
 
 // Runs the comm loop for continuous operation 
+
 void commRunRoutine( )
 {
 	bool initialize;
@@ -197,6 +199,7 @@ void commRunRoutine( )
 }
 
 // Handles all of the SPI functionality, for the the initial and the continuous running processes
+
 void communicationsSPI( bool initialize )
 {
 
@@ -330,6 +333,7 @@ void communicationsSPI( bool initialize )
 
 
 // Handles the UART functionality for UART1, for the the initial and the continuous running processes
+
 void communicationsUART1( bool initialize )
 {
 
@@ -363,7 +367,7 @@ void communicationsUART1( bool initialize )
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
 
-				
+
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
 					end_of_transmission_received = true;
@@ -385,6 +389,7 @@ void communicationsUART1( bool initialize )
 }
 
 // Handles the UART functionality for UART2, for the the initial and the continuous running processes
+
 void communicationsUART2( bool initialize )
 {
 	static struct buffer_struct send_buffer;
@@ -434,6 +439,7 @@ void communicationsUART2( bool initialize )
 }
 
 // Will check if the Checksum in a message is accurate to ensure accuracy
+
 bool xSumCheck( char* check_buffer )
 {
 	// calculate the xsum for the received command
@@ -456,9 +462,9 @@ bool xSumCheck( char* check_buffer )
 	xSumCharsPos = 0;
 
 	while(
-		 (check_buffer[ receiveBufferPos ] != COMMAND_XSUM_CHAR)
-		 && (check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR)
-		 && (receiveBufferPos < BUFFER_LENGTH)
+		 ( check_buffer[ receiveBufferPos ] != COMMAND_XSUM_CHAR )
+		 && ( check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR )
+		 && ( receiveBufferPos < BUFFER_LENGTH )
 		 )
 	{
 		xSumAdderValue += check_buffer[ receiveBufferPos ];
@@ -468,8 +474,8 @@ bool xSumCheck( char* check_buffer )
 	receiveBufferPos++; // add one to skip over the COMMAND_XSUM_CHAR 
 	xSumCharsPos = 0;
 	while(
-		 (check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR)
-		 && (receiveBufferPos < BUFFER_LENGTH)
+		 ( check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR )
+		 && ( receiveBufferPos < BUFFER_LENGTH )
 		 )
 	{
 		xSumChars[xSumCharsPos] = check_buffer[ receiveBufferPos ];
@@ -482,7 +488,7 @@ bool xSumCheck( char* check_buffer )
 
 	bool xSumMatches;
 
-	xSumMatches = (xSumAdderValue == xSumCharsValue);
+	xSumMatches = ( xSumAdderValue == xSumCharsValue );
 
 	return xSumMatches;
 
@@ -490,6 +496,7 @@ bool xSumCheck( char* check_buffer )
 
 
 // pulls the received information into buffers
+
 bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort, enum receive_status_enum *receive_current_state )
 {
 
@@ -528,7 +535,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	{
 		data_received = true;
 
-		if( (data == COMMAND_START_CHAR) && (*receive_current_state != enum_receive_status_in_command) )
+		if( ( data == COMMAND_START_CHAR ) && ( *receive_current_state != enum_receive_status_in_command ) )
 		{
 			*receive_current_state = enum_receive_status_in_command;
 			receive_buffer->read_position = 0;
@@ -542,14 +549,14 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 			receive_buffer->write_position++;
 			if( receive_buffer->write_position >= BUFFER_LENGTH )
 			{
-				receive_buffer->write_position = (BUFFER_LENGTH - 1);
+				receive_buffer->write_position = ( BUFFER_LENGTH - 1 );
 				// if we reach the end of the buffer, just keep overwriting the last character
 				// resetting to 0 will not help as it will overwrite the beginning of the message
 				// in contrast, the send buffer is circular and should reset to 0
 			}
 		}
 
-		if( (*receive_current_state == enum_receive_status_in_command) && (data == COMMAND_END_CHAR) )
+		if( ( *receive_current_state == enum_receive_status_in_command ) && ( data == COMMAND_END_CHAR ) )
 		{
 			*receive_current_state = enum_receive_status_end_command;
 		}
@@ -560,6 +567,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 }
 
 // Will send information through any port
+
 bool communicationsSend( struct buffer_struct *send_buffer, enum communications_port_enum communicationsPort )
 {
 	bool send_end;
@@ -601,6 +609,7 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 }
 
 // Handles Chip Select Functionality
+
 bool set_current_port( unsigned char *current_port )
 {
 	static bool enabledSPI = true;
@@ -616,7 +625,7 @@ bool set_current_port( unsigned char *current_port )
 	}
 	else
 	{
-		(*current_port)++;
+		( *current_port )++;
 		if( *current_port >= PORT_COUNT )
 		{
 			*current_port = 0;
@@ -649,6 +658,7 @@ bool set_current_port( unsigned char *current_port )
 
 
 // Passes received data strings into parsing functions
+
 bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer )
 {
 	bool end_of_transmission_received;
@@ -666,6 +676,7 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 }
 
 // Split the full strings into lists
+
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize )
 {
 	unsigned char parameter_position = 0;
@@ -685,10 +696,10 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 	}
 
 	while(
-		 (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR)
-		 && (buffer_to_parameterize->read_position < BUFFER_LENGTH)
-		 && (buffer_to_parameterize->read_position != buffer_to_parameterize->write_position)
-		 && (buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_XSUM_CHAR)
+		 ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR )
+		 && ( buffer_to_parameterize->read_position < BUFFER_LENGTH )
+		 && ( buffer_to_parameterize->read_position != buffer_to_parameterize->write_position )
+		 && ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_XSUM_CHAR )
 		 )
 	{
 		switch( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position] )
@@ -705,7 +716,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 				{
 					// if we run out of parameters just overwrite the last one
 					// we should never have this case, but this keeps us from crashing and burning
-					parameter_index = (PARAMETER_MAX_COUNT - 1);
+					parameter_index = ( PARAMETER_MAX_COUNT - 1 );
 				}
 
 				break;
@@ -717,7 +728,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 				{
 					// if our parameter is too long, just overwrite the last character
 					// we should never have this case, but this keeps us from crashing and burning
-					parameter_position = (PARAMETER_MAX_LENGTH - 1);
+					parameter_position = ( PARAMETER_MAX_LENGTH - 1 );
 				}
 				parameters[parameter_index][parameter_position] = CHAR_NULL;
 				break;
@@ -732,6 +743,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 }
 
 // Read all of the parameters to find out what the command says to do
+
 bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer )
 {
 	bool end_of_transmission_received = false;
@@ -1207,7 +1219,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			char energyUsedBuf[BUF_SIZE_LONG];
 			char powerWattsBuf[BUF_SIZE_LONG];
 
-			ltoa( energyEmergencyAdderBuf, (energyCycleAllocation_global + energyAdd_global), 10 );
+			ltoa( energyEmergencyAdderBuf, ( energyCycleAllocation_global + energyAdd_global ), 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
 
@@ -1220,6 +1232,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 	return end_of_transmission_received;
 }
+
 void command_builder1( struct buffer_struct *send_buffer, char* data1 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1232,6 +1245,7 @@ void command_builder1( struct buffer_struct *send_buffer, char* data1 )
 
 	return;
 }
+
 void command_builder2( struct buffer_struct *send_buffer, char* data1, char* data2 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1246,6 +1260,7 @@ void command_builder2( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void command_builder3( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1263,6 +1278,7 @@ void command_builder3( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void command_builder4( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1282,6 +1298,7 @@ void command_builder4( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void command_builder5( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1303,6 +1320,7 @@ void command_builder5( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void command_builder6( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1325,6 +1343,7 @@ void command_builder6( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void command_builder7( struct buffer_struct *send_buffer, char* data1, char* data2, char* data3, char* data4, char* data5, char* data6, char* data7 )
 {
 	command_builder_add_char( send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
@@ -1349,6 +1368,7 @@ void command_builder7( struct buffer_struct *send_buffer, char* data1, char* dat
 
 	return;
 }
+
 void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 {
 
@@ -1361,6 +1381,7 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 	command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 	return;
 }
+
 int command_builder_add_char( struct buffer_struct *send_buffer, char data )
 {
 	send_buffer->data_buffer[send_buffer->write_position] = data;
@@ -1373,6 +1394,7 @@ int command_builder_add_char( struct buffer_struct *send_buffer, char data )
 
 	return data;
 }
+
 int command_builder_add_string( struct buffer_struct *send_buffer, char *data_string )
 {
 	int xsum = 0;
@@ -1383,6 +1405,7 @@ int command_builder_add_string( struct buffer_struct *send_buffer, char *data_st
 	return xsum;
 
 }
+
 bool strmatch( char* a, char* b )
 {
 	int result;
@@ -1404,12 +1427,13 @@ bool strmatch( char* a, char* b )
 
 	return match;
 }
+
 int strcmp2( char* a, char* b )
 {
 	int inx = 0;
 	int match = 0;
 
-	while( (a[inx] != CHAR_NULL) && (b[inx] != CHAR_NULL) && (match == 0) )
+	while( ( a[inx] != CHAR_NULL ) && ( b[inx] != CHAR_NULL ) && ( match == 0 ) )
 	{
 		if( a[inx] > b[inx] )
 		{
@@ -1427,11 +1451,11 @@ int strcmp2( char* a, char* b )
 		inx++;
 	}
 
-	if( (a[inx] == CHAR_NULL) && (b[inx] != CHAR_NULL) )
+	if( ( a[inx] == CHAR_NULL ) && ( b[inx] != CHAR_NULL ) )
 	{
 		match = -1;
 	}
-	else if( (a[inx] != CHAR_NULL) && (b[inx] == CHAR_NULL) )
+	else if( ( a[inx] != CHAR_NULL ) && ( b[inx] == CHAR_NULL ) )
 	{
 		match = 1;
 	}
@@ -1439,6 +1463,7 @@ int strcmp2( char* a, char* b )
 
 	return match;
 }
+
 void fillOnOff( char *buf, int checkValue )
 {
 	if( checkValue == 0 )
@@ -1459,6 +1484,7 @@ void fillOnOff( char *buf, int checkValue )
 
 	return;
 }
+
 bool checkOnOff( char *toCheck )
 {
 	bool isOn = false;
@@ -1474,6 +1500,7 @@ bool checkOnOff( char *toCheck )
 
 	return isOn;
 }
+
 void zeroPad_itoa( char *output, int num, int minDigits )
 {
 	char temp[BUF_SIZE_INT];
@@ -1513,6 +1540,7 @@ void zeroPad_itoa( char *output, int num, int minDigits )
 
 	return;
 }
+
 bool SPI_receive_data_char( char *data )
 {
 	bool recvGood = false;
@@ -1546,6 +1574,7 @@ bool SPI_receive_data_char( char *data )
 //
 //    return recvGood;
 //}
+
 bool SPI_send_data_char( char data )
 {
 	bool sendGood = false;
@@ -1576,6 +1605,7 @@ bool SPI_send_data_char( char data )
 //
 //    return recvGood;
 //}
+
 bool UART1_receive_data_char( char *data )
 {
 	bool recvGood = false;
@@ -1597,6 +1627,7 @@ bool UART1_receive_data_char( char *data )
 
 	return recvGood;
 }
+
 bool UART1_send_data_char( char data )
 {
 	bool sendGood = false;
@@ -1609,6 +1640,7 @@ bool UART1_send_data_char( char data )
 
 	return sendGood;
 }
+
 bool UART2_receive_data_char( char *data )
 {
 	bool recvGood = false;
@@ -1623,6 +1655,7 @@ bool UART2_receive_data_char( char *data )
 
 	return recvGood;
 }
+
 bool UART2_send_data_char( char data )
 {
 	bool sendGood = false;
@@ -1639,12 +1672,14 @@ bool UART2_send_data_char( char data )
 
 /************************/
 // RESPONSES
+
 void send_end_of_transmission( struct buffer_struct * send_buffer )
 {
 	command_builder1( send_buffer, "END" );
 
 	return;
 }
+
 void commSPIInit( void )
 {
 
@@ -1698,6 +1733,7 @@ void commSPIInit( void )
 
 	return;
 }
+
 void uartInit( void )
 {
 
@@ -1705,6 +1741,7 @@ void uartInit( void )
 	initUART2( );
 
 }
+
 void initUART2( void )
 {
 	TRISBbits.TRISB1 = 1; // U2RX
@@ -1765,6 +1802,7 @@ void initUART2( void )
 
 	return;
 }
+
 void initUART1( void )
 {
 	TRISBbits.TRISB2 = 1; // U1RX
@@ -1828,7 +1866,8 @@ void initUART1( void )
 
 // this triggers when any data is received (through SPI1) 
 // and stores that data in a buffer for the main loop
-void __attribute__( (__interrupt__, __no_auto_psv__) ) _SPI1Interrupt( void )
+
+void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _SPI1Interrupt( void )
 {
 
 	// any global variables modified in an interrupt should be defined with the keyword 'volatile'
@@ -1856,7 +1895,8 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _SPI1Interrupt( void )
 
 // this triggers when any data is received (through UART1) 
 // and stores that data in a buffer for the main loop
-void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1RXInterrupt( void )
+
+void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U1RXInterrupt( void )
 {
 	// any global variables modified in an interrupt should be defined with the keyword 'volatile'
 	// look up 'volatile' keyword to understand why
@@ -1881,7 +1921,8 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1RXInterrupt( void )
 }
 
 // this is required to clear any errors that occur - without it things do not work right
-void __attribute__( (__interrupt__, __no_auto_psv__) ) _U2ErrInterrupt( void )
+
+void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U2ErrInterrupt( void )
 {
 	U2STAbits.PERR;
 	U2STAbits.FERR;
@@ -1893,7 +1934,8 @@ void __attribute__( (__interrupt__, __no_auto_psv__) ) _U2ErrInterrupt( void )
 }
 
 // this is required to clear any errors that occur - without it things do not work right
-void __attribute__( (__interrupt__, __no_auto_psv__) ) _U1ErrInterrupt( void )
+
+void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U1ErrInterrupt( void )
 {
 	U1STAbits.PERR;
 	U1STAbits.FERR;

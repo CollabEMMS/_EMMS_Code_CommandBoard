@@ -86,6 +86,7 @@ void ledSetAllOff( void );
  ****************/
 
 // Sets all of the LED I/O pins to be outputs from the pic
+
 void ledInit( void )
 {
 	LED1_DIR = 0;
@@ -97,6 +98,7 @@ void ledInit( void )
 }
 
 // Set an individual LED to be on or off
+
 void ledSet( int ledNum, int setValue )
 {
 	switch( ledNum )
@@ -119,6 +121,7 @@ void ledSet( int ledNum, int setValue )
 }
 
 // Set a specific LED to be on
+
 void ledSetOn( int ledNum )
 {
 	int setValue = 1;
@@ -129,6 +132,7 @@ void ledSetOn( int ledNum )
 }
 
 // Set a specific LED to be off
+
 void ledSetOff( int ledNum )
 {
 	int setValue = 0;
@@ -139,6 +143,7 @@ void ledSetOff( int ledNum )
 }
 
 // The same as ledSetOn, but only does something when the meter is in a debug mode
+
 void ledTestSetOn( int ledNum )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -150,6 +155,7 @@ void ledTestSetOn( int ledNum )
 }
 
 // The same as ledSetOff, but only does something when the meter is in a debug mode
+
 void ledTestSetOff( int ledNum )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -161,6 +167,7 @@ void ledTestSetOff( int ledNum )
 }
 
 // Set all of the LEDs at once
+
 void ledSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 {
 	ledSet( 1, led1Value );
@@ -172,6 +179,7 @@ void ledSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 }
 
 // Same as ledSetAll, but only does this while the meter is in it's debug mode
+
 void ledTestSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -183,6 +191,7 @@ void ledTestSetAll( int led1Value, int led2Value, int led3Value, int led4Value )
 }
 
 // Turn all the LEDs on
+
 void ledSetAllOn( void )
 {
 	ledSetAll( 1, 1, 1, 1 );
@@ -191,6 +200,7 @@ void ledSetAllOn( void )
 }
 
 // Turn all of the LEDs off
+
 void ledSetAllOff( void )
 {
 	ledSetAll( 0, 0, 0, 0 );
@@ -199,6 +209,7 @@ void ledSetAllOff( void )
 }
 
 // Turn all lights on, but only in debug mode
+
 void ledTestSetAllOn( void )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -210,6 +221,7 @@ void ledTestSetAllOn( void )
 }
 
 // Turn all lights off, but only in debug mode
+
 void ledTestSetAllOff( void )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -222,6 +234,7 @@ void ledTestSetAllOff( void )
 }
 
 // Toggle a particular LED (on->off or off->on)
+
 void ledToggle( int ledNum )
 {
 
@@ -260,6 +273,7 @@ void ledToggle( int ledNum )
 }
 
 // Toggles an LED, but only if the test mode is on
+
 void ledTestToggle( int ledNum )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -271,6 +285,7 @@ void ledTestToggle( int ledNum )
 }
 
 // Displays a specific sequence of lights
+
 void ledRunUp( int ledRunDelay )
 {
 
@@ -287,6 +302,7 @@ void ledRunUp( int ledRunDelay )
 }
 
 // Displays a specific sequence of lights
+
 void ledRunDown( int ledRunDelay )
 {
 
@@ -304,6 +320,7 @@ void ledRunDown( int ledRunDelay )
 }
 
 // Displays a specific sequence of lights
+
 void ledRun( int ledRunDelay )
 {
 	ledRunUp( ledRunDelay );
@@ -311,18 +328,19 @@ void ledRun( int ledRunDelay )
 }
 
 // Displays a basic bar graph of the remaining energy on the LEDs
+
 void ledSetFrontEnergyRemain( void )
 {
 	int percent;
 
 	unsigned long tempPowerUsed;
 
-	if( (LEDS_FOR_DEBUG != true) && (ledFindMeActive_global == false) )
+	if( ( LEDS_FOR_DEBUG != true ) && ( ledFindMeActive_global == false ) )
 	{
-		tempPowerUsed = (energyUsed_global.lifetime - energyUsed_global.lastReset);
+		tempPowerUsed = ( energyUsed_global.lifetime - energyUsed_global.lastReset );
 		if( energyCycleAllocation_global > tempPowerUsed )
 		{
-			percent = (100 * (energyCycleAllocation_global - tempPowerUsed)) / energyCycleAllocation_global;
+			percent = ( 100 * ( energyCycleAllocation_global - tempPowerUsed ) ) / energyCycleAllocation_global;
 		}
 		else
 		{
@@ -374,11 +392,12 @@ void ledSetFrontEnergyRemain( void )
 }
 
 // Made for finding a specific meter when multiple are set up. Mostly for wifi use
+
 void ledSetFrontFindMe( void )
 {
 	static int status = 0;
 
-	if( (LEDS_FOR_DEBUG != true) && (ledFindMeActive_global == true) )
+	if( ( LEDS_FOR_DEBUG != true ) && ( ledFindMeActive_global == true ) )
 	{
 		switch( status )
 		{
@@ -416,6 +435,7 @@ void ledSetFrontFindMe( void )
 }
 
 // Display an 8-bit character as two 4-bit values (flashes high bits, then low bits on LEDs)
+
 void ledTestShowChar( char showMe )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -424,7 +444,7 @@ void ledTestShowChar( char showMe )
 
 		for( int j = 0; j < 8; ++j )
 		{
-			b [j] = 0 != (showMe & (1 << j));
+			b [j] = 0 != ( showMe & ( 1 << j ) );
 		}
 
 		for( int inx = 0; inx < 3; inx++ )
@@ -452,6 +472,7 @@ void ledTestShowChar( char showMe )
 }
 
 // Similar to ledShowChar, but shows the last 8-bits of an integer. Should be used with the upper one too
+
 void ledTestShowIntL( int showMe )
 {
 	if( LEDS_FOR_DEBUG == true )
@@ -467,6 +488,7 @@ void ledTestShowIntL( int showMe )
 }
 
 // Similar to ledShowChar, but shows the first 8-bits of an integer. Should be used with the lower one too
+
 void ledTestShowIntH( int showMe )
 {
 	if( LEDS_FOR_DEBUG == true )

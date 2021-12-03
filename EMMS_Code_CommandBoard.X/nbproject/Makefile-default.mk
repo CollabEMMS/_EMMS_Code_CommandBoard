@@ -95,86 +95,86 @@ MP_LINKER_FILE_OPTION=,--script=p24FV32KA302.gld
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compile
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/PowerMain.o: PowerMain.c  .generated_files/flags/default/77c9f45d7870d43afefa980abb0e3968d50b2383 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/PowerMain.o: PowerMain.c  .generated_files/flags/default/d12bc1dc6597f798e6afa51794daba9eca8ed947 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/PowerMain.o.d 
 	@${RM} ${OBJECTDIR}/PowerMain.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  PowerMain.c  -o ${OBJECTDIR}/PowerMain.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/PowerMain.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/EEPROM.o: EEPROM.c  .generated_files/flags/default/1ccf93c9f65c569cde8dcddca6876339672b114a .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/EEPROM.o: EEPROM.c  .generated_files/flags/default/25d4ea2121cc2ec1b3e5d6b2bfd021f8ef1771fe .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/EEPROM.o.d 
 	@${RM} ${OBJECTDIR}/EEPROM.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  EEPROM.c  -o ${OBJECTDIR}/EEPROM.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/EEPROM.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/MasterComm.o: MasterComm.c  .generated_files/flags/default/8e357bf1f0df26b6f15da9ab50d59e5a8513e3fd .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/MasterComm.o: MasterComm.c  .generated_files/flags/default/4c0c021a2f7b93a668aed24f9c3d88803db28b84 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/MasterComm.o.d 
 	@${RM} ${OBJECTDIR}/MasterComm.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  MasterComm.c  -o ${OBJECTDIR}/MasterComm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/MasterComm.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/LEDControl.o: LEDControl.c  .generated_files/flags/default/15fd3fe24b7f4887188101c04504adb088b57315 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/LEDControl.o: LEDControl.c  .generated_files/flags/default/211c3e7b1082a10f46d07c5d20e35e10d02ffe3a .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/LEDControl.o.d 
 	@${RM} ${OBJECTDIR}/LEDControl.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  LEDControl.c  -o ${OBJECTDIR}/LEDControl.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/LEDControl.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/ResetReport.o: ResetReport.c  .generated_files/flags/default/8b979295b26489ab22078ed5743cb38932b3808a .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/ResetReport.o: ResetReport.c  .generated_files/flags/default/39aa89695632992ba19b603d9e4fad0e31379902 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/ResetReport.o.d 
 	@${RM} ${OBJECTDIR}/ResetReport.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  ResetReport.c  -o ${OBJECTDIR}/ResetReport.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/ResetReport.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/_ConfigPragma.o: _ConfigPragma.c  .generated_files/flags/default/49c4615fa15dcd0fa21c7d67039c06ffc03f3124 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/_ConfigPragma.o: _ConfigPragma.c  .generated_files/flags/default/a4351cb51cdd5b6799ba5c19beebc1eecd787399 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/_ConfigPragma.o.d 
 	@${RM} ${OBJECTDIR}/_ConfigPragma.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  _ConfigPragma.c  -o ${OBJECTDIR}/_ConfigPragma.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/_ConfigPragma.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/RTCC.o: RTCC.c  .generated_files/flags/default/9cf0086b29d40d9a203252e17cb92ef1ad399ce3 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/RTCC.o: RTCC.c  .generated_files/flags/default/76e97ccc22be4526d5a8d866157546d57c399a86 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/RTCC.o.d 
 	@${RM} ${OBJECTDIR}/RTCC.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  RTCC.c  -o ${OBJECTDIR}/RTCC.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/RTCC.o.d"      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
 else
-${OBJECTDIR}/PowerMain.o: PowerMain.c  .generated_files/flags/default/3204335b863fa534d633e656b5ae08d017870295 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/PowerMain.o: PowerMain.c  .generated_files/flags/default/1d8ec8c0f1c9991a50acfbf75c9dfbb1e01acd15 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/PowerMain.o.d 
 	@${RM} ${OBJECTDIR}/PowerMain.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  PowerMain.c  -o ${OBJECTDIR}/PowerMain.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/PowerMain.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/EEPROM.o: EEPROM.c  .generated_files/flags/default/9c89edbc799bae998bcd991cbad0163a0a706e3f .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/EEPROM.o: EEPROM.c  .generated_files/flags/default/530898c60017e699fe762ac421e8e8de08c8b288 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/EEPROM.o.d 
 	@${RM} ${OBJECTDIR}/EEPROM.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  EEPROM.c  -o ${OBJECTDIR}/EEPROM.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/EEPROM.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/MasterComm.o: MasterComm.c  .generated_files/flags/default/e028918f614b2d11efd26ae166163e2f164101c4 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/MasterComm.o: MasterComm.c  .generated_files/flags/default/359f982753a59e733b422b7c84999726a364e90f .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/MasterComm.o.d 
 	@${RM} ${OBJECTDIR}/MasterComm.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  MasterComm.c  -o ${OBJECTDIR}/MasterComm.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/MasterComm.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/LEDControl.o: LEDControl.c  .generated_files/flags/default/3bd64f7eaa8d68cc04f2472cea7a196a8001c773 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/LEDControl.o: LEDControl.c  .generated_files/flags/default/400cc2752135050f1641115bb269fa8e24b4716f .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/LEDControl.o.d 
 	@${RM} ${OBJECTDIR}/LEDControl.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  LEDControl.c  -o ${OBJECTDIR}/LEDControl.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/LEDControl.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/ResetReport.o: ResetReport.c  .generated_files/flags/default/b956152c8e2c7a5c1c49c2f357f5f50b241c6395 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/ResetReport.o: ResetReport.c  .generated_files/flags/default/c78fbf7ab72306e8bd6ed424cc552c70445cce36 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/ResetReport.o.d 
 	@${RM} ${OBJECTDIR}/ResetReport.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  ResetReport.c  -o ${OBJECTDIR}/ResetReport.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/ResetReport.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/_ConfigPragma.o: _ConfigPragma.c  .generated_files/flags/default/9041f6c1b0248d93e025eef6c114346292d0e6e9 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/_ConfigPragma.o: _ConfigPragma.c  .generated_files/flags/default/152d5deb258ea347d7f77e123b47148adc6489c7 .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/_ConfigPragma.o.d 
 	@${RM} ${OBJECTDIR}/_ConfigPragma.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  _ConfigPragma.c  -o ${OBJECTDIR}/_ConfigPragma.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/_ConfigPragma.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -std=gnu99 -O0 -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/PIC24F/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/support/generic/h" -I"C:/PROGRA~2/Microchip/xc16/v1.40/include" -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
-${OBJECTDIR}/RTCC.o: RTCC.c  .generated_files/flags/default/9c2adae4a3850b2f4476e491137a6096a49fb2fe .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
+${OBJECTDIR}/RTCC.o: RTCC.c  .generated_files/flags/default/9183ec83ac507462ab23982af8d4ffbf64557d1d .generated_files/flags/default/134520b63590fa964063cd5424fbfd9de18f6d5
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/RTCC.o.d 
 	@${RM} ${OBJECTDIR}/RTCC.o 

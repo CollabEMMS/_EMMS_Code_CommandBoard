@@ -1,5 +1,5 @@
 #ifndef I2C_RTCC_H
-#define	I2C_RTCC_H
+#    define	I2C_RTCC_H
 
 
 /****************
@@ -14,7 +14,7 @@
  these are the globals required by external c files
  there should be as few of these as possible to help keep things clean
  these are all 'extern' and require that the variable is declared in the c file
-  ****************/
+ ****************/
 
 
 
@@ -33,7 +33,7 @@
 
 // external only
 void rtccCopyI2CTime( void );
-void rtccInit( void);
+void rtccInit( void );
 
 void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *timePowerRestore );
 void rtccI2CReadTime( struct date_time *readDateTime );

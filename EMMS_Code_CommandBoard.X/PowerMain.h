@@ -6,7 +6,7 @@
  */
 
 #ifndef POWERMAIN_H
-#define	POWERMAIN_H
+#    define	POWERMAIN_H
 
 
 /****************
