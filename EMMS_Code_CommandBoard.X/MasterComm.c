@@ -462,7 +462,7 @@ void communicationsUART2( bool initialize )
 
 // Will check if the Checksum in a message is accurate to ensure accuracy
 
-bool xSumCheck( char* check_buffer )
+bool xSumCheck( char* checkBuffer )
 {
 	// calculate the xsum for the received command
 	//		ignore the starting '!' and everything including and after the xsum delimeter '$'
@@ -474,46 +474,57 @@ bool xSumCheck( char* check_buffer )
 
 	int receiveBufferPos;
 	int xSumAdderValue;
-	char xSumChars [7]; // size must be maximum size of int data type + null character
-	int xSumCharsPos;
-	int xSumCharsValue;
-
+	bool xSumMatches;
 
 	receiveBufferPos = 1; // start at one to skip the start '!' character in position 0
 	xSumAdderValue = 0;
-	xSumCharsPos = 0;
 
 	while(
-		 ( check_buffer[ receiveBufferPos ] != COMMAND_XSUM_CHAR )
-		 && ( check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR )
-		 && ( receiveBufferPos < BUFFER_LENGTH )
+		 ( receiveBufferPos < BUFFER_LENGTH ) // this check first - if it fails the other checks are not done - this makes sure the receiveBufferPos is never out of bounds
+		 && ( checkBuffer[ receiveBufferPos ] != COMMAND_XSUM_CHAR )
+		 && ( checkBuffer[ receiveBufferPos ] != COMMAND_END_CHAR )
 		 )
 	{
-		xSumAdderValue += check_buffer[ receiveBufferPos ];
+		xSumAdderValue += checkBuffer[ receiveBufferPos ];
 		receiveBufferPos++;
 	}
 
-	receiveBufferPos++; // add one to skip over the COMMAND_XSUM_CHAR 
-	xSumCharsPos = 0;
-	while(
-		 ( check_buffer[ receiveBufferPos ] != COMMAND_END_CHAR )
-		 && ( receiveBufferPos < BUFFER_LENGTH )
-		 )
+	if( checkBuffer[ receiveBufferPos ] == COMMAND_XSUM_CHAR )
 	{
-		xSumChars[xSumCharsPos] = check_buffer[ receiveBufferPos ];
-		xSumCharsPos++;
-		xSumChars[xSumCharsPos] = CHAR_NULL;
-		receiveBufferPos++;
+		char xSumChars [BUF_SIZE_INT]; // size must be maximum size of int data type + null character
+		int xSumCharsPos;
+		int xSumCharsValue;
+
+		receiveBufferPos++; // add one to skip over the COMMAND_XSUM_CHAR 
+		xSumCharsPos = 0;
+		xSumChars[xSumCharsPos] = CHAR_NULL; // make sure there is always a null termination so the atoi does not freak out
+
+		while(
+			 ( receiveBufferPos < BUFFER_LENGTH ) // this check first - if it fails the other checks are not done - this makes sure the receiveBufferPos is never out of bounds
+			 && ( checkBuffer[ receiveBufferPos ] != COMMAND_END_CHAR )
+			 )
+		{
+			xSumChars[xSumCharsPos] = checkBuffer[ receiveBufferPos ];
+			xSumCharsPos++;
+			if( xSumCharsPos >= BUF_SIZE_INT )
+			{
+				xSumCharsPos = ( BUF_SIZE_INT - 1 );
+			}
+			xSumChars[xSumCharsPos] = CHAR_NULL;
+			receiveBufferPos++;
+		}
+
+		xSumCharsValue = atoi( xSumChars );
+
+		xSumMatches = ( xSumAdderValue == xSumCharsValue );
 	}
-
-	xSumCharsValue = atoi( xSumChars );
-
-	bool xSumMatches;
-
-	xSumMatches = ( xSumAdderValue == xSumCharsValue );
+	else
+	{
+		xSumMatches = false; // if we set to true here we can handle commands without a xsum
+		// but this could also allow mangled commands to come through
+	}
 
 	return xSumMatches;
-
 }
 
 
@@ -726,8 +737,8 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 	}
 
 	while(
-		 ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR )
-		 && ( buffer_to_parameterize->read_position < BUFFER_LENGTH )
+		 ( buffer_to_parameterize->read_position < BUFFER_LENGTH )	 // this check first - if it fails the other checks are not done - this makes sure the receiveBufferPos is never out of bounds
+		 && ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_END_CHAR )
 		 && ( buffer_to_parameterize->read_position != buffer_to_parameterize->write_position )
 		 && ( buffer_to_parameterize->data_buffer[buffer_to_parameterize->read_position ] != COMMAND_XSUM_CHAR )
 		 )
