@@ -71,18 +71,52 @@
  do not include macros that are only used internally within this module
  ****************/
 
+/***********************
+	LEDS for debugging
+	disables normal program LED use (for the power remaining bar graph)
+	allows LED testing functions to be used
+	set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
+ *************************/
 
-// LEDs for power remaining indicator
-// can also be used for debugging
 #    define LEDS_FOR_DEBUG false
-// set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
 
-// Error Trap Interrupts
-// when true - this will hide most memory errors
-// just hiding the error is not good as there could be bigger underlying problems which cause other issues
-// this should only be set to true for production builds
-// if there is a reset error, these traps can also be used to find what is causing it by setting a breakpoint and debugging the program line-by-line
+
+/******************
+	Error Trap Interrupts
+	when true - this will hide most memory errors
+	just hiding the error is not good as there could be bigger underlying problems which cause other issues
+	this should only be set to true for production builds
+	if there is a reset error, these traps can also be used to find what is causing it by setting a breakpoint and debugging the program line-by-line
+ *****************/
 #    define ERROR_TRAP_INTERRUPTS_ACTIVE false
+
+/***********************
+	IDE Debug Mode
+	Allows the MPLAB X IDE to be run in debugging mode
+		view memory
+		view variable values
+		step the program line-by-line
+	Requires PIC24 pins 4 & 5 - shared pins with other functions
+		UART2 TX & RX
+		RB0 and RB1 general input/output
+		PGED1 and PGEC1 programming pins (required for debugging)
+	UART2 cannot be used
+		this is the top port on the CommandBoard PCB
+		The MAX488 chip cannot be installed for this port (top chip location)
+		If it is installed, traces must be cut to disconnect the chip from PIC pins 4 & 5 must be cut
+	All UART2 code must be removed from the compile
+ 
+	Set IDE_DEBUG_ENABLE to true to disable UART2 and enable debug mode
+		UART2_ENABLE is set automatically
+ ************************/
+#    define IDE_DEBUG_ENABLE false
+
+#    if IDE_DEBUG_ENABLE == true
+#        define UART2_ENABLE false
+#    else
+#        define UART2_ENABLED true
+#    endif
+
 
 
 #    define CHAR_NULL '\0'   //yes, used in many many places

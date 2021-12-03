@@ -74,6 +74,22 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
+12/3/2021	TBA
+***************
+	Feature
+		Error Trap Interrupts
+		Captures most errors which cause a meter reset
+		Simply clears the error and continues where it left off
+		Potential that corrupted data is introduced, but should clear itself out
+	Feature
+		IDE Debug Mode
+		One can now use the debug mode of the IDE to debug the program
+		This allows viewing of memory and variables and stepping the program line by line
+		requires that UART2 be disconnected and completely removed from the program code as the UART TX and RX are used by the debugger PICKit
+
+
+
+
 11/26/2021  TBA
 **************
     BugFix
