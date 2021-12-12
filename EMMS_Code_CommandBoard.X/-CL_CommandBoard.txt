@@ -74,6 +74,17 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
+12/12/2021	TBA
+**************
+	Bugfix
+		The SPI port receive wait timeout was not working correctly
+			Ignoring 0x00 (NULL) on the initial character receive
+			The initial design assumed that 0x00 would never be received - even if a module was not connected
+			This was true for the most part until something was hooked up which held the MISO line high (with nothing else driving it) - resulting in 0x00
+			This prevented the SPI wait timeout counters from incrementing and prevented the communication code from moving to the next SPI port
+			The NULL is now received as a valid character received, but ignored when processed to add to the receive buffer
+		
+
 12/3/2021	TBA
 ***************
 	Feature
