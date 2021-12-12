@@ -276,7 +276,6 @@ void communicationsSPI( bool initialize )
 	{
 		case enum_receive_status_waiting:
 			// count # of times we are waiting for COMMAND_START_CHAR !
-
 			if( data_received == true )
 			{
 				receive_wait_count++;
@@ -426,7 +425,7 @@ void communicationsUART2( bool initialize )
 		receive_current_state = enum_receive_status_waiting;
 	}
 
-	receive_current_state = communicationsRecv( &receive_buffer, &send_buffer, enum_port_commUART2, &receive_current_state );
+	communicationsRecv( &receive_buffer, &send_buffer, enum_port_commUART2, &receive_current_state );
 
 	bool end_of_transmission_received;
 
@@ -572,33 +571,37 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 	{
 		data_received = true;
 
-		if( ( data == COMMAND_START_CHAR ) && ( *receive_current_state != enum_receive_status_in_command ) )
+		// do not process NULLs
+		// but we need to allow the program to get to this point so the data_received variable can be set so the port timeout works like it should
+		if( data != CHAR_NULL )
 		{
-			*receive_current_state = enum_receive_status_in_command;
-			receive_buffer->read_position = 0;
-			receive_buffer->write_position = 0;
-		}
-
-		if( *receive_current_state == enum_receive_status_in_command )
-		{
-			receive_buffer->data_buffer[ receive_buffer->write_position] = data;
-
-			receive_buffer->write_position++;
-			if( receive_buffer->write_position >= BUFFER_LENGTH )
+			if( ( data == COMMAND_START_CHAR ) && ( *receive_current_state != enum_receive_status_in_command ) )
 			{
-				receive_buffer->write_position = ( BUFFER_LENGTH - 1 );
-				// if we reach the end of the buffer, just keep overwriting the last character
-				// resetting to 0 will not help as it will overwrite the beginning of the message
-				// in contrast, the send buffer is circular and should reset to 0
+				*receive_current_state = enum_receive_status_in_command;
+				receive_buffer->read_position = 0;
+				receive_buffer->write_position = 0;
+			}
+
+			if( *receive_current_state == enum_receive_status_in_command )
+			{
+				receive_buffer->data_buffer[ receive_buffer->write_position ] = data;
+
+				receive_buffer->write_position++;
+				if( receive_buffer->write_position >= BUFFER_LENGTH )
+				{
+					receive_buffer->write_position = ( BUFFER_LENGTH - 1 );
+					// if we reach the end of the buffer, just keep overwriting the last character
+					// resetting to 0 will not help as it will overwrite the beginning of the message
+					// in contrast, the send buffer is circular and should reset to 0
+				}
+			}
+
+			if( ( *receive_current_state == enum_receive_status_in_command ) && ( data == COMMAND_END_CHAR ) )
+			{
+				*receive_current_state = enum_receive_status_end_command;
 			}
 		}
-
-		if( ( *receive_current_state == enum_receive_status_in_command ) && ( data == COMMAND_END_CHAR ) )
-		{
-			*receive_current_state = enum_receive_status_end_command;
-		}
 	}
-
 	// maybe we do not need to return the status since we modify the function variable
 	return data_received;
 }
@@ -1589,11 +1592,10 @@ bool SPI_receive_data_char( char *data )
 	if( SPIRecvBufferReadPos_module != SPIRecvBufferWritePos_module )
 	{
 		*data = SPIRecvBuffer_module[SPIRecvBufferReadPos_module];
-		if( *data != CHAR_NULL )
-		{
-			recvGood = true;
-		}
+		recvGood = true;
+
 		SPIRecvBufferReadPos_module++;
+
 		if( SPIRecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
 		{
 			SPIRecvBufferReadPos_module = 0;
@@ -1929,14 +1931,11 @@ void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _SPI1Interrupt( void )
 
 	recvChar = SPI1BUF;
 
-	if( recvChar != CHAR_NULL )
+	SPIRecvBuffer_module[SPIRecvBufferWritePos_module] = recvChar;
+	SPIRecvBufferWritePos_module++;
+	if( SPIRecvBufferWritePos_module >= BUFFER_LENGTH_RECV )
 	{
-		SPIRecvBuffer_module[SPIRecvBufferWritePos_module] = recvChar;
-		SPIRecvBufferWritePos_module++;
-		if( SPIRecvBufferWritePos_module >= BUFFER_LENGTH_RECV )
-		{
-			SPIRecvBufferWritePos_module = 0;
-		}
+		SPIRecvBufferWritePos_module = 0;
 	}
 
 	return;
