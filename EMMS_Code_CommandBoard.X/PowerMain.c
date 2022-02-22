@@ -82,7 +82,6 @@ volatile unsigned long msTimer_module; // toggles to 1 every ms, resets to 0 at 
 struct energy_info energyUsed_global; // energy status of the system
 struct date_time dateTime_global; // the current date time - periodically pulled from RTCC
 struct alarm_info alarms_global; // alarms
-int energyAdd_global; // how much energy has been added to this cycle
 unsigned long energyCycleAllocation_global; // how much energy is allocated per cycle
 struct reset_time resetTime_global; // hour and minute of the cycle reset
 bool relayActive_global; // is the relay active
@@ -672,7 +671,6 @@ void dailyReset( void )
 
 	energyUsed_global.previousCycleUsed = energyUsed_global.lifetime - energyUsed_global.lastReset;
 	energyUsed_global.lastReset = energyUsed_global.lifetime;
-	energyAdd_global = 0;
 
 	eeWriteEnergyTotalsNew( energyUsed_global );
 
@@ -746,7 +744,7 @@ void relayControl( void )
 	{
 		if( relayActive_global )
 		{
-			if( tempEnergyUsed < ( energyCycleAllocation_global + energyAdd_global ) )
+			if( tempEnergyUsed < ( energyCycleAllocation_global ) )
 			{
 				PORT_WRITE_RELAY = 1;
 			}

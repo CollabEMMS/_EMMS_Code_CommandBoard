@@ -62,7 +62,7 @@
 
 
 // internal only
-
+int tempEnergyAdd = 0; // used to add the power allocation from the UI to energyCycleAllocation_global
 
 // character receiving buffers (internal)
 volatile char SPIRecvBuffer_module[BUFFER_LENGTH_RECV];
@@ -1033,10 +1033,12 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		else if( strmatch( parameters[1], "AllAdd" ) == true )
 		{
 
-			energyAdd_global = atoi( parameters[2] );
+			tempEnergyAdd = atoi( parameters[2] );
 
 			char buf[BUF_SIZE_INT];
-			itoa( buf, energyAdd_global, 10 );
+			itoa( buf, tempEnergyAdd, 10 );
+            
+            energyCycleAllocation_global += tempEnergyAdd;
 
 			command_builder3( send_buffer, "Conf", "AllAdd", buf );
 
@@ -1263,7 +1265,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			char energyUsedBuf[BUF_SIZE_LONG];
 			char powerWattsBuf[BUF_SIZE_LONG];
 
-			ltoa( energyEmergencyAdderBuf, ( energyCycleAllocation_global + energyAdd_global ), 10 );
+			ltoa( energyEmergencyAdderBuf, ( energyCycleAllocation_global ), 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
 
