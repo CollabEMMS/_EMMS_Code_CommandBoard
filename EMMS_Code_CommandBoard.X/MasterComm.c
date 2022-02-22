@@ -62,7 +62,6 @@
 
 
 // internal only
-int tempEnergyAdd = 0; // used to add the power allocation from the UI to energyCycleAllocation_global
 
 // character receiving buffers (internal)
 volatile char SPIRecvBuffer_module[BUFFER_LENGTH_RECV];
@@ -1032,6 +1031,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		}
 		else if( strmatch( parameters[1], "AllAdd" ) == true )
 		{
+
+            int tempEnergyAdd; // used to add the power allocation from the UI to energyCycleAllocation_global
 
 			tempEnergyAdd = atoi( parameters[2] );
 
