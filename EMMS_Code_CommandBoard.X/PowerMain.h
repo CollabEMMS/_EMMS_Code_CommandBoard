@@ -28,7 +28,7 @@ extern struct date_time dateTime_global;
 extern struct alarm_info alarms_global;
 extern unsigned long energyCycleAllocation_global;
 extern struct reset_time resetTime_global;
-extern bool relayActive_global;
+extern unsigned int relayMode_global;
 extern struct emergency_button emergencyButton_global;
 
 extern unsigned long powerWatts_global;
