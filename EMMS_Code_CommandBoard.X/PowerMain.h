@@ -26,7 +26,6 @@
 extern struct energy_info energyUsed_global;
 extern struct date_time dateTime_global;
 extern struct alarm_info alarms_global;
-extern int energyAdd_global;
 extern unsigned long energyCycleAllocation_global;
 extern struct reset_time resetTime_global;
 extern bool relayActive_global;
