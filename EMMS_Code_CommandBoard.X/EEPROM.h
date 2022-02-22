@@ -54,7 +54,7 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData );
 unsigned long eeReadEnergyUsedNew( );
 void eeWriteEnergyLifetimeNew( unsigned long energyUsedLifetime );
 
-bool eeReadRelayNew( );
+unsigned int eeReadRelayNew( );
 void eeWriteRelayNew( bool relay );
 
 bool eeReadRTCCIsSet( );
