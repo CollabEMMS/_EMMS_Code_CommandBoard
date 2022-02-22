@@ -39,6 +39,7 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 void rtccI2CReadTime( struct date_time *readDateTime );
 void rtccI2CSetTime( struct date_time *setDateTime );
 
+void getResetTimes( struct date_time *timeFail, struct date_time *timeRestore );
 
 
 
