@@ -744,7 +744,7 @@ void relayControl( void )
 	{
 		if( relayActive_global )
 		{
-			if( tempEnergyUsed < ( energyCycleAllocation_global ) )
+			if( tempEnergyUsed < energyCycleAllocation_global )
 			{
 				PORT_WRITE_RELAY = 1;
 			}

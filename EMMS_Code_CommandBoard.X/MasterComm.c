@@ -1265,7 +1265,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			char energyUsedBuf[BUF_SIZE_LONG];
 			char powerWattsBuf[BUF_SIZE_LONG];
 
-			ltoa( energyEmergencyAdderBuf, ( energyCycleAllocation_global ), 10 );
+			ltoa( energyEmergencyAdderBuf, energyCycleAllocation_global, 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
 
