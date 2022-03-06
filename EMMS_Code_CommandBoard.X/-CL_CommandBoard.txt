@@ -74,6 +74,14 @@ CURRENT STATUS
  UI last power failure - not working right now
 
 
+3/5/2021	TBA
+*************
+	Bugfix
+		Emergency power allocation from UI fixed.
+	Bugfix
+		Relay Control now Off/On/Auto
+		
+
 12/12/2021	TBA
 **************
 	Bugfix
