@@ -33,6 +33,12 @@
 
 
 // external and internal
+#if defined UART2_DEBUG_OUTPUT
+void commDebugPrintString( char *data  );
+void commDebugPrintStringln( char *data );
+void commDebugPrintLong( long data );
+#endif
+
 
 // external only
 void commInit( );

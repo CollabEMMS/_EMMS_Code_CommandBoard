@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "PowerMain.h"
+#include "MasterComm.h"
 #include "EEPROM.h"
 
 #include "LEDControl.h"
@@ -762,6 +763,8 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 	//  then the clock chip registers are cleared
 	// the second and later times this function is called we simply return what is in the static variables
 
+	commDebugPrintStringln( "Start Get power times" );
+
 	static bool firstRun = true;
 
 	// TODO implement AM/PM and Military timekeeping
@@ -792,7 +795,6 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 	{
 		firstRun = false;
 		StartI2C( );
-
 
 
 		// Read these bits in the RTCC (names are equivalent to register values)
@@ -938,6 +940,8 @@ void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *t
 	}
 
 	//    timePowerRestore->year = 0;
+	commDebugPrintStringln( "End Get power times" );
+
 	return;
 }
 

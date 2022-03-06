@@ -14,7 +14,8 @@
 /****************
  MACROS
  ****************/
-#define BAUD_UART   9600    // set the baud rate as close to this as practical
+#define BAUD_UART1   9600    // set the baud rate as close to this as practical
+#define BAUD_UART2   57600    // set the baud rate as close to this as practical
 #define BAUD_SPI    9600    // set the clock rate as close to this as possible
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
@@ -73,6 +74,13 @@ volatile char UART1RecvBuffer_module[BUFFER_LENGTH_RECV];
 volatile int UART1RecvBufferReadPos_module = 0;
 volatile int UART1RecvBufferWritePos_module = 0;
 
+#ifdef UART2_MODULE
+// character receiving buffers (internal)
+volatile char UART2RecvBuffer_module[BUFFER_LENGTH_RECV];
+volatile int UART2RecvBufferReadPos_module = 0;
+volatile int UART2RecvBufferWritePos_module = 0;
+#endif
+
 enum receive_status_enum
 {
     enum_receive_status_waiting,
@@ -84,7 +92,7 @@ enum communications_port_enum
 {
     enum_port_commSPI,
     enum_port_commUART1,
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
     enum_port_commUART2,
 #endif
 };
@@ -130,7 +138,7 @@ bool UART1_receive_data_char( char * );
 bool UART1_receive_all_data_char( char *data );
 bool UART1_send_data_char( char data );
 
-#if UART2_ENABLE == true
+#if defined UART2_MODULE || defined UART2_DEBUG_OUTPUT
 bool UART2_receive_data_char( char * );
 bool UART2_send_data_char( char data );
 #endif
@@ -151,7 +159,7 @@ void send_end_of_transmission( struct buffer_struct *send_buffer );
 void communicationsSPI( bool initialize );
 void communicationsUART1( bool initialize );
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
 void communicationsUART2( bool initialize );
 #endif
 
@@ -161,13 +169,20 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 void uartInit( void );
 void commSPIInit( void );
 
-#if UART2_ENABLE == true
+#if defined UART2_MODULE || defined UART2_DEBUG_OUTPUT
 void initUART2( void );
 #endif
 
 void initUART1( void );
 
 bool xSumCheck( char* check_buffer );
+
+
+#if defined UART2_DEBUG_OUTPUT
+void commDebugPrintString( char *data  );
+void commDebugPrintStringln( char *data );
+void commDebugPrintLong( long data );
+#endif
 
 /****************
  CODE
@@ -190,7 +205,7 @@ void commInit( )
 
     communicationsUART1( initialize );
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
     communicationsUART2( initialize );
 #endif
 
@@ -208,7 +223,7 @@ void commRunRoutine( )
 
     communicationsUART1( initialize ); // This one works (Lower RJ45)
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
     communicationsUART2( initialize ); // This one no worky (Upper RJ45)
 #endif
 
@@ -405,7 +420,7 @@ void communicationsUART1( bool initialize )
     return;
 }
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
 // Handles the UART functionality for UART2, for the the initial and the continuous running processes
 
 void communicationsUART2( bool initialize )
@@ -558,7 +573,7 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
             gotSomething = UART1_receive_data_char( &data );
             break;
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
         case enum_port_commUART2:
             gotSomething = UART2_receive_data_char( &data );
             break;
@@ -630,7 +645,7 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
                 data_sent = UART1_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
                 break;
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
             case enum_port_commUART2:
                 data_sent = UART2_send_data_char( send_buffer->data_buffer[send_buffer->read_position] );
                 break;
@@ -1724,23 +1739,32 @@ bool UART1_send_data_char( char data )
     return sendGood;
 }
 
-#if UART2_ENABLE == true
+#ifdef UART2_MODULE
 
 bool UART2_receive_data_char( char *data )
 {
     bool recvGood = false;
 
 
-    // TODO UART2 receive buffer to use interrupt temp buffer
-    if ( U2STAbits.URXDA == 1 )
+    if ( UART2RecvBufferReadPos_module != UART2RecvBufferWritePos_module )
     {
-        *data = U2RXREG;
-        recvGood = true;
+        *data = UART2RecvBuffer_module[UART2RecvBufferReadPos_module];
+        if ( *data != CHAR_NULL )
+        {
+            recvGood = true;
+        }
+        UART2RecvBufferReadPos_module++;
+        if ( UART2RecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
+        {
+            UART2RecvBufferReadPos_module = 0;
+        }
     }
 
     return recvGood;
 }
+#endif
 
+#if defined UART2_MODULE || defined UART2_DEBUG_OUTPUT
 bool UART2_send_data_char( char data )
 {
     bool sendGood = false;
@@ -1824,13 +1848,13 @@ void uartInit( void )
 
     initUART1( );
 
-#if UART2_ENABLE == true
+#if defined UART2_MODULE || defined UART2_DEBUG_OUTPUT
     initUART2( );
 #endif
 
 }
 
-#if UART2_ENABLE == true
+#if defined UART2_MODULE || defined UART2_DEBUG_OUTPUT
 
 void initUART2( void )
 {
@@ -1847,7 +1871,7 @@ void initUART2( void )
     // without really knowing it
     unsigned long tempBaud;
 
-    tempBaud = BAUD_UART * 16ul; // must explicitly make unsigned long
+    tempBaud = BAUD_UART2 * 16ul; // must explicitly make unsigned long
     tempBaud = FCY / tempBaud;
     tempBaud = tempBaud - 1;
 
@@ -1909,7 +1933,7 @@ void initUART1( void )
     // without really knowing it
     unsigned long tempBaud;
 
-    tempBaud = BAUD_UART * 16ul; // must explicitly make unsigned long
+    tempBaud = BAUD_UART1 * 16ul; // must explicitly make unsigned long
     tempBaud = FCY / tempBaud;
     tempBaud = tempBaud - 1;
 
@@ -2008,6 +2032,32 @@ void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U1RXInterrupt( void )
     return;
 }
 
+#ifdef UART2_MODULE
+void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U2RXInterrupt( void )
+{
+    // any global variables modified in an interrupt should be defined with the keyword 'volatile'
+    // look up 'volatile' keyword to understand why
+
+    unsigned char recvChar = 1;
+
+    _U2RXIF = 0; // clear interrupt flag
+
+    recvChar = U2RXREG;
+
+    if ( recvChar != CHAR_NULL )
+    {
+        UART2RecvBuffer_module[UART1RecvBufferWritePos_module] = recvChar;
+        UART2RecvBufferWritePos_module++;
+        if ( UART2RecvBufferWritePos_module >= BUFFER_LENGTH_RECV )
+        {
+            UART2RecvBufferWritePos_module = 0;
+        }
+    }
+
+    return;
+}
+#endif
+
 // this is required to clear any errors that occur - without it things do not work right
 
 void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U2ErrInterrupt( void )
@@ -2033,3 +2083,54 @@ void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _U1ErrInterrupt( void )
 
     return;
 }
+
+#ifdef UART2_DEBUG_OUTPUT
+void commDebugPrintLong( long data )
+{
+	char buffer[BUF_SIZE_LONG];
+	
+	ltoa( buffer, data, 10);
+	
+	commDebugPrintString( buffer );
+	
+	return;
+}
+
+void commDebugPrintStringln( char *data )
+{
+	commDebugPrintString( data );
+	commDebugPrintString( "\n" );
+	
+	return;
+}
+
+void commDebugPrintString( char *data  )
+{
+	char *thisChar;
+	
+	thisChar = data;
+	
+	while( *thisChar != CHAR_NULL )
+	{
+		if( UART2_send_data_char( *thisChar ) == true)
+		{
+			thisChar++;
+		}
+	}
+			
+	return;
+}
+#endif
+
+//
+//#ifdef UART2_DEBUG_OUTPUT
+//here goes functions to direct output to UART2
+//
+//How can we handle multiple data types
+//or how to handle variable number of parameters
+//		
+//or do we simple just print strings with helper functions to make numbers into strings
+//		
+//		
+//		
+//#endif

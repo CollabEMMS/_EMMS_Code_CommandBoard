@@ -143,7 +143,7 @@ int main( void )
     // set all ports as input by default
     TRISA = 0b1111111111111111; // this is equivalent to setting all of the individual bits
 
-#if IDE_DEBUG_ENABLE == true
+#if defined UART2_DEBUG_IDE || defined UART2_DEBUG_OUTPUT	
     // need to leave B0 and B1 alone for debug mode
     TRISBbits.TRISB2 = 1;
     TRISBbits.TRISB3 = 1;
@@ -163,10 +163,10 @@ int main( void )
     TRISB = 0b1111111111111111; // 0b1111111111111111 = 0xFFFF
 #endif	
 
-
     // set all ports to low by default to start
     PORTA = 0b0000000000000000; // this is equivalent to setting all of the individual bits
-#if IDE_DEBUG_ENABLE == true
+
+#if defined UART2_DEBUG_IDE || defined UART2_DEBUG_OUTPUT	
     // need to leave B0 and B1 alone for debug mode
     PORTBbits.RB2 = 0;
     PORTBbits.RB3 = 0;
@@ -193,6 +193,10 @@ int main( void )
 
     ledSetAllOff( );
 
+    commInit( );
+	commDebugPrintStringln( "\n\nStartup" );
+    ledSetAll( 1, 0, 1, 1 );
+
     init( );
     ledSetAll( 1, 0, 0, 0 );
 
@@ -202,10 +206,6 @@ int main( void )
 
     powerOnCheckForAllocationReset( );
     ledSetAll( 1, 0, 1, 0 );
-
-    commInit( );
-    ledSetAll( 1, 0, 1, 1 );
-
 
     // all good - send the all good signal
     for ( int inx = 0; inx < 5; inx++ )
@@ -220,6 +220,8 @@ int main( void )
 
     rtccCopyI2CTime( );
 
+	commDebugPrintStringln( "\nEnd startup");
+	
     while ( true )
     {
 

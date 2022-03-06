@@ -91,31 +91,58 @@
 #    define ERROR_TRAP_INTERRUPTS_ACTIVE false
 
 /***********************
-	IDE Debug Mode
-	Allows the MPLAB X IDE to be run in debugging mode
-		view memory
-		view variable values
-		step the program line-by-line
-	Requires PIC24 pins 4 & 5 - shared pins with other functions
-		UART2 TX & RX
-		RB0 and RB1 general input/output
-		PGED1 and PGEC1 programming pins (required for debugging)
-	UART2 cannot be used
-		this is the top port on the CommandBoard PCB
-		The MAX488 chip cannot be installed for this port (top chip location)
-		If it is installed, traces must be cut to disconnect the chip from PIC pins 4 & 5 must be cut
-	All UART2 code must be removed from the compile
+	UART2 Modes
+	******************
+	UART2_MODULE
+		Regular meter communication over UART2
+	UART2_DEBUG_IDE
+		IDE Debug Mode
+		Allows the MPLAB X IDE to be run in debugging mode
+			view memory
+			view variable values
+			step the program line-by-line
+		Requires PIC24 pins 4 & 5 - shared pins with other functions
+			UART2 TX & RX
+			RB0 and RB1 general input/output
+			PGED1 and PGEC1 programming pins (required for debugging)
+		UART2 cannot be used
+			this is the top port on the CommandBoard PCB
+			The MAX488 chip cannot be installed for this port (top chip location)
+			If it is installed, traces must be cut to disconnect the chip from PIC pins 4 & 5 must be cut
+		All UART2 code must be removed from the compile
+	UART2_DEBUG_OUTPUT
+		Use UART2 for general output of debug information
+		Connect UART2 TX to input of reader PIC24 pin 4 - RB0
+		Connect UART2 ground 
  
-	Set IDE_DEBUG_ENABLE to true to disable UART2 and enable debug mode
-		UART2_ENABLE is set automatically
+	UART2 Control
+		Module Communication	UART2_MODULE
+		IDE_DEBUG from PicKit	UART2_DEBUG_IDE
+		UART2 Debug output		UART2_DEBUG_OUTPUT
+ Only one can be uncommented at a time
+ 
  ************************/
-#    define IDE_DEBUG_ENABLE false
+//#define UART2_MODULE
+//#define UART2_DEBUG_IDE
+#define UART2_DEBUG_OUTPUT
 
-#    if IDE_DEBUG_ENABLE == true
-#        define UART2_ENABLE false
-#    else
-#        define UART2_ENABLED true
-#    endif
+#if !defined UART2_MODULE && !defined UART2_DEBUG_IDE && !defined UART2_DEBUG_OUTPUT
+#error One UART2 option must be defined
+#endif
+
+#if (defined UART2_MODULE && defined UART2_DEBUG_IDE) || ( defined UART2_MODULE && defined UART2_DEBUG_OUTPUT ) || ( defined UART2_DEBUG_IDE && defined UART2_DEBUG_OUTPUT )
+#error More than one UART2 option defined - only one can be defined at a time
+#endif
+
+
+//
+//#    define IDE_DEBUG_ENABLE false
+//
+//#    if IDE_DEBUG_ENABLE == true
+//#        define UART2_ENABLE false
+//#    else
+//#        define UART2_ENABLED true
+//#    endif
 
 
 
