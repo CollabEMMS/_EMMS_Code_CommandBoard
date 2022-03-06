@@ -73,6 +73,13 @@ CURRENT STATUS
  UI statistics - not working right now
  UI last power failure - not working right now
 
+3/6/2022	TBA
+**********
+	Feature
+		Updated UART2 handling to offer:
+			UART2_MODULE			module communication
+			UART2_DEBUG_IDE			debugging using the PicKit
+			UART2_DEBUG_OUTPUT		debugging by printing to the UART2
 
 3/5/2021	TBA
 *************
