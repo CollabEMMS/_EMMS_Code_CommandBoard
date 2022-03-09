@@ -35,16 +35,15 @@
 void rtccCopyI2CTime( void );
 void rtccInit( void );
 
-void rtccI2CReadPowerTimes( struct date_time *timePowerFail, struct date_time *timePowerRestore );
-void rtccI2CReadTime( struct date_time *readDateTime );
-void rtccI2CSetTime( struct date_time *setDateTime );
-
-void getResetTimes( struct date_time *timeFail, struct date_time *timeRestore );
+void rtccGetPowerTimes( struct date_time_struct *timePowerDown, struct date_time_struct *timePowerUp  );
+void rtccI2CReadPowerTimes( struct date_time_struct *timePowerFail, struct date_time_struct *timePowerRestore );
+void rtccI2CReadTime( struct date_time_struct *readDateTime );
+void rtccI2CSetTime( struct date_time_struct *setDateTime );
 
 
 
 // RTCC Internal
-void rtccReadTime( struct date_time *readDateTime );
+void rtccReadTime( struct date_time_struct *readDateTime );
 
 
 

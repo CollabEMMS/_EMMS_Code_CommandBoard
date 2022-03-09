@@ -37,6 +37,7 @@
 void commDebugPrintString( char *data  );
 void commDebugPrintStringln( char *data );
 void commDebugPrintLong( long data );
+void commDebugPrintChar( char data );
 #endif
 
 
