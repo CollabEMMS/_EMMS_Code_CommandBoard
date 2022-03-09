@@ -153,18 +153,15 @@
  define the structures here
  ***************/
 
-struct date_time
+struct date_time_struct
 {
 	unsigned int year;
 	char month;
-	char monthTens;
 	char day;
-	char dayTens;
 	char hour;
-	char hourTens;
 	char minute;
-	char minuteTens;
 	char second;
+	bool valid;
 };
 
 struct alarm_info
