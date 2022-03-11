@@ -78,7 +78,7 @@
 	set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
  *************************/
 
-#    define LEDS_FOR_DEBUG false
+#    define LEDS_FOR_DEBUG true
 
 
 /******************

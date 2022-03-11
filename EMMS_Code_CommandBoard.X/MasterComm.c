@@ -14,9 +14,9 @@
 /****************
  MACROS
  ****************/
-#define BAUD_UART1   9600    // set the baud rate as close to this as practical
+#define BAUD_UART1   19200    // set the baud rate as close to this as practical
 #define BAUD_UART2   57600    // set the baud rate as close to this as practical
-#define BAUD_SPI    9600    // set the clock rate as close to this as possible
+//#define BAUD_SPI    9600    // set the clock rate as close to this as possible
 // be aware that the SPI clock is not calculated based off this
 // the init function needs modified directly
 
@@ -312,7 +312,10 @@ void communicationsSPI( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-
+				commDebugPrintString( "SPI-" );
+				commDebugPrintLong( current_port );
+				commDebugPrintString( " " );
+				
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
 					end_of_transmission_received = true;
@@ -399,7 +402,7 @@ void communicationsUART1( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-
+				commDebugPrintString( "UART-1 " );
 
 				if( process_data( &receive_buffer, &send_buffer ) == true )
 				{
@@ -1703,6 +1706,11 @@ bool SPI_receive_data_char( char *data )
 		*data = SPIRecvBuffer_module[SPIRecvBufferReadPos_module];
 		recvGood = true;
 
+		__delay_us(150);
+		// the above delay gives slave modules time to load the next character before we run the clock again
+		// ideally we do not run a blocking delay like this
+		// the modules should be better coded to minimize the delay between characters being put in their send buffers
+			
 		SPIRecvBufferReadPos_module++;
 
 		if( SPIRecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
@@ -1872,12 +1880,28 @@ void commSPIInit( void )
 
 	// set the SPI clock speed
 	// this is not simple to do based off calculations using the FCY macro
-	// for now, just hadn calcualte and set the correct bits
+	// for now, just hand calculate and set the correct bits
 
 	// start at 16,000,000 Hz
 	// PRI prescale 16:1 - takes it down to 1,000,000 Hz
 	// SEC prescale 4:1 - takes it down to 250,000 Hz
 
+		/*
+	 Primary		Secondary
+	 11 = 1:1		111 = 1:1	011 = 5:1
+	 10 = 4:1		110 = 2:1	010 = 6:1
+	 01 = 16:1		101 = 3:1	001 = 7:1
+	 00 = 64:1		100 = 4:1	000 = 8:1
+ 
+	 Frequency Table with clock at 16MHz
+														Secondary					
+		KHz				1	111			2	110		3	101		4	100		5	011		6	010		7	001		8	000
+			1	11		16000.00		8000.0		5333.3		4000.0		3200.0		2666.7		2285.71		2000.0
+	Primary	4	10		4000.00			2000.0		1333.3		1000.0		800.0		666.7		571.43		500.0
+			16	01		1000.00			500.0		333.3		250.0		200.0		166.7		142.86		125.0
+			64	00		250.00			125.0		83.3		62.5		50.0		41.7		35.71		31.25
+	 */
+	
 	SPI1CON1bits.PPRE = 0b01; // primary prescale 16:1
 	SPI1CON1bits.SPRE = 0b100; // secondary prescale 4:1
 
