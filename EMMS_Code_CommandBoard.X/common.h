@@ -71,6 +71,18 @@
  do not include macros that are only used internally within this module
  ****************/
 
+#define MODULE_INFO_THIS_0	"Command"			// name
+#define MODULE_INFO_THIS_1	"Ver: 2.5"			// version
+#define MODULE_INFO_THIS_2	""					// info
+#define MODULE_INFO_THIS_3	""					// info
+#define MODULE_INFO_THIS_4	"Have a nice day!"	// info
+
+#define MODULE_INFO_SIZE_SMALL	11	// 10 + include the null char
+#define MODULE_INFO_SIZE_LARGE	21	// 20 + include the null char
+#define MODULE_COUNT		6	// 6 module info sets: 0=Command Board, 1=UART-1, 2=UART-2, 3=SPI-0, 4=SPI-1, 5=SPI-2
+#define MODULE_INFO_COUNT	5	// number of info items per module
+
+
 /***********************
 	LEDS for debugging
 	disables normal program LED use (for the power remaining bar graph)
@@ -78,7 +90,7 @@
 	set this to 'true' to turn off the LED graph and enable "Test" LEDs for testing purposes
  *************************/
 
-#    define LEDS_FOR_DEBUG true
+#    define LEDS_FOR_DEBUG false
 
 
 /******************
@@ -135,23 +147,20 @@
 #endif
 
 
-//
-//#    define IDE_DEBUG_ENABLE false
-//
-//#    if IDE_DEBUG_ENABLE == true
-//#        define UART2_ENABLE false
-//#    else
-//#        define UART2_ENABLED true
-//#    endif
-
-
-
 #    define CHAR_NULL '\0'   //yes, used in many many places
 
 /****************
  STRUCTS
  define the structures here
  ***************/
+struct moduleInfo_struct
+{
+	char info0[MODULE_INFO_SIZE_SMALL];
+	char info1[MODULE_INFO_SIZE_SMALL];
+	char info2[MODULE_INFO_SIZE_SMALL];
+	char info3[MODULE_INFO_SIZE_SMALL];
+	char info4[MODULE_INFO_SIZE_LARGE];
+};
 
 struct date_time_struct
 {

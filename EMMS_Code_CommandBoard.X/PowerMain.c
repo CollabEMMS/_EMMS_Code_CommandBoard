@@ -79,6 +79,7 @@ unsigned long powerWatts_global;
 volatile unsigned long msTimer_module; // toggles to 1 every ms, resets to 0 at about the 0.5ms time
 
 //external & internal
+struct moduleInfo_struct moduleInfo_global[MODULE_COUNT];
 struct energy_info energyUsed_global; // energy status of the system
 struct date_time_struct dateTime_global; // the current date time - periodically pulled from RTCC
 struct alarm_info alarms_global; // alarms
@@ -104,6 +105,7 @@ char powerBoxCodeVersion_global[9] = POWER_BOX_CODE_VERSION;
 
 // internal only
 void initOscillator( void );
+void initModuleInfo( void );
 void init( void );
 void initPorts( void );
 void initReadGlobalsFromEEPROM( void );
@@ -190,11 +192,13 @@ int main( void )
 	ledInit( );
 
 	resetReportDisplay( );
-
+			
 	ledSetAllOff( );
 
+	initModuleInfo( );
+
 	commInit( );
-	commDebugPrintStringln( "\n\nStartup" );
+	commDebugPrintStringIndentln( 0, "\n\nStartup" );
 	ledSetAll( 1, 0, 1, 1 );
 
 	init( );
@@ -220,7 +224,7 @@ int main( void )
 
 	rtccCopyI2CTime( );
 
-	commDebugPrintStringln( "\nEnd startup" );
+	commDebugPrintStringIndentln( 0, "Startup Complete\n\n" );
 
 	while( true )
 	{
@@ -356,6 +360,41 @@ void initOscillator( void )
 
 
 // Overall Initialization for the whole command board
+
+void initModuleInfo( void )
+{
+	for( int inx = 0; inx < MODULE_COUNT; inx++ )
+	{
+		for( int jnx = 0; jnx < MODULE_INFO_SIZE_SMALL; jnx++ )
+		{
+			moduleInfo_global[inx].info0[jnx] = CHAR_NULL;
+			moduleInfo_global[inx].info1[jnx] = CHAR_NULL;
+			moduleInfo_global[inx].info2[jnx] = CHAR_NULL;
+			moduleInfo_global[inx].info3[jnx] = CHAR_NULL;
+			moduleInfo_global[inx].info4[jnx] = CHAR_NULL;
+		}
+
+		for( int jnx = MODULE_INFO_SIZE_SMALL; jnx < MODULE_INFO_SIZE_LARGE; jnx++ )
+		{
+			moduleInfo_global[inx].info4[jnx] = CHAR_NULL;
+		}
+
+		moduleInfo_global[inx].info0[0] = 'N';
+		moduleInfo_global[inx].info0[1] = 'o';
+		moduleInfo_global[inx].info0[2] = 'n';
+		moduleInfo_global[inx].info0[3] = 'e';
+		moduleInfo_global[inx].info0[4] = '-';
+		moduleInfo_global[inx].info0[5] = inx + 48;
+	}
+
+	strcpy2( moduleInfo_global[0].info0, MODULE_INFO_THIS_0 );
+	strcpy2( moduleInfo_global[0].info1, MODULE_INFO_THIS_1 );
+	strcpy2( moduleInfo_global[0].info2, MODULE_INFO_THIS_2 );
+	strcpy2( moduleInfo_global[0].info3, MODULE_INFO_THIS_3 );
+	strcpy2( moduleInfo_global[0].info4, MODULE_INFO_THIS_4 );
+	
+	return;
+}
 
 void init( void )
 {
@@ -592,18 +631,18 @@ void powerOnCheckForAllocationReset( void )
 	// Comparing to see if power was restored before or after the expected reset
 	// Check date (resets if later month, later day in month, or new year)
 	if( ( timePowerUp.month > resetTempTimeMonth ) ||
-		( ( timePowerUp.month == resetTempTimeMonth ) && ( timePowerUp.day > resetTempTimeDay ) ) ||
-		( timePowerUp.month < resetTempTimeMonth )
-		)
+	 ( ( timePowerUp.month == resetTempTimeMonth ) && ( timePowerUp.day > resetTempTimeDay ) ) ||
+	 ( timePowerUp.month < resetTempTimeMonth )
+	 )
 	{
 
 		resetNeeded = true;
 
 		// Checking the time of day to see if the power came on after the reset
 	}
-	else if(timePowerUp.day == resetTempTimeDay )
+	else if( timePowerUp.day == resetTempTimeDay )
 	{
-		int tempRestoreTimeCode =timePowerUp.hour * 60 + timePowerUp.minute;
+		int tempRestoreTimeCode = timePowerUp.hour * 60 + timePowerUp.minute;
 		int tempResetTimeCode = resetTime_global.hour * 60 + resetTime_global.minute;
 
 		if( tempRestoreTimeCode >= tempResetTimeCode )

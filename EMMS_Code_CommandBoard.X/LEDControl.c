@@ -241,6 +241,8 @@ void ledToggle( int ledNum )
 	int getValue;
 	int setValue;
 
+	getValue = 0;
+	
 	switch( ledNum )
 	{
 		case 1:

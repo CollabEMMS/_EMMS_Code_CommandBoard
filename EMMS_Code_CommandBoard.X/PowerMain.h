@@ -22,7 +22,7 @@
  these are all 'extern' and require that the variable is declared in the c file
  ****************/
 
-
+extern struct moduleInfo_struct moduleInfo_global[MODULE_COUNT];
 extern struct energy_info energyUsed_global;
 extern struct date_time_struct dateTime_global;
 extern struct alarm_info alarms_global;
