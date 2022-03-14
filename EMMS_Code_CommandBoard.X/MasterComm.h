@@ -36,10 +36,12 @@
 #if defined UART2_DEBUG_OUTPUT
 void commDebugPrintString( char *data  );
 void commDebugPrintStringln( char *data );
+void commDebugPrintStringIndentln( int indent, char *data );
 void commDebugPrintLong( long data );
 void commDebugPrintChar( char data );
 #endif
 
+void strcpy2( char* dest, char* source );
 
 // external only
 void commInit( );

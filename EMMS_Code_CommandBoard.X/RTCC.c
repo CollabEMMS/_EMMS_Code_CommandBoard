@@ -127,6 +127,7 @@ void rtccInit( void )
 	rtccInternalInit( );
 	rtccI2CInit( );
 
+	return;
 }
 
 // Pull the time from the RTCC
@@ -769,8 +770,8 @@ void rtccGetPowerTimes( struct date_time_struct *timePowerDown, struct date_time
 	timePowerDown->minute = timePowerDown_module.minute;
 	timePowerDown->second = timePowerDown_module.second;
 	timePowerDown->valid = timePowerDown_module.valid;
-	
-	
+
+
 	timePowerUp->year = timePowerUp_module.year;
 	timePowerUp->month = timePowerUp_module.month;
 	timePowerUp->day = timePowerUp_module.day;
@@ -847,7 +848,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 			powerTimeBCDRegisterTemp &= RTCC_DATA_MASK_MIN; // get rid of bits we do not care about
 			timePowerDown->minute = BcdToDecI2C( powerTimeBCDRegisterTemp );
 
-			
+
 			powerTimeBCDRegisterTemp = ReadI2CRegister( RTCC_REGISTER_PWRDNHOUR );
 			powerTimeBCDRegisterTemp &= RTCC_DATA_MASK_HOUR; // get rid of bits we do not care about
 			timePowerDown->hour = BcdToDecI2C( powerTimeBCDRegisterTemp );
@@ -861,7 +862,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 			timePowerDown->month = BcdToDecI2C( powerTimeBCDRegisterTemp );
 
 
-			
+
 			powerTimeBCDRegisterTemp = ReadI2CRegister( RTCC_REGISTER_PWRUPMIN );
 			powerTimeBCDRegisterTemp &= RTCC_DATA_MASK_MIN; // get rid of bits we do not care about
 			timePowerUp->minute = BcdToDecI2C( powerTimeBCDRegisterTemp );
@@ -882,7 +883,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 
 			timePowerDown->valid = true;
 			timePowerUp->valid = true;
-			
+
 			StartI2C( );
 			WriteI2C( RTCC_REGISTER_CMD_WRITE ); // Device Address (RTCC) + Write Command
 			WriteI2C( RTCC_REGISTER_RTCWKDAY ); // Set address
@@ -926,7 +927,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 	}
 	else
 	{
-		
+
 	}
 
 	// check if we changed years - at least note it in the year
@@ -1059,7 +1060,7 @@ unsigned int ReadI2C( void )
 	while( I2C1CONbits.ACKEN ) // Waits till ACK is sent (hardware reset)
 	{
 	}
-
+	
 	return I2C1RCV; // Returns data
 }
 

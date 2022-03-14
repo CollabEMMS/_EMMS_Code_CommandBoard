@@ -29,7 +29,7 @@
 #define BUF_SIZE_LONG 12
 
 #define PARAMETER_MAX_COUNT 7
-#define PARAMETER_MAX_LENGTH 15
+#define PARAMETER_MAX_LENGTH 20
 
 //#define CHAR_NULL '\0' // defined in common.h since it is used in a lot of places
 #define COMMAND_SEND_RECEIVE_PRIMER_CHAR '#' // something to run the SPI clock so data can be received
@@ -49,6 +49,10 @@
 #define SPI_PORT_0 LATBbits.LATB15
 #define SPI_PORT_1 LATBbits.LATB14
 #define SPI_PORT_2 LATBbits.LATB12
+
+#define MODULE_NUMBER_UART_1	1
+#define MODULE_NUMBER_UART_2	2
+#define MODULE_NUMBER_SPI_ADDER	100
 
 /****************
  VARIABLES
@@ -116,9 +120,9 @@ struct buffer_struct
  ****************/
 bool set_current_port( unsigned char * );
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer );
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, unsigned char commPort );
 void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *buffer_to_parameterize );
-bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer );
+bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer, unsigned char commPort );
 
 void command_builder1( struct buffer_struct *send_buffer, char* data1 );
 void command_builder2( struct buffer_struct *send_buffer, char* data1, char* data2 );
@@ -145,7 +149,7 @@ bool UART2_send_data_char( char data );
 
 bool strmatch( char* a, char* b );
 int strcmp2( char* a, char* b );
-void strcpy2( char* rcv, char* source );
+void strcpy2( char* dest, char* source );
 
 void fillOnOff( char *buf, int checkValue );
 bool checkOnOff( char *toCheck );
@@ -181,6 +185,7 @@ bool xSumCheck( char* check_buffer );
 #if defined UART2_DEBUG_OUTPUT
 void commDebugPrintString( char *data );
 void commDebugPrintStringln( char *data );
+void commDebugPrintStringIndentln( int indent, char *data );
 void commDebugPrintLong( long data );
 void commDebugPrintChar( char data );
 #endif
@@ -315,8 +320,8 @@ void communicationsSPI( bool initialize )
 				commDebugPrintString( "SPI-" );
 				commDebugPrintLong( current_port );
 				commDebugPrintString( " " );
-				
-				if( process_data( &receive_buffer, &send_buffer ) == true )
+
+				if( process_data( &receive_buffer, &send_buffer, ( current_port + MODULE_NUMBER_SPI_ADDER ) ) == true )
 				{
 					end_of_transmission_received = true;
 				}
@@ -360,6 +365,8 @@ void communicationsSPI( bool initialize )
 		}
 		else
 		{
+			// make sure the send buffer has something in to until we timeout
+			// this makes sure a message from the slave can make it in
 			command_builder_add_char( &send_buffer, COMMAND_SEND_RECEIVE_PRIMER_CHAR );
 		}
 	}
@@ -404,7 +411,7 @@ void communicationsUART1( bool initialize )
 			{
 				commDebugPrintString( "UART-1 " );
 
-				if( process_data( &receive_buffer, &send_buffer ) == true )
+				if( process_data( &receive_buffer, &send_buffer, MODULE_NUMBER_UART_1 ) == true )
 				{
 					end_of_transmission_received = true;
 				}
@@ -457,7 +464,7 @@ void communicationsUART2( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-				if( process_data( &receive_buffer, &send_buffer ) == true )
+				if( process_data( &receive_buffer, &send_buffer, MODULE_NUMBER_UART_2 ) == true )
 				{
 					end_of_transmission_received = true;
 				}
@@ -641,6 +648,9 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 		send_end = false;
 
 		bool data_sent;
+		
+		data_sent = false;
+		
 		switch( communicationsPort )
 		{
 			case enum_port_commSPI:
@@ -703,9 +713,6 @@ bool set_current_port( unsigned char *current_port )
 			case 1:
 				// set correct DO the chip select here
 				SPI_PORT_1 = 0;
-
-				//	    LED4___SET = 1;
-
 				break;
 			case 2:
 				// set correct DO the chip select here
@@ -723,7 +730,7 @@ bool set_current_port( unsigned char *current_port )
 
 // Passes received data strings into parsing functions
 
-bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer )
+bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *send_buffer, unsigned char commPort )
 {
 	bool end_of_transmission_received;
 
@@ -739,7 +746,7 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
 	process_data_parameterize( parameters, receive_buffer );
 
-	end_of_transmission_received = process_data_parameters( parameters, send_buffer );
+	end_of_transmission_received = process_data_parameters( parameters, send_buffer, commPort );
 
 	return end_of_transmission_received;
 }
@@ -813,7 +820,7 @@ void process_data_parameterize( char parameters[][PARAMETER_MAX_LENGTH], struct 
 
 // Read all of the parameters to find out what the command says to do
 
-bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer )
+bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct buffer_struct *send_buffer, unsigned char commPort )
 {
 	bool end_of_transmission_received = false;
 
@@ -1081,6 +1088,95 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		{
 			command_builder2( send_buffer, "Conf", "PSVersion" );
 		}
+		else if( strmatch( parameters[1], "ModInfo" ) == true )
+		{
+			// !Set;Mod;X;Y;____$xsum*
+			//	parameter 0 = Set
+			//	parameter 1 = Mod
+			//	parameter 2 = X module number
+			//				-1 for CB to make determination based on current port
+			//	parameter 3 = Y info number (0 to 4))
+			//	parameter 4 = info text
+
+			bool commandGood;
+			int moduleNumber;
+			int moduleInfoNumber;
+
+			moduleNumber = atoi( parameters[2] );
+			moduleInfoNumber = atoi( parameters[3] );
+
+			commandGood = false;
+
+			if( moduleNumber == -1 )
+			{
+				// we need info as to what port this is incoming on
+				// self - already populated moduleNumber = 0
+				// commPort 1	= UART-1	moduleNumber = 1
+				// commPort 2	= UART-2	moduleNumber = 2
+				// commPort 100	= SPI-0		moduleNumber = 3
+				// commPort 101	= SPI-1		moduleNumber = 4
+				// commPort 102	= SPI-2		moduleNumber = 5
+
+				switch( commPort )
+				{
+					case MODULE_NUMBER_UART_1: // UART-1
+						moduleNumber = 1;
+						break;
+					case MODULE_NUMBER_UART_2: // UART-2
+						moduleNumber = 2;
+						break;
+					case ( MODULE_NUMBER_SPI_ADDER + 0 ): // SPI 0
+						moduleNumber = 3;
+						break;
+					case ( MODULE_NUMBER_SPI_ADDER + 1 ): // SPI 1
+						moduleNumber = 4;
+						break;
+					case ( MODULE_NUMBER_SPI_ADDER + 2 ): // SPI 2
+						moduleNumber = 5;
+						break;
+				}
+			}
+
+			if( ( moduleNumber > 0 ) && ( moduleNumber < MODULE_COUNT ) )
+			{
+				switch( moduleInfoNumber )
+				{
+					case 0:
+						strcpy2( moduleInfo_global[moduleNumber].info0, parameters[4] );
+						commandGood = true;
+						break;
+					case 1:
+						strcpy2( moduleInfo_global[moduleNumber].info1, parameters[4] );
+						commandGood = true;
+						break;
+					case 2:
+						strcpy2( moduleInfo_global[moduleNumber].info2, parameters[4] );
+						commandGood = true;
+						break;
+					case 3:
+						strcpy2( moduleInfo_global[moduleNumber].info3, parameters[4] );
+						commandGood = true;
+						break;
+					case 4:
+						strcpy2( moduleInfo_global[moduleNumber].info4, parameters[4] );
+						commandGood = true;
+						break;
+				}
+
+			}
+
+			// only send a confirmation if the module info was actually used
+			// otherwise send an error
+			if( commandGood == true )
+			{
+				command_builder2( send_buffer, "Conf", "ModInfo" );
+			}
+			else
+			{
+				command_builder2( send_buffer, "Err", "ModInfo" );
+			}
+		}
+
 	}
 	else if( strmatch( parameters[0], "Read" ) == true )
 	{
@@ -1379,6 +1475,45 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 			command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 		}
+		else if( strmatch( parameters[1], "ModInfo" ) == true )
+		{
+			// !Read;ModInfo;X;Y$xsum*
+			//	parameter 0 = Read
+			//	parameter 1 = Mod
+			//	parameter 2 = X module number (0 to 5)
+			//	parameter 3 = Y info number (0 to 4)
+
+			bool commandGood;
+			int moduleNumber;
+			int moduleInfoNumber;
+
+			moduleNumber = atoi( parameters[2] );
+			moduleInfoNumber = atoi( parameters[3] );
+
+			commandGood = false;
+
+			if( ( moduleNumber >= 0 ) && ( moduleNumber < MODULE_COUNT ) )
+			{
+				switch( moduleInfoNumber )
+				{
+					case 0:
+						command_builder5( send_buffer, "Set", "ModInfo", parameters[2], parameters[3], moduleInfo_global[moduleNumber].info0 );
+						break;
+					case 1:
+						command_builder5( send_buffer, "Set", "ModInfo", parameters[2], parameters[3], moduleInfo_global[moduleNumber].info1 );
+						break;
+					case 2:
+						command_builder5( send_buffer, "Set", "ModInfo", parameters[2], parameters[3], moduleInfo_global[moduleNumber].info2 );
+						break;
+					case 3:
+						command_builder5( send_buffer, "Set", "ModInfo", parameters[2], parameters[3], moduleInfo_global[moduleNumber].info3 );
+						break;
+					case 4:
+						command_builder5( send_buffer, "Set", "ModInfo", parameters[2], parameters[3], moduleInfo_global[moduleNumber].info4 );
+						break;
+				}
+			}
+		}
 	}
 
 	return end_of_transmission_received;
@@ -1530,11 +1665,11 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 	command_builder_add_string( send_buffer, xsumBuf ); //add XSUM to send buffer 
 
 	command_builder_add_char( send_buffer, COMMAND_END_CHAR );
-	
+
 	send_buffer->data_buffer[ send_buffer->write_position] = CHAR_NULL;
 	commDebugPrintString( "Send: " );
 	commDebugPrintStringln( send_buffer->data_buffer );
-	
+
 	return;
 }
 
@@ -1618,6 +1753,22 @@ int strcmp2( char* a, char* b )
 
 
 	return match;
+}
+
+void strcpy2( char* dest, char* source )
+{
+	// make sure there is a null termination
+	// make sure not to run out of bounds - there is no checking here
+
+	while( *source != CHAR_NULL )
+	{
+		*dest = *source;
+		dest++;
+		source++;
+	}
+	*dest = CHAR_NULL;
+
+	return;
 }
 
 void fillOnOff( char *buf, int checkValue )
@@ -1706,11 +1857,11 @@ bool SPI_receive_data_char( char *data )
 		*data = SPIRecvBuffer_module[SPIRecvBufferReadPos_module];
 		recvGood = true;
 
-		__delay_us(150);
+		__delay_us( 150 );
 		// the above delay gives slave modules time to load the next character before we run the clock again
 		// ideally we do not run a blocking delay like this
 		// the modules should be better coded to minimize the delay between characters being put in their send buffers
-			
+
 		SPIRecvBufferReadPos_module++;
 
 		if( SPIRecvBufferReadPos_module >= BUFFER_LENGTH_RECV )
@@ -1886,22 +2037,22 @@ void commSPIInit( void )
 	// PRI prescale 16:1 - takes it down to 1,000,000 Hz
 	// SEC prescale 4:1 - takes it down to 250,000 Hz
 
-		/*
-	 Primary		Secondary
-	 11 = 1:1		111 = 1:1	011 = 5:1
-	 10 = 4:1		110 = 2:1	010 = 6:1
-	 01 = 16:1		101 = 3:1	001 = 7:1
-	 00 = 64:1		100 = 4:1	000 = 8:1
+	/*
+ Primary		Secondary
+ 11 = 1:1		111 = 1:1	011 = 5:1
+ 10 = 4:1		110 = 2:1	010 = 6:1
+ 01 = 16:1		101 = 3:1	001 = 7:1
+ 00 = 64:1		100 = 4:1	000 = 8:1
  
-	 Frequency Table with clock at 16MHz
-														Secondary					
-		KHz				1	111			2	110		3	101		4	100		5	011		6	010		7	001		8	000
-			1	11		16000.00		8000.0		5333.3		4000.0		3200.0		2666.7		2285.71		2000.0
-	Primary	4	10		4000.00			2000.0		1333.3		1000.0		800.0		666.7		571.43		500.0
-			16	01		1000.00			500.0		333.3		250.0		200.0		166.7		142.86		125.0
-			64	00		250.00			125.0		83.3		62.5		50.0		41.7		35.71		31.25
+ Frequency Table with clock at 16MHz
+													Secondary					
+	KHz				1	111			2	110		3	101		4	100		5	011		6	010		7	001		8	000
+		1	11		16000.00		8000.0		5333.3		4000.0		3200.0		2666.7		2285.71		2000.0
+Primary	4	10		4000.00			2000.0		1333.3		1000.0		800.0		666.7		571.43		500.0
+		16	01		1000.00			500.0		333.3		250.0		200.0		166.7		142.86		125.0
+		64	00		250.00			125.0		83.3		62.5		50.0		41.7		35.71		31.25
 	 */
-	
+
 	SPI1CON1bits.PPRE = 0b01; // primary prescale 16:1
 	SPI1CON1bits.SPRE = 0b100; // secondary prescale 4:1
 
@@ -2181,6 +2332,18 @@ void commDebugPrintStringln( char *data )
 {
 	commDebugPrintString( data );
 	commDebugPrintString( "\n" );
+
+	return;
+}
+
+void commDebugPrintStringIndentln( int indent, char *data )
+{
+	for( int inx = 0; inx < indent; inx++ )
+	{
+		commDebugPrintString( "\t" );
+	}
+
+	commDebugPrintStringln( data );
 
 	return;
 }
