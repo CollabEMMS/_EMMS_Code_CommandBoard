@@ -494,8 +494,6 @@ bool xSumCheck( char* checkBuffer )
 	//		convert to int
 	// compare and return bool result
 
-
-
 	int receiveBufferPos;
 	int xSumAdderValue;
 	bool xSumMatches;
@@ -570,11 +568,6 @@ bool communicationsRecv( struct buffer_struct *receive_buffer, struct buffer_str
 
 	bool gotSomething = false;
 
-
-	// the UART automatically buffers 4 characters
-	// unlikely there will be more than one character in the buffer since
-	// there is no blocking code, but ideally we would clean out the buffer with each run
-	// right now this does not happen
 	switch( communicationsPort )
 	{
 		case enum_port_commSPI:
@@ -648,9 +641,9 @@ bool communicationsSend( struct buffer_struct *send_buffer, enum communications_
 		send_end = false;
 
 		bool data_sent;
-		
+
 		data_sent = false;
-		
+
 		switch( communicationsPort )
 		{
 			case enum_port_commSPI:
@@ -1873,19 +1866,6 @@ bool SPI_receive_data_char( char *data )
 	return recvGood;
 }
 
-//bool SPI_receive_data_char( char *data )
-//{
-//    bool recvGood = false;
-////
-////    if( SPI1STATbits.SPIRBF == 1 )
-////    {
-////	
-////	recvGood = true;
-////    }
-//
-//    return recvGood;
-//}
-
 bool SPI_send_data_char( char data )
 {
 	bool sendGood = false;
@@ -1898,24 +1878,6 @@ bool SPI_send_data_char( char data )
 
 	return sendGood;
 }
-
-//bool UART1_receive_data_char( char *data ) // NON-INTERRUPT VERSION
-//{
-//    bool recvGood = false;
-//
-//
-//    if( U1STAbits.URXDA == 1 )
-//    {
-//	*data = U1RXREG;
-//
-//	if( *data != CHAR_NULL )
-//	{
-//	    recvGood = true;
-//	}
-//    }
-//
-//    return recvGood;
-//}
 
 bool UART1_receive_data_char( char *data )
 {
@@ -1943,7 +1905,16 @@ bool UART1_send_data_char( char data )
 {
 	bool sendGood = false;
 
-	if( U1STAbits.UTXBF == 0 )
+	//	if( U1STAbits.UTXBF == 0 )
+	// The UART TX Buffer has issues
+	// PIC24 Errata (PIC document 80000522) states
+	//		filling the TX buffer full with 4 characters causes problems
+	//			- workaround - only go to 3 characters, not all 4
+	//		UTXBF flag does not work right
+	//			- workaround - use buffer empty flag (TRMT))
+	// our solution - put one character at a time in the transmit buffer
+	//	check to see if the buffer is empty ( TRMT == 1 ) before loading another character
+	if( U1STAbits.TRMT == 1 )
 	{
 		U1TXREG = data;
 		sendGood = true;
@@ -1983,7 +1954,16 @@ bool UART2_send_data_char( char data )
 {
 	bool sendGood = false;
 
-	if( U2STAbits.UTXBF == 0 )
+	//	if( U2STAbits.UTXBF == 0 )
+	// The UART TX Buffer has issues
+	// PIC24 Errata (PIC document 80000522) states
+	//		filling the TX buffer full with 4 characters causes problems
+	//			- workaround - only go to 3 characters, not all 4
+	//		UTXBF flag does not work right
+	//			- workaround - use buffer empty flag (TRMT))
+	// our solution - put one character at a time in the transmit buffer
+	//	check to see if the buffer is empty ( TRMT == 1 ) before loading another character
+	if( U2STAbits.TRMT == 1 )
 	{
 		U2TXREG = data;
 		sendGood = true;
@@ -2375,15 +2355,3 @@ void commDebugPrintChar( char data )
 
 #endif
 
-//
-//#ifdef UART2_DEBUG_OUTPUT
-//here goes functions to direct output to UART2
-//
-//How can we handle multiple data types
-//or how to handle variable number of parameters
-//		
-//or do we simple just print strings with helper functions to make numbers into strings
-//		
-//		
-//		
-//#endif
