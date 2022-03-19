@@ -882,8 +882,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			// set the RTCC I2C and then copy it to the RTCC Internal
 			// this will help verify that they are the same
 			rtccI2CSetTime( &newDateTime );
-			rtccCopyI2CTime( );
-
+			rtccCopyI2CTime( );		// this function automatically populates the dateTime_global
+			
 			command_builder2( send_buffer, "Conf", "Time" );
 
 		}
@@ -955,9 +955,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			passwordNew[5] = parameters[2][5];
 
 			eeWritePasswordNew( passwordNew );
+			// when password is asked for it is read direct from the EEPROM so no need to set a global
 
 			command_builder2( send_buffer, "Conf", "Pass" );
-
 		}
 		else if( strmatch( parameters[1], "Emer" ) == true )
 		{
@@ -976,7 +976,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteEmerButtonNew( emergencyButton_global );
 
 			command_builder2( send_buffer, "Conf", "Emer" );
-
 		}
 		else if( strmatch( parameters[1], "RstTim" ) == true )
 		{
@@ -993,7 +992,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteResetTimeNew( resetTime_global.hour, resetTime_global.minute );
 
 			command_builder4( send_buffer, "Conf", "RstTim", rsh, rsm );
-
 		}
 		else if( strmatch( parameters[1], "Relay" ) == true )
 		{
@@ -1018,7 +1016,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteRelayNew( relayMode_global );
 
 			command_builder2( send_buffer, "Conf", "Relay" );
-
 		}
 			//	else if( strmatch( parameters[1], "DebugMode" ) )
 
@@ -1026,8 +1023,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		{
 
 			powerWatts_global = atol( parameters[2] );
+			
 			command_builder2( send_buffer, "Conf", "Watts" );
-
 		}
 		else if( strmatch( parameters[1], "EnUsed" ) == true )
 		{
@@ -1061,7 +1058,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			ledFindMeActive_global = checkOnOff( parameters[2] );
 
 			command_builder2( send_buffer, "Conf", "Lights" );
-
 		}
 		else if( strmatch( parameters[1], "AllAdd" ) == true )
 		{
@@ -1462,9 +1458,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			ltoa( energyEmergencyAdderBuf, energyCycleAllocation_global, 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
-
-
-
 
 			command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
 		}
