@@ -14,6 +14,9 @@ MPLAB X Project
 - Feature - Meter Name
   - Update communications to handle Meter Name (MName)
   - stored in EEPROM
+- Command PwrData - temporary variable names fixed
+  - energyEmergencyAdderBuf was wrong -- energyCycleAllocationBuf is correct
+
 
 ### v2.6.1
 March 19, 2022<br />

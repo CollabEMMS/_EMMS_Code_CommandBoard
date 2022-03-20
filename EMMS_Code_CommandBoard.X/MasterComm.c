@@ -1423,20 +1423,19 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		}
 		else if( strmatch( parameters[1], "PwrData" ) == true )
 		{
-
 			long energyUsedTemp;
 
 			energyUsedTemp = energyUsed_global.lifetime - energyUsed_global.lastReset;
 
-			char energyEmergencyAdderBuf[BUF_SIZE_LONG];
+			char energyCycleAllocationBuf[BUF_SIZE_LONG];
 			char energyUsedBuf[BUF_SIZE_LONG];
 			char powerWattsBuf[BUF_SIZE_LONG];
 
-			ltoa( energyEmergencyAdderBuf, energyCycleAllocation_global, 10 );
+			ltoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
 
-			command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
+			command_builder5( send_buffer, "Set", "PwrData", energyCycleAllocationBuf, energyUsedBuf, powerWattsBuf );
 		}
 		else if( strmatch( parameters[1], "ModInfo" ) == true )
 		{
