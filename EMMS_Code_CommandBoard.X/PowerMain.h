@@ -33,8 +33,6 @@ extern struct emergency_button emergencyButton_global;
 
 extern unsigned long powerWatts_global;
 
-extern char powerBoxCodeVersion_global[9];
-
 
 /****************
  FUNCTION PROTOTYPES

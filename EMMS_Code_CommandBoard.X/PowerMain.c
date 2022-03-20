@@ -88,11 +88,6 @@ struct reset_time resetTime_global; // hour and minute of the cycle reset
 unsigned int relayMode_global; // the relay mode
 struct emergency_button emergencyButton_global; // emergency button enabled and allocation amount
 
-// TODO set version
-// replace this with versioning plan
-char powerBoxCodeVersion_global[9] = POWER_BOX_CODE_VERSION;
-
-
 
 /****************
  FUNCTION PROTOTYPES

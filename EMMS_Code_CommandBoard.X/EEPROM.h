@@ -32,6 +32,8 @@
 
 //extern char passwordSet[6];
 
+void eeReadMeterNameNew( char* meterName );
+void eeWriteMeterNameNew( char *meterName );
 
 void eeReadPasswordNew( char* password );
 void eeWritePasswordNew( char* password );

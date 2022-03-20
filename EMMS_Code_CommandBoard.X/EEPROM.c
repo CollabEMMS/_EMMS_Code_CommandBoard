@@ -23,6 +23,29 @@
 
 
 // EEPROM reservations
+//Not Named
+int __attribute__( ( space( eedata ) ) ) EEmeterName00 = 'N';
+int __attribute__( ( space( eedata ) ) ) EEmeterName01 = 'o';
+int __attribute__( ( space( eedata ) ) ) EEmeterName02 = 't';
+int __attribute__( ( space( eedata ) ) ) EEmeterName03 = ' ';
+int __attribute__( ( space( eedata ) ) ) EEmeterName04 = 'N';
+int __attribute__( ( space( eedata ) ) ) EEmeterName05 = 'a';
+int __attribute__( ( space( eedata ) ) ) EEmeterName06 = 'm';
+int __attribute__( ( space( eedata ) ) ) EEmeterName07 = 'e';
+int __attribute__( ( space( eedata ) ) ) EEmeterName08 = 'd';
+int __attribute__( ( space( eedata ) ) ) EEmeterName09 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName10 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName11 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName12 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName13 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName14 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName15 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName16 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName17 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName18 = CHAR_NULL;
+int __attribute__( ( space( eedata ) ) ) EEmeterName19 = CHAR_NULL;
+
+
 int __attribute__( ( space( eedata ) ) ) EEpassword0 = '1';
 int __attribute__( ( space( eedata ) ) ) EEpassword1 = '2';
 int __attribute__( ( space( eedata ) ) ) EEpassword2 = '3';
@@ -102,6 +125,346 @@ void writeWait( void )
 
 	return;
 }
+
+/*******************/
+/*******************/
+void eeReadMeterNameNew( char* meterName )
+{
+	unsigned int offset;
+
+	writeWait( );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName00 );
+	offset = __builtin_tbloffset( &EEmeterName00 );
+	meterName[0] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName01 );
+	offset = __builtin_tbloffset( &EEmeterName01 );
+	meterName[1] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName02 );
+	offset = __builtin_tbloffset( &EEmeterName02 );
+	meterName[2] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName03 );
+	offset = __builtin_tbloffset( &EEmeterName03 );
+	meterName[3] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName04 );
+	offset = __builtin_tbloffset( &EEmeterName04 );
+	meterName[4] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName05 );
+	offset = __builtin_tbloffset( &EEmeterName05 );
+	meterName[5] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName06 );
+	offset = __builtin_tbloffset( &EEmeterName06 );
+	meterName[6] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName07 );
+	offset = __builtin_tbloffset( &EEmeterName07 );
+	meterName[7] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName08 );
+	offset = __builtin_tbloffset( &EEmeterName08 );
+	meterName[8] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName09 );
+	offset = __builtin_tbloffset( &EEmeterName09 );
+	meterName[9] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName10 );
+	offset = __builtin_tbloffset( &EEmeterName10 );
+	meterName[10] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName11 );
+	offset = __builtin_tbloffset( &EEmeterName11 );
+	meterName[11] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName12 );
+	offset = __builtin_tbloffset( &EEmeterName12 );
+	meterName[12] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName13 );
+	offset = __builtin_tbloffset( &EEmeterName13 );
+	meterName[13] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName14 );
+	offset = __builtin_tbloffset( &EEmeterName14 );
+	meterName[14] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName15 );
+	offset = __builtin_tbloffset( &EEmeterName15 );
+	meterName[15] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName16 );
+	offset = __builtin_tbloffset( &EEmeterName16 );
+	meterName[16] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName17 );
+	offset = __builtin_tbloffset( &EEmeterName17 );
+	meterName[17] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName18 );
+	offset = __builtin_tbloffset( &EEmeterName18 );
+	meterName[18] = (char) __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEmeterName19 );
+	offset = __builtin_tbloffset( &EEmeterName19 );
+	meterName[19] = (char) __builtin_tblrdl( offset );
+
+	return;
+}
+
+void eeWriteMeterNameNew( char *meterName )
+{
+	unsigned int offset;
+
+	// char 00
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName00 );
+	offset = __builtin_tbloffset( &EEmeterName00 );
+	__builtin_tblwtl( offset, meterName[0] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 01
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName01 );
+	offset = __builtin_tbloffset( &EEmeterName01 );
+	__builtin_tblwtl( offset, meterName[1] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+	
+	// char 02
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName02 );
+	offset = __builtin_tbloffset( &EEmeterName02 );
+	__builtin_tblwtl( offset, meterName[2] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 03
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName03 );
+	offset = __builtin_tbloffset( &EEmeterName03 );
+	__builtin_tblwtl( offset, meterName[3] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 04
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName04 );
+	offset = __builtin_tbloffset( &EEmeterName04 );
+	__builtin_tblwtl( offset, meterName[4] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 05
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName05 );
+	offset = __builtin_tbloffset( &EEmeterName05 );
+	__builtin_tblwtl( offset, meterName[5] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 06
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName06 );
+	offset = __builtin_tbloffset( &EEmeterName06 );
+	__builtin_tblwtl( offset, meterName[6] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 07
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName07 );
+	offset = __builtin_tbloffset( &EEmeterName07 );
+	__builtin_tblwtl( offset, meterName[7] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 08
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName08 );
+	offset = __builtin_tbloffset( &EEmeterName08 );
+	__builtin_tblwtl( offset, meterName[8] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 09
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName09 );
+	offset = __builtin_tbloffset( &EEmeterName09 );
+	__builtin_tblwtl( offset, meterName[9] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 10
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName10 );
+	offset = __builtin_tbloffset( &EEmeterName10 );
+	__builtin_tblwtl( offset, meterName[10] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 11
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName11 );
+	offset = __builtin_tbloffset( &EEmeterName11 );
+	__builtin_tblwtl( offset, meterName[11] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 12
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName12 );
+	offset = __builtin_tbloffset( &EEmeterName12 );
+	__builtin_tblwtl( offset, meterName[12] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 13
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName13 );
+	offset = __builtin_tbloffset( &EEmeterName13 );
+	__builtin_tblwtl( offset, meterName[13] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 14
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName14 );
+	offset = __builtin_tbloffset( &EEmeterName14 );
+	__builtin_tblwtl( offset, meterName[14] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 15
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName15 );
+	offset = __builtin_tbloffset( &EEmeterName15 );
+	__builtin_tblwtl( offset, meterName[15] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 16
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName16 );
+	offset = __builtin_tbloffset( &EEmeterName16 );
+	__builtin_tblwtl( offset, meterName[16] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 17
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName17 );
+	offset = __builtin_tbloffset( &EEmeterName17 );
+	__builtin_tblwtl( offset, meterName[17] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 18
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName18 );
+	offset = __builtin_tbloffset( &EEmeterName18 );
+	__builtin_tblwtl( offset, meterName[18] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+	// char 19
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEmeterName19 );
+	offset = __builtin_tbloffset( &EEmeterName19 );
+	__builtin_tblwtl( offset, meterName[19] );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+		
+	return;
+}
+
 
 void eeReadPasswordNew( char* password )
 {

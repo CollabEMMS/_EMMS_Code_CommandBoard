@@ -54,6 +54,8 @@
 #define MODULE_NUMBER_UART_2	2
 #define MODULE_NUMBER_SPI_ADDER	100
 
+#define METER_NAME_LENGTH 20
+
 /****************
  VARIABLES
  these are the globals required by only this c file
@@ -882,8 +884,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			// set the RTCC I2C and then copy it to the RTCC Internal
 			// this will help verify that they are the same
 			rtccI2CSetTime( &newDateTime );
-			rtccCopyI2CTime( );		// this function automatically populates the dateTime_global
-			
+			rtccCopyI2CTime( ); // this function automatically populates the dateTime_global
+
 			command_builder2( send_buffer, "Conf", "Time" );
 
 		}
@@ -1000,7 +1002,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		{
 
 			powerWatts_global = atol( parameters[2] );
-			
+
 			command_builder2( send_buffer, "Conf", "Watts" );
 		}
 		else if( strmatch( parameters[1], "EnUsed" ) == true )
@@ -1142,6 +1144,16 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 				command_builder2( send_buffer, "Err", "ModInfo" );
 			}
 		}
+		else if( strmatch( parameters[1], "MName" ) == true )
+		{
+			char meterNameStringTemp[ METER_NAME_LENGTH ];
+
+			strcpy2( meterNameStringTemp, parameters[2] );
+			eeWriteMeterNameNew( meterNameStringTemp );
+
+			command_builder2( send_buffer, "Conf", "MName" );
+		}
+
 
 	}
 	else if( strmatch( parameters[0], "Read" ) == true )
@@ -1304,21 +1316,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			command_builder4( send_buffer, "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
 
 		}
-		else if( strmatch( parameters[1], "CBver" ) == true )
+		else if( strmatch( parameters[1], "MName" ) == true )
 		{
+			char meterNameStringTemp[ METER_NAME_LENGTH];
 
-			char temp[10];
-			temp[0] = 'T';
-			temp[1] = 'e';
-			temp[2] = 's';
-			temp[3] = 't';
-			temp[4] = ':';
-			temp[5] = '0';
-			temp[6] = '1';
-			temp[7] = CHAR_NULL;
+			eeReadMeterNameNew( meterNameStringTemp );
 
-			command_builder3( send_buffer, "Set", "CBver", powerBoxCodeVersion_global );
-
+			command_builder3( send_buffer, "Set", "MName", meterNameStringTemp );
 		}
 		else if( strmatch( parameters[1], "PwrFail" ) == true )
 		{
