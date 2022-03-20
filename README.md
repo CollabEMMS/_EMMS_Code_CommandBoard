@@ -8,6 +8,12 @@ MPLAB X Project
 
 # Changelog
 ### NEXT
+
+
+### v2.6.2
+March 20, 2022<br />
+Tom Austin
+#### Changes
 - Ensured any parameters "Set" were immediately available to be "Read"
 - AlarmXEnabled since it was directly derived from AlarmXThreshold
   - removed it from the communication commands
