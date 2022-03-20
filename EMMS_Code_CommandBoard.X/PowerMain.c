@@ -22,7 +22,7 @@
 
 /*
  The following section sets a macros with the build date and time
- This eventually gets displayed on the UI and the power box version
+ This eventually is used to set the meter time
  */
 
 // below pulls the build date time into something that can be used
@@ -48,19 +48,9 @@
 #define BUILD_MINUTE (((__TIME__ [3] - 48) * 10) + (__TIME__ [4] - 48))
 #define BUILD_SECOND (((__TIME__ [6] - 48) * 10) + (__TIME__ [7] - 48))
 
-#define CODE_REVISION 1
-
-// the below line is commented out because we just hardcode a version for right now
-//#define POWER_BOX_CODE_VERSION ((char[]) {__DATE__ [9], __DATE__ [10], (BUILD_MONTH / 10) + 48, (BUILD_MONTH % 10) + 48, (__DATE__ [4] == ' ' ? '0' : __DATE__ [4]), __DATE__ [5], (CODE_REVISION / 10) + 48, (CODE_REVISION % 10) + 48, 0})
-
-// TODO - come up with a good versioning plan for the command board
-#define POWER_BOX_CODE_VERSION "20190929"   // 7 characters show on the UI
-
 // Time window where the oneshots can occur
 // sometimes the program main loop takes more than 1 ms to run and we can inadvertantly skip if we are lookng for an exact match
 #define ONESHOT_WINDOW 25
-
-
 
 
 

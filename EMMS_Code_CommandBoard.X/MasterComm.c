@@ -1052,10 +1052,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 			command_builder3( send_buffer, "Conf", "AllAdd", buf );
 		}
-		else if( strmatch( parameters[1], "PSVersion" ) == true )
-		{
-			command_builder2( send_buffer, "Conf", "PSVersion" );
-		}
 		else if( strmatch( parameters[1], "ModInfo" ) == true )
 		{
 			// !Set;Mod;X;Y;____$xsum*
