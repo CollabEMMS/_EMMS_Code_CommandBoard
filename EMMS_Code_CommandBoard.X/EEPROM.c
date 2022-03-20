@@ -344,11 +344,11 @@ void eeWriteResetTimeNew( int resetHour, int resetMinute )
 	return;
 }
 
-struct alarm_info eeReadAlarmNew( void )
+struct alarm_info_struct eeReadAlarmNew( void )
 {
 	unsigned int offset;
 
-	struct alarm_info alarmInfoTemp;
+	struct alarm_info_struct alarmInfoTemp;
 
 	int audibleAlarm;
 	int alarm1Energy;
@@ -378,30 +378,14 @@ struct alarm_info eeReadAlarmNew( void )
 		alarmInfoTemp.alarmAudible = true;
 	}
 
-	alarmInfoTemp.alarm1Energy = alarm1Energy;
-	if( alarmInfoTemp.alarm1Energy > 0 )
-	{
-		alarmInfoTemp.alarm1Enabled = true;
-	}
-	else
-	{
-		alarmInfoTemp.alarm1Enabled = false;
-	}
+	alarmInfoTemp.alarm1PercentThreshold = alarm1Energy;
 
-	alarmInfoTemp.alarm2Energy = alarm2Energy;
-	if( alarmInfoTemp.alarm2Energy > 0 )
-	{
-		alarmInfoTemp.alarm2Enabled = true;
-	}
-	else
-	{
-		alarmInfoTemp.alarm2Enabled = false;
-	}
+	alarmInfoTemp.alarm2PercentThreshold = alarm2Energy;
 
 	return alarmInfoTemp;
 }
 
-void eeWriteAlarmNew( struct alarm_info alarms )
+void eeWriteAlarmNew( struct alarm_info_struct alarms )
 {
 	unsigned int offset;
 
@@ -434,7 +418,7 @@ void eeWriteAlarmNew( struct alarm_info alarms )
 
 	TBLPAG = __builtin_tblpage( &EEalarmOnePower );
 	offset = __builtin_tbloffset( &EEalarmOnePower );
-	__builtin_tblwtl( offset, alarms.alarm1Energy );
+	__builtin_tblwtl( offset, alarms.alarm1PercentThreshold );
 
 	asm volatile ("disi #5" );
 	__builtin_write_NVM( );
@@ -446,7 +430,7 @@ void eeWriteAlarmNew( struct alarm_info alarms )
 
 	TBLPAG = __builtin_tblpage( &EEalarmTwoPower );
 	offset = __builtin_tbloffset( &EEalarmTwoPower );
-	__builtin_tblwtl( offset, alarms.alarm2Energy );
+	__builtin_tblwtl( offset, alarms.alarm2PercentThreshold );
 
 	asm volatile ("disi #5" );
 	__builtin_write_NVM( );

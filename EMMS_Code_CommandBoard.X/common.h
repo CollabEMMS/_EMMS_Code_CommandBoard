@@ -174,15 +174,11 @@ struct date_time_struct
 	bool valid;
 };
 
-struct alarm_info
+struct alarm_info_struct
 {
 	bool alarmAudible;
-
-	bool alarm1Enabled;
-	int alarm1Energy;
-	bool alarm2Enabled;
-	int alarm2Energy;
-
+	int alarm1PercentThreshold;
+	int alarm2PercentThreshold;
 };
 
 struct energy_info

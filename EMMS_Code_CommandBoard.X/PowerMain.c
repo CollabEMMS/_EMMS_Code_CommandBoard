@@ -82,7 +82,7 @@ volatile unsigned long msTimer_module; // toggles to 1 every ms, resets to 0 at 
 struct moduleInfo_struct moduleInfo_global[MODULE_COUNT];
 struct energy_info energyUsed_global; // energy status of the system
 struct date_time_struct dateTime_global; // the current date time - periodically pulled from RTCC
-struct alarm_info alarms_global; // alarms
+struct alarm_info_struct alarms_global; // alarms
 unsigned long energyCycleAllocation_global; // how much energy is allocated per cycle
 struct reset_time resetTime_global; // hour and minute of the cycle reset
 unsigned int relayMode_global; // the relay mode

@@ -900,10 +900,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			//0 "set"
 			//1 "Alarm"
 			//2 audibleAlarmBuf - On Off
-			//3 alarm1EnabledBuf - On Off
-			//4 alarm1PowerBuf - int
-			//5 alarm2EnabledBuf - On Off
-			//6 alarm2PowerBuf - int
+			//3 alarm1PowerBuf - int
+			//4 alarm2PowerBuf - int
 
 			if( checkOnOff( parameters[2] ) == true )
 			{
@@ -914,29 +912,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 				alarms_global.alarmAudible = 0;
 			}
 
-
-			if( checkOnOff( parameters[3] ) == true )
-			{
-				alarms_global.alarm1Enabled = 1;
-			}
-			else
-			{
-				alarms_global.alarm1Enabled = 0;
-			}
-
-			alarms_global.alarm1Energy = atoi( parameters[4] );
-
-
-			if( checkOnOff( parameters[5] ) == true )
-			{
-				alarms_global.alarm2Enabled = 1;
-			}
-			else
-			{
-				alarms_global.alarm2Enabled = 0;
-			}
-
-			alarms_global.alarm2Energy = atoi( parameters[6] );
+			alarms_global.alarm1PercentThreshold = atoi( parameters[3] );
+			alarms_global.alarm2PercentThreshold = atoi( parameters[4] );
 
 			eeWriteAlarmNew( alarms_global );
 
@@ -1225,8 +1202,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 			// send the current alarm parameters
 			char audibleAlarmBuf[4];
-			char alarm1EnabledBuf[4];
-			char alarm2EnabledBuf[4];
 
 			int alarm1EnergyTemp;
 			int alarm2EnergyTemp;
@@ -1234,16 +1209,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			char alarm2EnergyBuf[BUF_SIZE_INT];
 
 			fillOnOff( audibleAlarmBuf, alarms_global.alarmAudible );
-			fillOnOff( alarm1EnabledBuf, alarms_global.alarm1Enabled );
-			fillOnOff( alarm2EnabledBuf, alarms_global.alarm2Enabled );
 
 			// using itoa() - variable type is char, make sure it is an int
-			alarm1EnergyTemp = alarms_global.alarm1Energy;
-			alarm2EnergyTemp = alarms_global.alarm2Energy;
+			alarm1EnergyTemp = alarms_global.alarm1PercentThreshold;
+			alarm2EnergyTemp = alarms_global.alarm2PercentThreshold;
 			itoa( alarm1EnergyBuf, alarm1EnergyTemp, 10 );
 			itoa( alarm2EnergyBuf, alarm2EnergyTemp, 10 );
 
-			command_builder7( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnabledBuf, alarm1EnergyBuf, alarm2EnabledBuf, alarm2EnergyBuf );
+			command_builder5( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnergyBuf, alarm2EnergyBuf );
 
 		}
 		else if( strmatch( parameters[1], "Pass" ) == true )
