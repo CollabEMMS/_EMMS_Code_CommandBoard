@@ -16,6 +16,9 @@ MPLAB X Project
   - stored in EEPROM
 - Command PwrData - temporary variable names fixed
   - energyEmergencyAdderBuf was wrong -- energyCycleAllocationBuf is correct
+- Cleanup - removed some items no longer used
+  - PSVersion
+
 
 
 ### v2.6.1
