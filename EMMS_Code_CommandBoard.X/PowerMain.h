@@ -25,15 +25,13 @@
 extern struct moduleInfo_struct moduleInfo_global[MODULE_COUNT];
 extern struct energy_info energyUsed_global;
 extern struct date_time_struct dateTime_global;
-extern struct alarm_info alarms_global;
+extern struct alarm_info_struct alarms_global;
 extern unsigned long energyCycleAllocation_global;
 extern struct reset_time resetTime_global;
 extern unsigned int relayMode_global;
 extern struct emergency_button emergencyButton_global;
 
 extern unsigned long powerWatts_global;
-
-extern char powerBoxCodeVersion_global[9];
 
 
 /****************

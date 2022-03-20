@@ -72,8 +72,8 @@
  ****************/
 
 //							"          "  10 character spacing reference - do not exceed or the system will crash
-#define MODULE_INFO_THIS_0	"Command"			// 10 chars max name
-#define MODULE_INFO_THIS_1	"v2.6.1"			// 10 chars max version
+#define MODULE_INFO_THIS_0	"Comand Brd"			// 10 chars max name
+#define MODULE_INFO_THIS_1	"v2.6.2"			// 10 chars max version
 #define MODULE_INFO_THIS_2	""					// 10 chars max info
 #define MODULE_INFO_THIS_3	""					// 10 chars max info
 #define MODULE_INFO_THIS_4	""					// 20 chars max info (only 18 will show on UI)
@@ -174,15 +174,11 @@ struct date_time_struct
 	bool valid;
 };
 
-struct alarm_info
+struct alarm_info_struct
 {
 	bool alarmAudible;
-
-	bool alarm1Enabled;
-	int alarm1Energy;
-	bool alarm2Enabled;
-	int alarm2Energy;
-
+	int alarm1PercentThreshold;
+	int alarm2PercentThreshold;
 };
 
 struct energy_info

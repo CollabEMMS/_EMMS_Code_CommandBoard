@@ -32,6 +32,8 @@
 
 //extern char passwordSet[6];
 
+void eeReadMeterNameNew( char* meterName );
+void eeWriteMeterNameNew( char *meterName );
 
 void eeReadPasswordNew( char* password );
 void eeWritePasswordNew( char* password );
@@ -42,8 +44,8 @@ void eeWriteEnergyAllocNew( long energyAllocation );
 struct emergency_button eeReadEmergencyButtonNew( void );
 void eeWriteEmerButtonNew( struct emergency_button emergencyButton );
 
-struct alarm_info eeReadAlarmNew( void );
-void eeWriteAlarmNew( struct alarm_info alarms );
+struct alarm_info_struct eeReadAlarmNew( void );
+void eeWriteAlarmNew( struct alarm_info_struct alarms );
 
 struct reset_time eeReadResetTimeNew( void );
 void eeWriteResetTimeNew( int resetHour, int resetMinute );

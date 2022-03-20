@@ -54,6 +54,8 @@
 #define MODULE_NUMBER_UART_2	2
 #define MODULE_NUMBER_SPI_ADDER	100
 
+#define METER_NAME_LENGTH 20
+
 /****************
  VARIABLES
  these are the globals required by only this c file
@@ -882,7 +884,7 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			// set the RTCC I2C and then copy it to the RTCC Internal
 			// this will help verify that they are the same
 			rtccI2CSetTime( &newDateTime );
-			rtccCopyI2CTime( );
+			rtccCopyI2CTime( ); // this function automatically populates the dateTime_global
 
 			command_builder2( send_buffer, "Conf", "Time" );
 
@@ -900,10 +902,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			//0 "set"
 			//1 "Alarm"
 			//2 audibleAlarmBuf - On Off
-			//3 alarm1EnabledBuf - On Off
-			//4 alarm1PowerBuf - int
-			//5 alarm2EnabledBuf - On Off
-			//6 alarm2PowerBuf - int
+			//3 alarm1PowerBuf - int
+			//4 alarm2PowerBuf - int
 
 			if( checkOnOff( parameters[2] ) == true )
 			{
@@ -914,29 +914,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 				alarms_global.alarmAudible = 0;
 			}
 
-
-			if( checkOnOff( parameters[3] ) == true )
-			{
-				alarms_global.alarm1Enabled = 1;
-			}
-			else
-			{
-				alarms_global.alarm1Enabled = 0;
-			}
-
-			alarms_global.alarm1Energy = atoi( parameters[4] );
-
-
-			if( checkOnOff( parameters[5] ) == true )
-			{
-				alarms_global.alarm2Enabled = 1;
-			}
-			else
-			{
-				alarms_global.alarm2Enabled = 0;
-			}
-
-			alarms_global.alarm2Energy = atoi( parameters[6] );
+			alarms_global.alarm1PercentThreshold = atoi( parameters[3] );
+			alarms_global.alarm2PercentThreshold = atoi( parameters[4] );
 
 			eeWriteAlarmNew( alarms_global );
 
@@ -955,9 +934,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			passwordNew[5] = parameters[2][5];
 
 			eeWritePasswordNew( passwordNew );
+			// when password is asked for it is read direct from the EEPROM so no need to set a global
 
 			command_builder2( send_buffer, "Conf", "Pass" );
-
 		}
 		else if( strmatch( parameters[1], "Emer" ) == true )
 		{
@@ -976,7 +955,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteEmerButtonNew( emergencyButton_global );
 
 			command_builder2( send_buffer, "Conf", "Emer" );
-
 		}
 		else if( strmatch( parameters[1], "RstTim" ) == true )
 		{
@@ -993,7 +971,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteResetTimeNew( resetTime_global.hour, resetTime_global.minute );
 
 			command_builder4( send_buffer, "Conf", "RstTim", rsh, rsm );
-
 		}
 		else if( strmatch( parameters[1], "Relay" ) == true )
 		{
@@ -1018,7 +995,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			eeWriteRelayNew( relayMode_global );
 
 			command_builder2( send_buffer, "Conf", "Relay" );
-
 		}
 			//	else if( strmatch( parameters[1], "DebugMode" ) )
 
@@ -1026,8 +1002,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		{
 
 			powerWatts_global = atol( parameters[2] );
-			command_builder2( send_buffer, "Conf", "Watts" );
 
+			command_builder2( send_buffer, "Conf", "Watts" );
 		}
 		else if( strmatch( parameters[1], "EnUsed" ) == true )
 		{
@@ -1061,7 +1037,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			ledFindMeActive_global = checkOnOff( parameters[2] );
 
 			command_builder2( send_buffer, "Conf", "Lights" );
-
 		}
 		else if( strmatch( parameters[1], "AllAdd" ) == true )
 		{
@@ -1076,10 +1051,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			energyCycleAllocation_global += tempEnergyAdd;
 
 			command_builder3( send_buffer, "Conf", "AllAdd", buf );
-		}
-		else if( strmatch( parameters[1], "PSVersion" ) == true )
-		{
-			command_builder2( send_buffer, "Conf", "PSVersion" );
 		}
 		else if( strmatch( parameters[1], "ModInfo" ) == true )
 		{
@@ -1169,6 +1140,16 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 				command_builder2( send_buffer, "Err", "ModInfo" );
 			}
 		}
+		else if( strmatch( parameters[1], "MName" ) == true )
+		{
+			char meterNameStringTemp[ METER_NAME_LENGTH ];
+
+			strcpy2( meterNameStringTemp, parameters[2] );
+			eeWriteMeterNameNew( meterNameStringTemp );
+
+			command_builder2( send_buffer, "Conf", "MName" );
+		}
+
 
 	}
 	else if( strmatch( parameters[0], "Read" ) == true )
@@ -1229,8 +1210,6 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 			// send the current alarm parameters
 			char audibleAlarmBuf[4];
-			char alarm1EnabledBuf[4];
-			char alarm2EnabledBuf[4];
 
 			int alarm1EnergyTemp;
 			int alarm2EnergyTemp;
@@ -1238,16 +1217,14 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			char alarm2EnergyBuf[BUF_SIZE_INT];
 
 			fillOnOff( audibleAlarmBuf, alarms_global.alarmAudible );
-			fillOnOff( alarm1EnabledBuf, alarms_global.alarm1Enabled );
-			fillOnOff( alarm2EnabledBuf, alarms_global.alarm2Enabled );
 
 			// using itoa() - variable type is char, make sure it is an int
-			alarm1EnergyTemp = alarms_global.alarm1Energy;
-			alarm2EnergyTemp = alarms_global.alarm2Energy;
+			alarm1EnergyTemp = alarms_global.alarm1PercentThreshold;
+			alarm2EnergyTemp = alarms_global.alarm2PercentThreshold;
 			itoa( alarm1EnergyBuf, alarm1EnergyTemp, 10 );
 			itoa( alarm2EnergyBuf, alarm2EnergyTemp, 10 );
 
-			command_builder7( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnabledBuf, alarm1EnergyBuf, alarm2EnabledBuf, alarm2EnergyBuf );
+			command_builder5( send_buffer, "Set", "Alarm", audibleAlarmBuf, alarm1EnergyBuf, alarm2EnergyBuf );
 
 		}
 		else if( strmatch( parameters[1], "Pass" ) == true )
@@ -1335,21 +1312,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 			command_builder4( send_buffer, "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
 
 		}
-		else if( strmatch( parameters[1], "CBver" ) == true )
+		else if( strmatch( parameters[1], "MName" ) == true )
 		{
+			char meterNameStringTemp[ METER_NAME_LENGTH];
 
-			char temp[10];
-			temp[0] = 'T';
-			temp[1] = 'e';
-			temp[2] = 's';
-			temp[3] = 't';
-			temp[4] = ':';
-			temp[5] = '0';
-			temp[6] = '1';
-			temp[7] = CHAR_NULL;
+			eeReadMeterNameNew( meterNameStringTemp );
 
-			command_builder3( send_buffer, "Set", "CBver", powerBoxCodeVersion_global );
-
+			command_builder3( send_buffer, "Set", "MName", meterNameStringTemp );
 		}
 		else if( strmatch( parameters[1], "PwrFail" ) == true )
 		{
@@ -1450,23 +1419,19 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		}
 		else if( strmatch( parameters[1], "PwrData" ) == true )
 		{
-
 			long energyUsedTemp;
 
 			energyUsedTemp = energyUsed_global.lifetime - energyUsed_global.lastReset;
 
-			char energyEmergencyAdderBuf[BUF_SIZE_LONG];
+			char energyCycleAllocationBuf[BUF_SIZE_LONG];
 			char energyUsedBuf[BUF_SIZE_LONG];
 			char powerWattsBuf[BUF_SIZE_LONG];
 
-			ltoa( energyEmergencyAdderBuf, energyCycleAllocation_global, 10 );
+			ltoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
 			ltoa( energyUsedBuf, energyUsedTemp, 10 );
 			ltoa( powerWattsBuf, powerWatts_global, 10 );
 
-
-
-
-			command_builder5( send_buffer, "Set", "PwrData", energyEmergencyAdderBuf, energyUsedBuf, powerWattsBuf );
+			command_builder5( send_buffer, "Set", "PwrData", energyCycleAllocationBuf, energyUsedBuf, powerWattsBuf );
 		}
 		else if( strmatch( parameters[1], "ModInfo" ) == true )
 		{

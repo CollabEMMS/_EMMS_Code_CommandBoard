@@ -7,6 +7,26 @@ MPLAB X Project
 - nothing at this time
 
 # Changelog
+### NEXT
+
+
+### v2.6.2
+March 20, 2022<br />
+Tom Austin
+#### Changes
+- Ensured any parameters "Set" were immediately available to be "Read"
+- AlarmXEnabled since it was directly derived from AlarmXThreshold
+  - removed it from the communication commands
+- Feature - Meter Name
+  - Update communications to handle Meter Name (MName)
+  - stored in EEPROM
+- Command PwrData - temporary variable names fixed
+  - energyEmergencyAdderBuf was wrong -- energyCycleAllocationBuf is correct
+- Cleanup - removed some items no longer used
+  - PSVersion
+
+
+
 ### v2.6.1
 March 19, 2022<br />
 Tom Austin
