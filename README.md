@@ -9,6 +9,10 @@ MPLAB X Project
 # Changelog
 ### NEXT
 - increased MAX_PARAMETER_LENGTH to account for ModInfo and NULL_CHAR
+- main loop oneshots might not run as expected
+  - if a previous oneshot lined up with a subsequent one it might prevent the subsequent one from firing if the runtime took too long
+    - this was evident when the power was not being saved every 2 minutes as expected
+  - change to use explicit time to run so the function is never skipped
 
 ### v2.6.2
 March 20, 2022<br />

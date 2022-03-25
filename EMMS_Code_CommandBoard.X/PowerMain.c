@@ -48,11 +48,8 @@
 #define BUILD_MINUTE (((__TIME__ [3] - 48) * 10) + (__TIME__ [4] - 48))
 #define BUILD_SECOND (((__TIME__ [6] - 48) * 10) + (__TIME__ [7] - 48))
 
-// Time window where the oneshots can occur
-// sometimes the program main loop takes more than 1 ms to run and we can inadvertantly skip if we are lookng for an exact match
-#define ONESHOT_WINDOW 25
-
-
+#define TIMER_ROLLOVER			4000000000	// maximum timer value before we force a rollover back to 0
+#define TIMER_ROLLOVER_CHECK	100000000	// if the difference between the timer and our check is greater than this then our check time has rolled over and we need to wait
 
 
 /****************
@@ -177,7 +174,7 @@ int main( void )
 	ledInit( );
 
 	resetReportDisplay( );
-			
+
 	ledSetAllOff( );
 
 	initModuleInfo( );
@@ -209,7 +206,7 @@ int main( void )
 
 	rtccCopyI2CTime( );
 
-	commDebugPrintStringIndentln( 0, "Startup Complete\n\n" );
+	commDebugPrintStringIndentln( 0, "\nStartup Complete\n\n" );
 
 	while( true )
 	{
@@ -221,99 +218,91 @@ int main( void )
 		relayControl( );
 
 		// in the following, code blocks {} are used
-		// to encapsulate the oneShot variable
+		// to encapsulate the nextRunTime variable
 		// why
 		// - otherwise we would need to declare separately named
-		// one shots before the infinite for loop
-		// the oneShot variables are local to each block
+		// nextRunTime variables outside the while(true) loop
+		// the nextRunTime variables are local to each block
 		// and self contained which makes the code leaner
-
-		//      Test stub for a counter that is super helpful in this function for 
-		//      looking at reliability and etcetera. Just throw it into a oneshot
-		//        static int counter = 0;
-		//        counter++;
-		//        ledSetAll((counter>>3)%2, (counter>>2)%2, (counter>>1)%2, counter%2);
+		//
+		// in the test to see if the timer is triggered we need to check for timer rollover
+		// if the difference is really large then we rolled over and need to wait until the internal timer rolls over as well
 
 
-		// oneShot
+		// isolate nextRunTime block
 		{
-			static bool oneShot = false;
+			static unsigned long nextRunTime = 0;
 
-			if( ( msTimer_module % 500 ) <= ONESHOT_WINDOW )
+			if( ( msTimer_module > nextRunTime ) && ( ( msTimer_module - nextRunTime ) < TIMER_ROLLOVER_CHECK ) )
 			{
-				if( oneShot == false )
+				nextRunTime = msTimer_module + 500;
+				if( nextRunTime >= TIMER_ROLLOVER )
 				{
-					rtccReadTime( &dateTime_global );
-					oneShot = true;
+					nextRunTime -= TIMER_ROLLOVER;
 				}
-			}
-			else
-			{
-				oneShot = false;
-			}
-		}
 
-		// oneShot
+				rtccReadTime( &dateTime_global );
+
+			}
+
+		} // isolate nextRunTime block
+
+
+		// isolate nextRunTime block
 		{
-			static bool oneShot = false;
+			static unsigned long nextRunTime = 0;
 
-
-			if( ( msTimer_module % 20000 ) <= ONESHOT_WINDOW )
+			if( ( msTimer_module > nextRunTime ) && ( ( msTimer_module - nextRunTime ) < TIMER_ROLLOVER_CHECK ) )
 			{
-				if( oneShot == false )
+				nextRunTime = msTimer_module + 20000;
+				if( nextRunTime >= TIMER_ROLLOVER )
 				{
-					rtccCopyI2CTime( );
-					oneShot = true;
-
+					nextRunTime -= TIMER_ROLLOVER;
 				}
-			}
-			else
-			{
-				oneShot = false;
+
+				rtccCopyI2CTime( );
+
 			}
 
-		} //oneShot block
+		} // isolate nextRunTime block
 
-		// oneShot
+
+		// isolate nextRunTime block
 		{
-			static bool oneShot = false;
 
-			if( ( msTimer_module % 120000 ) <= ONESHOT_WINDOW )
+			static unsigned long nextRunTime = 0;
+
+			if( ( msTimer_module > nextRunTime ) && ( ( msTimer_module - nextRunTime ) < TIMER_ROLLOVER_CHECK ) )
 			{
-				if( oneShot == false )
+				nextRunTime = msTimer_module + 120000;
+				if( nextRunTime >= TIMER_ROLLOVER )
 				{
-
-					storeToEE( );
-					oneShot = true;
+					nextRunTime -= TIMER_ROLLOVER;
 				}
-			}
-			else
-			{
-				oneShot = false;
+
+				storeToEE( );
+
 			}
 
-		} // oneShot block
+		} // isolate nextRunTime block
 
-		// oneShot
+		// isolate nextRunTime block
 		{
-			static bool oneShot = false;
+			static unsigned long nextRunTime = 0;
 
-
-			if( ( msTimer_module % 50 ) <= ONESHOT_WINDOW )
+			if( ( msTimer_module > nextRunTime ) && ( ( msTimer_module - nextRunTime ) < TIMER_ROLLOVER_CHECK ) )
 			{
-				if( oneShot == false )
+				nextRunTime = msTimer_module + 50;
+				if( nextRunTime >= TIMER_ROLLOVER )
 				{
-					ledSetFrontFindMe( );
-					oneShot = true;
-
+					nextRunTime -= TIMER_ROLLOVER;
 				}
-			}
-			else
-			{
-				oneShot = false;
+
+				ledSetFrontFindMe( );
+
 			}
 
-		} // oneShot block
+		} // isolate nextRunTime block
 
 	} //while (true)
 
@@ -377,7 +366,7 @@ void initModuleInfo( void )
 	strcpy2( moduleInfo_global[0].info2, MODULE_INFO_THIS_2 );
 	strcpy2( moduleInfo_global[0].info3, MODULE_INFO_THIS_3 );
 	strcpy2( moduleInfo_global[0].info4, MODULE_INFO_THIS_4 );
-	
+
 	return;
 }
 
@@ -488,7 +477,7 @@ void __attribute__( ( __interrupt__, __no_auto_psv__ ) ) _T1Interrupt( void )
 
 	// control our timer rollover to prevent overflow
 	// not critical that we do this, but it is more controlled than an overflow
-	if( msTimer_module >= 4000000000 )
+	if( msTimer_module >= TIMER_ROLLOVER )
 	{
 		msTimer_module = 0;
 	}

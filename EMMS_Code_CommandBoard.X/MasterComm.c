@@ -319,9 +319,9 @@ void communicationsSPI( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-				commDebugPrintString( "SPI-" );
-				commDebugPrintLong( current_port );
-				commDebugPrintString( " " );
+//				commDebugPrintString( "SPI-" );
+//				commDebugPrintLong( current_port );
+//				commDebugPrintString( " " );
 
 				if( process_data( &receive_buffer, &send_buffer, ( current_port + MODULE_NUMBER_SPI_ADDER ) ) == true )
 				{
@@ -411,7 +411,7 @@ void communicationsUART1( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-				commDebugPrintString( "UART-1 " );
+//				commDebugPrintString( "UART-1 " );
 
 				if( process_data( &receive_buffer, &send_buffer, MODULE_NUMBER_UART_1 ) == true )
 				{
@@ -733,9 +733,9 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 	// the characters are not included as they were not added
 
 	//TODO testing
-	receive_buffer->data_buffer[ receive_buffer->write_position ] = CHAR_NULL;
-	commDebugPrintString( "Recv: " );
-	commDebugPrintStringln( receive_buffer->data_buffer );
+//	receive_buffer->data_buffer[ receive_buffer->write_position ] = CHAR_NULL;
+//	commDebugPrintString( "Recv: " );
+//	commDebugPrintStringln( receive_buffer->data_buffer );
 
 	char parameters[PARAMETER_MAX_COUNT][PARAMETER_MAX_LENGTH];
 
@@ -1303,13 +1303,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 		}
 		else if( strmatch( parameters[1], "Stat" ) == true )
 		{
-			char charEnergyUsedLifetime[BUF_SIZE_LONG];
-			char charEnergyUsedPreviousDay[BUF_SIZE_LONG];
+			char energyUsedLifetimeBuf[BUF_SIZE_LONG];
+			char energyUsedPreviousDayBuf[BUF_SIZE_LONG];
 
-			ltoa( charEnergyUsedLifetime, energyUsed_global.lifetime, 10 );
-			ltoa( charEnergyUsedPreviousDay, energyUsed_global.previousCycleUsed, 10 );
+			ltoa( energyUsedLifetimeBuf, energyUsed_global.lifetime, 10 );
+			ltoa( energyUsedPreviousDayBuf, energyUsed_global.previousCycleUsed, 10 );
 
-			command_builder4( send_buffer, "Set", "Stat", charEnergyUsedLifetime, charEnergyUsedPreviousDay );
+			command_builder4( send_buffer, "Set", "Stat", energyUsedLifetimeBuf, energyUsedPreviousDayBuf );
 
 		}
 		else if( strmatch( parameters[1], "MName" ) == true )
@@ -1624,9 +1624,9 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 
 	command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
-	send_buffer->data_buffer[ send_buffer->write_position] = CHAR_NULL;
-	commDebugPrintString( "Send: " );
-	commDebugPrintStringln( send_buffer->data_buffer );
+//	send_buffer->data_buffer[ send_buffer->write_position] = CHAR_NULL;
+//	commDebugPrintString( "Send: " );
+//	commDebugPrintStringln( send_buffer->data_buffer );
 
 	return;
 }
