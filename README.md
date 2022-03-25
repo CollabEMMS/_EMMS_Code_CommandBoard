@@ -8,7 +8,7 @@ MPLAB X Project
 
 # Changelog
 ### NEXT
-
+- increased MAX_PARAMETER_LENGTH to account for ModInfo and NULL_CHAR
 
 ### v2.6.2
 March 20, 2022<br />
