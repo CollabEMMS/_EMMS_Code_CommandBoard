@@ -13,6 +13,7 @@ MPLAB X Project
   - if a previous oneshot lined up with a subsequent one it might prevent the subsequent one from firing if the runtime took too long
     - this was evident when the power was not being saved every 2 minutes as expected
   - change to use explicit time to run so the function is never skipped
+- added communications for 2 calibration factors cal-1 and cal-2 that get passed to the power sense
 
 ### v2.6.2
 March 20, 2022<br />

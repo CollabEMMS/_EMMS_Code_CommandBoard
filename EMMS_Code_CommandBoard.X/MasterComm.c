@@ -21,7 +21,7 @@
 // the init function needs modified directly
 
 #define BUFFER_LENGTH_RECV 10	// length of receive buffers - characters are received by interrupt - this is an intermediate buffer that is read with each program loop
-#define BUFFER_LENGTH 250  // max size is positive signed character size (255))
+#define BUFFER_LENGTH 150  // max size is positive signed character size (255))
 #define PORT_COUNT 3 // one based count of the number of ports
 
 #define BUF_SIZE_CHAR 5
@@ -70,8 +70,12 @@
 
 // internal only
 
+unsigned long energyCalibration1_module = 0;	// only passed through to power sense
+unsigned long energyCalibration2_module = 0;	// only passed through to power sense
+
+
 // character receiving buffers (internal)
-volatile char SPIRecvBuffer_module[BUFFER_LENGTH_RECV];
+volatile char SPIRecvBuffer_module[ BUFFER_LENGTH_RECV ];
 volatile int SPIRecvBufferReadPos_module = 0;
 volatile int SPIRecvBufferWritePos_module = 0;
 
@@ -319,9 +323,9 @@ void communicationsSPI( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-//				commDebugPrintString( "SPI-" );
-//				commDebugPrintLong( current_port );
-//				commDebugPrintString( " " );
+				//				commDebugPrintString( "SPI-" );
+				//				commDebugPrintLong( current_port );
+				//				commDebugPrintString( " " );
 
 				if( process_data( &receive_buffer, &send_buffer, ( current_port + MODULE_NUMBER_SPI_ADDER ) ) == true )
 				{
@@ -411,7 +415,7 @@ void communicationsUART1( bool initialize )
 
 			if( xSumCheck( receive_buffer.data_buffer ) == true )
 			{
-//				commDebugPrintString( "UART-1 " );
+				//				commDebugPrintString( "UART-1 " );
 
 				if( process_data( &receive_buffer, &send_buffer, MODULE_NUMBER_UART_1 ) == true )
 				{
@@ -733,9 +737,9 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 	// the characters are not included as they were not added
 
 	//TODO testing
-//	receive_buffer->data_buffer[ receive_buffer->write_position ] = CHAR_NULL;
-//	commDebugPrintString( "Recv: " );
-//	commDebugPrintStringln( receive_buffer->data_buffer );
+	//	receive_buffer->data_buffer[ receive_buffer->write_position ] = CHAR_NULL;
+	//	commDebugPrintString( "Recv: " );
+	//	commDebugPrintStringln( receive_buffer->data_buffer );
 
 	char parameters[PARAMETER_MAX_COUNT][PARAMETER_MAX_LENGTH];
 
@@ -1149,7 +1153,18 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
 			command_builder2( send_buffer, "Conf", "MName" );
 		}
-
+		else if( strmatch( parameters[1], "Cal1" ) == true )
+		{
+			energyCalibration1_module = strtoul( parameters[2], NULL, 0);
+			
+			command_builder2( send_buffer, "Conf", "Cal1" );
+		}
+		else if( strmatch( parameters[1], "Cal2" ) == true )
+		{
+			energyCalibration2_module = strtoul( parameters[2], NULL, 0);
+			
+			command_builder2( send_buffer, "Conf", "Cal2" );
+		}
 
 	}
 	else if( strmatch( parameters[0], "Read" ) == true )
@@ -1472,6 +1487,23 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 				}
 			}
 		}
+		else if( strmatch( parameters[1], "Cal1" ) == true )
+		{
+			char temp[ BUF_SIZE_LONG ];
+
+			ultoa( temp, energyCalibration1_module, 10 );
+
+			command_builder3( send_buffer, "Set", "Cal1", temp );
+		}
+		else if( strmatch( parameters[1], "Cal2" ) == true )
+		{
+			char temp[ BUF_SIZE_LONG ];
+
+			ultoa( temp, energyCalibration2_module, 10 );
+
+			command_builder3( send_buffer, "Set", "Cal2", temp );
+		}
+
 	}
 
 	return end_of_transmission_received;
@@ -1624,9 +1656,9 @@ void xsum_builder( struct buffer_struct *send_buffer, int xsum )
 
 	command_builder_add_char( send_buffer, COMMAND_END_CHAR );
 
-//	send_buffer->data_buffer[ send_buffer->write_position] = CHAR_NULL;
-//	commDebugPrintString( "Send: " );
-//	commDebugPrintStringln( send_buffer->data_buffer );
+	//	send_buffer->data_buffer[ send_buffer->write_position] = CHAR_NULL;
+	//	commDebugPrintString( "Send: " );
+	//	commDebugPrintStringln( send_buffer->data_buffer );
 
 	return;
 }
