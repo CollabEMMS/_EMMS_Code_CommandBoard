@@ -72,16 +72,16 @@
  ****************/
 
 //							"          "  10 character spacing reference - do not exceed or the system will crash
-#define MODULE_INFO_THIS_0	"Comand Brd"			// 10 chars max name
-#define MODULE_INFO_THIS_1	"v2.6.2"			// 10 chars max version
-#define MODULE_INFO_THIS_2	""					// 10 chars max info
-#define MODULE_INFO_THIS_3	""					// 10 chars max info
-#define MODULE_INFO_THIS_4	""					// 20 chars max info (only 18 will show on UI)
+#    define MODULE_INFO_THIS_0	"Comand Brd"			// 10 chars max name
+#    define MODULE_INFO_THIS_1	"v2.6.3"			// 10 chars max version
+#    define MODULE_INFO_THIS_2	""					// 10 chars max info
+#    define MODULE_INFO_THIS_3	""					// 10 chars max info
+#    define MODULE_INFO_THIS_4	""					// 20 chars max info (only 18 will show on UI)
 
-#define MODULE_INFO_SIZE_SMALL	11	// 10 + include the null char
-#define MODULE_INFO_SIZE_LARGE	21	// 20 + include the null char
-#define MODULE_COUNT		6	// 6 module info sets: 0=Command Board, 1=UART-1, 2=UART-2, 3=SPI-0, 4=SPI-1, 5=SPI-2
-#define MODULE_INFO_COUNT	5	// number of info items per module
+#    define MODULE_INFO_SIZE_SMALL	11	// 10 + include the null char
+#    define MODULE_INFO_SIZE_LARGE	21	// 20 + include the null char
+#    define MODULE_COUNT		6	// 6 module info sets: 0=Command Board, 1=UART-1, 2=UART-2, 3=SPI-0, 4=SPI-1, 5=SPI-2
+#    define MODULE_INFO_COUNT	5	// number of info items per module
 
 
 /***********************
@@ -105,7 +105,7 @@
 
 /***********************
 	UART2 Modes
-	******************
+ ******************
 	UART2_MODULE
 		Regular meter communication over UART2
 	UART2_DEBUG_IDE
@@ -137,15 +137,15 @@
  ************************/
 //#define UART2_MODULE
 //#define UART2_DEBUG_IDE
-#define UART2_DEBUG_OUTPUT
+#    define UART2_DEBUG_OUTPUT
 
-#if !defined UART2_MODULE && !defined UART2_DEBUG_IDE && !defined UART2_DEBUG_OUTPUT
-#error One UART2 option must be defined
-#endif
+#    if !defined UART2_MODULE && !defined UART2_DEBUG_IDE && !defined UART2_DEBUG_OUTPUT
+#        error One UART2 option must be defined
+#    endif
 
-#if (defined UART2_MODULE && defined UART2_DEBUG_IDE) || ( defined UART2_MODULE && defined UART2_DEBUG_OUTPUT ) || ( defined UART2_DEBUG_IDE && defined UART2_DEBUG_OUTPUT )
-#error More than one UART2 option defined - only one can be defined at a time
-#endif
+#    if (defined UART2_MODULE && defined UART2_DEBUG_IDE) || ( defined UART2_MODULE && defined UART2_DEBUG_OUTPUT ) || ( defined UART2_DEBUG_IDE && defined UART2_DEBUG_OUTPUT )
+#        error More than one UART2 option defined - only one can be defined at a time
+#    endif
 
 
 #    define CHAR_NULL '\0'   //yes, used in many many places
