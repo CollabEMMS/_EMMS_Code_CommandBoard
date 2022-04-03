@@ -997,11 +997,6 @@ unsigned long eeReadEnergyUsedNew( )
 
 	temp = combineIntsToLong( tempH, tempL );
 
-	commDebugPrintString( "\nRead Energy Lifetime slot: " );
-	commDebugPrintLong( EEpowerSelect );
-	commDebugPrintString( " value: " );
-	commDebugPrintLong( temp );
-
 	return temp;
 }
 
@@ -1263,16 +1258,6 @@ void eeWriteEnergyLifetimeNew( unsigned long energyLifetime )
 				__builtin_write_NVM( );
 		}
 
-		commDebugPrintString( "\nSave Energy Lifetime slot: " );
-		commDebugPrintLong( EESlotToWrite );
-		commDebugPrintString( " value: " );
-		commDebugPrintLong( energyLifetime );
-	}
-	else
-	{
-		commDebugPrintString( "\nSave Energy Lifetime " );
-		commDebugPrintLong( energyLifetime );
-		commDebugPrintString (" did not change." );
 	}
 
 	return;

@@ -10,6 +10,9 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+- some general cleanup of debug messages
+
+
 ### v2.6.3
 March 26, 2022<br />
 Tom Austin
