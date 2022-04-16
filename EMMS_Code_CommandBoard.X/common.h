@@ -195,6 +195,12 @@ struct energy_info
 
 };
 
+struct calibraion_struct
+{
+    unsigned long cal1;
+    unsigned long cal2;
+};
+
 struct reset_time
 {
 	int hour;

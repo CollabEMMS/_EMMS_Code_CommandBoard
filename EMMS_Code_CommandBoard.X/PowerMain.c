@@ -74,6 +74,7 @@ unsigned long energyCycleAllocation_global; // how much energy is allocated per 
 struct reset_time resetTime_global; // hour and minute of the cycle reset
 unsigned int relayMode_global; // the relay mode
 struct emergency_button emergencyButton_global; // emergency button enabled and allocation amount
+struct calibration_struct calibrationFactors_global;   // the calibration factors
 
 
 /****************
@@ -180,7 +181,7 @@ int main( void )
 	initModuleInfo( );
 
 	commInit( );
-	commDebugPrintStringIndentln( 0, "\n\nStartup" );
+//	commDebugPrintStringIndentln( 0, "\n\nStartup" );
 	ledSetAll( 1, 0, 1, 1 );
 
 	init( );
@@ -206,7 +207,7 @@ int main( void )
 
 	rtccCopyI2CTime( );
 
-	commDebugPrintStringIndentln( 0, "\nStartup Complete\n\n" );
+//	commDebugPrintStringIndentln( 0, "\nStartup Complete\n\n" );
 
 	while( true )
 	{
@@ -406,6 +407,7 @@ void initPorts( void )
 	TRISBbits.TRISB6 = 0; // relay control
 
 	// TODO - check emergency button for the pull up/down resistor
+    // this seems to be working fine with this comments - likely can delete these lines of code
 	// is there one implemented on the circuit board?
 	// or do we use the internal one on the PIC
 	// the following line implements the one in the PIC
@@ -422,10 +424,14 @@ void initReadGlobalsFromEEPROM( void )
 	emergencyButton_global = eeReadEmergencyButtonNew( );
 	alarms_global = eeReadAlarmNew( );
 	resetTime_global = eeReadResetTimeNew( );
+
+    // energyUser_global is set by two different calls to eeprom on purpose
 	energyUsed_global = eeReadTotalsNew( );
 	energyUsed_global.lifetime = eeReadEnergyUsedNew( );
-	relayMode_global = eeReadRelayNew( );
 
+	relayMode_global = eeReadRelayNew( );
+    calibrationFactors_global = eeReadCalibrationNew();
+    
 	return;
 }
 

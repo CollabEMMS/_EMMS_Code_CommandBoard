@@ -56,6 +56,9 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData );
 unsigned long eeReadEnergyUsedNew( );
 void eeWriteEnergyLifetimeNew( unsigned long energyUsedLifetime );
 
+struct calibration_struct eeReadCalibrationNew( void );
+void eeWriteCalibrationNew( struct calibration_struct calibrationFactors );
+
 unsigned int eeReadRelayNew( );
 void eeWriteRelayNew( bool relay );
 
