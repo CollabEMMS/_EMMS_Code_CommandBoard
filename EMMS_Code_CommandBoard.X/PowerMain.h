@@ -30,6 +30,7 @@ extern unsigned long energyCycleAllocation_global;
 extern struct reset_time resetTime_global;
 extern unsigned int relayMode_global;
 extern struct emergency_button emergencyButton_global;
+extern struct calibration_struct calibrationFactors_global;
 
 extern unsigned long powerWatts_global;
 

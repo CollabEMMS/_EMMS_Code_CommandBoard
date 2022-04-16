@@ -81,6 +81,13 @@ int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime8L = 0;
 int __attribute__( ( space( eedata ) ) ) EErelayMode = 2;
 int __attribute__( ( space( eedata ) ) ) EErtccIsSet = 0;
 
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1H = 0;         // default high byte is 0
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1L = 22124;     // default value
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2H = 0;         // default high byte is 0
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2L = 1382;      // default is cal1 / 16
+//  the default values for calibration factor are likely wrong - but they give a starting place
+
+
 /****************
  FUNCTION PROTOTYPES
  only include functions called from within this code
@@ -898,6 +905,106 @@ void eeWriteEnergyTotalsNew( struct energy_info energyData )
 	return;
 }
 
+struct calibration_struct eeReadCalibrationNew( void )
+{
+	unsigned int offset;
+    
+    struct calibration_struct calibrationFactors;
+    
+
+	unsigned int tempH;
+	unsigned int tempL;
+
+	writeWait( );
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor1H );
+	offset = __builtin_tbloffset( &EEcalibrationFactor1H );
+	tempH = __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor1L );
+	offset = __builtin_tbloffset( &EEcalibrationFactor1L );
+	tempL = __builtin_tblrdl( offset );
+
+	calibrationFactors.cal1 = combineIntsToLong( tempH, tempL );
+    
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor2H );
+	offset = __builtin_tbloffset( &EEcalibrationFactor2H );
+	tempH = __builtin_tblrdl( offset );
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor2L );
+	offset = __builtin_tbloffset( &EEcalibrationFactor2L );
+	tempL = __builtin_tblrdl( offset );
+
+	calibrationFactors.cal2 = combineIntsToLong( tempH, tempL );
+
+	return calibrationFactors;
+}
+
+void eeWriteCalibrationNew( struct calibration_struct calibrationFactors )
+{
+	unsigned int offset;
+
+	unsigned int tempH;
+	unsigned int tempL;
+
+
+	separateLongToInts( calibrationFactors.cal1, &tempH, &tempL );
+
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor1H );
+	offset = __builtin_tbloffset( &EEcalibrationFactor1H );
+	__builtin_tblwtl( offset, tempH );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor1L );
+	offset = __builtin_tbloffset( &EEcalibrationFactor1L );
+	__builtin_tblwtl( offset, tempL );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+
+	separateLongToInts( calibrationFactors.cal2, &tempH, &tempL );
+
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor2H );
+	offset = __builtin_tbloffset( &EEcalibrationFactor2H );
+	__builtin_tblwtl( offset, tempH );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+
+	writeWait( );
+
+	NVMCON = 0x4004;
+
+	TBLPAG = __builtin_tblpage( &EEcalibrationFactor2L );
+	offset = __builtin_tbloffset( &EEcalibrationFactor2L );
+	__builtin_tblwtl( offset, tempL );
+
+	asm volatile ("disi #5" );
+	__builtin_write_NVM( );
+
+    
+	return;
+}
+
+
 unsigned long eeReadEnergyUsedNew( )
 {
 	unsigned int offset;
@@ -1286,6 +1393,7 @@ void eeWriteRelayNew( unsigned int relayMode )
 	// the local relayMode variable does not contain the expected value
 	// as a result, we use the global relayMode_global for now
 	// it would be nice to figure out what is wrong, but that is beyond reach at the moment
+    // potentially could have been due to large program size (overusing filling PIC memory)
 
 	unsigned int offset;
 

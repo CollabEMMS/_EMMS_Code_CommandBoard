@@ -10,6 +10,23 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+### v2.6.5
+April 16, 2022<br />
+Tom Austin
+#### Changes
+- Calibration Factors now stored in Command Board
+  - storing the calibration factor in the Power Sense made it difficult to read it back out
+- made recv message more robust
+  - sometimes the recv buffer had some corruption
+    - at times a bad "!" caused the message to start before it really should have
+      - the code allows this through by design
+    - other messages just seem to start for no reason, even without "!"
+      - the source of this is unknown and this is unexpected
+    - main sympton was the Power Sense never setting the calibration values in the command board
+  - solution is to search for new COMMAND_CHAR_START "!" if the xsum fails
+    - this allows many more messages through
+    - only after the entire buffer is checked for "!" is the xsum fail allowed through
+
 ### v2.6.4
 April 3, 2022<br />
 Tom Austin

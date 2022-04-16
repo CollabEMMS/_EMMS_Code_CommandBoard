@@ -73,7 +73,7 @@
 
 //							"          "  10 character spacing reference - do not exceed or the system will crash
 #    define MODULE_INFO_THIS_0	"Comand Brd"			// 10 chars max name
-#    define MODULE_INFO_THIS_1	"v2.6.4"			// 10 chars max version
+#    define MODULE_INFO_THIS_1	"v2.6.5"			// 10 chars max version
 #    define MODULE_INFO_THIS_2	""					// 10 chars max info
 #    define MODULE_INFO_THIS_3	""					// 10 chars max info
 #    define MODULE_INFO_THIS_4	""					// 20 chars max info (only 18 will show on UI)
@@ -193,6 +193,12 @@ struct energy_info
 	unsigned long lastReset; // the lifetime value at the last reset ( lifetime - lastReset = todayUsed )
 	unsigned long previousCycleUsed; // the energy used during the previous cycle
 
+};
+
+struct calibration_struct
+{
+    unsigned long cal1;
+    unsigned long cal2;
 };
 
 struct reset_time
