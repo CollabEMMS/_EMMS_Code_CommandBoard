@@ -195,7 +195,7 @@ struct energy_info
 
 };
 
-struct calibraion_struct
+struct calibration_struct
 {
     unsigned long cal1;
     unsigned long cal2;
