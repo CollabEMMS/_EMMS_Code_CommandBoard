@@ -1037,23 +1037,24 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
             // if power sense lifetime energy is < command board lifetime energy we must be in start-up
             // send power sense new lifetime energy value
 
+            //TODO testing
             unsigned long tempEnergyUsedLifetime;
 
             tempEnergyUsedLifetime = atol( parameters[2] );
-
-            if ( tempEnergyUsedLifetime < energyUsed_global.lifetime )
-            {
-
-                char temp[12];
-                ltoa( temp, energyUsed_global.lifetime, 10 );
-                command_builder3( send_buffer, "Set", "EnUsed", temp );
-
-            }
-            else
-            {
-                energyUsed_global.lifetime = tempEnergyUsedLifetime;
-                command_builder2( send_buffer, "Conf", "EnUsed" );
-            }
+            energyUsed_global.lifetime = tempEnergyUsedLifetime;
+//            if ( tempEnergyUsedLifetime < energyUsed_global.lifetime )
+//            {
+//
+//                char temp[12];
+//                ltoa( temp, energyUsed_global.lifetime, 10 );
+//                command_builder3( send_buffer, "Set", "EnUsed", temp );
+//
+//            }
+//            else
+//            {
+//                energyUsed_global.lifetime = tempEnergyUsedLifetime;
+//                command_builder2( send_buffer, "Conf", "EnUsed" );
+//            }
 
         }
         else if ( strmatch( parameters[1], "Lights" ) == true )
@@ -1465,9 +1466,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
             char energyUsedBuf[BUF_SIZE_LONG];
             char powerWattsBuf[BUF_SIZE_LONG];
 
-            ltoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
-            ltoa( energyUsedBuf, energyUsedTemp, 10 );
-            ltoa( powerWattsBuf, powerWatts_global, 10 );
+            ultoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
+            ultoa( energyUsedBuf, energyUsedTemp, 10 );
+            ultoa( powerWattsBuf, powerWatts_global, 10 );
 
             command_builder5( send_buffer, "Set", "PwrData", energyCycleAllocationBuf, energyUsedBuf, powerWattsBuf );
         }
