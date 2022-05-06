@@ -47,7 +47,7 @@
         <targetDevice>PIC24FV32KA302</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>pk4hybrid</platformTool>
+        <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.41</languageToolchainVersion>
         <platform>3</platform>
@@ -261,14 +261,14 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-57ff"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmertogo.imagename" value="CB"/>
+        <property key="programmertogo.imagename" value=""/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
-        <property key="programoptions.pgmspeed" value="Max"/>
+        <property key="programoptions.pgmspeed" value="2"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
-                  value="${memories.dataflash.default}"/>
-        <property key="programoptions.preserveeeprom" value="false"/>
+                  value="${programoptions.preservedataflash.ranges}"/>
+        <property key="programoptions.preserveeeprom" value="true"/>
         <property key="programoptions.preserveeeprom.ranges" value="7ffe00-7fffff"/>
         <property key="programoptions.preserveprogram.ranges" value=""/>
         <property key="programoptions.preserveprogramrange" value="false"/>
@@ -675,7 +675,7 @@
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
         <property key="programmerToGoImageName" value="EMMS_Code_CommandBoard_ptg"/>
-        <property key="programmertogo.imagename" value="CB"/>
+        <property key="programmertogo.imagename" value=""/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.ledbrightness" value="5"/>
@@ -684,11 +684,11 @@
         <property key="programoptions.pgdconfig" value="pull down"/>
         <property key="programoptions.pgdresistor.value" value="4.7"/>
         <property key="programoptions.pgmentry.voltage" value="low"/>
-        <property key="programoptions.pgmspeed" value="Max"/>
+        <property key="programoptions.pgmspeed" value="2"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
-                  value="${memories.dataflash.default}"/>
-        <property key="programoptions.preserveeeprom" value="false"/>
+                  value="${programoptions.preservedataflash.ranges}"/>
+        <property key="programoptions.preserveeeprom" value="true"/>
         <property key="programoptions.preserveeeprom.ranges" value="7ffe00-7fffff"/>
         <property key="programoptions.preserveprogram.ranges" value=""/>
         <property key="programoptions.preserveprogramrange" value="false"/>
@@ -763,6 +763,8 @@
         <property key="memories.programmemory.ranges" value="0-57ff"/>
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="D:/Collab/emms/code/_EMMS_Code_CommandBoard/EMMS_Code_CommandBoard.X/debug/default/EMMS_Code_CommandBoard_ptg"/>
         <property key="programmerToGoImageName" value="EMMS_Code_CommandBoard_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
