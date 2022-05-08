@@ -10,6 +10,10 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+- update default EEPROM calibration values
+  - calibration values are now based on testing 1 meter and should be fairly close
+
+
 ### v2.6.5
 April 16, 2022<br />
 Tom Austin
