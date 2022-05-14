@@ -10,6 +10,14 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+### v2.7.1
+May 14, 2022<br />
+Tom Austin
+#### Changes
+- turn UART2 back on
+  - remove several debug print function calls
+- cleaned up some lingering //TODO comments
+
 ### v2.7.0
 May 14, 2022<br />
 Tom Austin
