@@ -336,7 +336,6 @@ void communicationsSPI( bool initialize )
             
             while( (xSumCheckIsOk == false) && ( receive_buffer.read_position < receive_buffer.write_position ) )
             {            
-                commDebugPrintStringln( "XSUM Fix");
                 receive_buffer.read_position++;
                 while(  ( receive_buffer.data_buffer[ receive_buffer.read_position ] != COMMAND_START_CHAR ) && ( receive_buffer.read_position < receive_buffer.write_position ) )
                 {
@@ -756,11 +755,6 @@ bool process_data( struct buffer_struct *receive_buffer, struct buffer_struct *s
 
     // if we are here then the receive buffer must have good data with start and end command characters
     // the characters are not included as they were not added
-
-    //TODO testing
-    //	receive_buffer->data_buffer[ receive_buffer->write_position ] = CHAR_NULL;
-    //	commDebugPrintString( "Recv: " );
-    //	commDebugPrintStringln( receive_buffer->data_buffer );
 
     char parameters[PARAMETER_MAX_COUNT][PARAMETER_MAX_LENGTH];
 

@@ -10,6 +10,8 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+- turn UART2 back on
+
 ### v2.7.0
 May 14, 2022<br />
 Tom Austin

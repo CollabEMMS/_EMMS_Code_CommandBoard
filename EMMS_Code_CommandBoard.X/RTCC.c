@@ -804,7 +804,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 	//  then the clock chip registers are cleared
 	// the second and later times this function is called we simply return what is in the static variables
 
-	commDebugPrintStringln( "Start Get power times" );
+//	commDebugPrintStringln( "Start Get power times" );
 
 	static bool firstRun = true;
 
@@ -827,10 +827,6 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 		StopI2C( );
 		// 00010011
 
-		// TODO testing
-		commDebugPrintString( "\nPower fail data wkday: " );
-		commDebugPrintLong( (long) powerTimeBCDRegisterTemp );
-		commDebugPrintString( "\n" );
 
 		unsigned char powerFailData;
 		powerFailData = powerTimeBCDRegisterTemp & RTCC_DATA_MASK_WKDAY_PWRFAIL;
@@ -838,8 +834,6 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 
 		if( powerFailData > 0 ) // need to check if > 0 because the bit set is bit 4
 		{
-			commDebugPrintStringln( "Power fail data available" );
-
 			StartI2C();
 
 			powerTimeBCDRegisterTemp = ReadI2CRegister( RTCC_REGISTER_PWRDNMIN );
@@ -890,35 +884,10 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 			WriteI2C( 0b00001000 ); // Clear PWRFAIL, Enable Battery, Clear Weekday (not used))
 			IdleI2C( );
 			StopI2C( );
-			commDebugPrintString( "\n\nPower Fail Data Cleared\n\n" );
-
-
-			commDebugPrintString( "\nPower Fail Data: mm-dd  hh:mm\n" );
-			commDebugPrintString( "Power Fail Data: " );
-			commDebugPrintLong( (long) timePowerDown->month );
-			commDebugPrintString( "-" );
-			commDebugPrintLong( (long) timePowerDown->day );
-			commDebugPrintString( "  " );
-			commDebugPrintLong( (long) timePowerDown->hour );
-			commDebugPrintString( ":" );
-			commDebugPrintLong( (long) timePowerDown->minute );
-			commDebugPrintString( "\n" );
-
-			commDebugPrintString( "\nPower Restore Data: mm-dd  hh:mm\n" );
-			commDebugPrintString( "Power Restore Data: " );
-			commDebugPrintLong( (long) timePowerUp->month );
-			commDebugPrintString( "-" );
-			commDebugPrintLong( (long) timePowerUp->day );
-			commDebugPrintString( "  " );
-			commDebugPrintLong( (long) timePowerUp->hour );
-			commDebugPrintString( ":" );
-			commDebugPrintLong( (long) timePowerUp->minute );
-			commDebugPrintString( "\n" );
 
 		}
 		else
 		{
-			commDebugPrintStringln( "Power fail data NOT available" );
 			timePowerDown->valid = false;
 			timePowerUp->valid = false;
 
@@ -940,9 +909,7 @@ void rtccI2CReadPowerTimes( struct date_time_struct *timePowerDown, struct date_
 		timePowerUp->year = 0;
 	}
 
-	//    timePowerRestore->year = 0;
-	commDebugPrintStringln( "End Get power times" );
-
+	
 	return;
 }
 

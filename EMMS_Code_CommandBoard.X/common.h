@@ -1,7 +1,3 @@
-// BIG TODO's
-
-
-
 /******
  Common Header File
  Only put something in here if:
@@ -135,9 +131,9 @@
  Only one can be uncommented at a time
  
  ************************/
-//#define UART2_MODULE
+#    define UART2_MODULE
 //#define UART2_DEBUG_IDE
-#    define UART2_DEBUG_OUTPUT
+//#    define UART2_DEBUG_OUTPUT
 
 #    if !defined UART2_MODULE && !defined UART2_DEBUG_IDE && !defined UART2_DEBUG_OUTPUT
 #        error One UART2 option must be defined
@@ -197,8 +193,8 @@ struct energy_info
 
 struct calibration_struct
 {
-    unsigned long cal1;
-    unsigned long cal2;
+	unsigned long cal1;
+	unsigned long cal2;
 };
 
 struct reset_time
