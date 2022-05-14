@@ -10,6 +10,15 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+### v2.6.6
+May 14, 2022<br />
+Tom Austin
+#### Changes
+- update default EEPROM calibration values
+  - calibration values are now based on testing 1 meter and should be fairly close
+- fix some str to ul conversions for energy used
+  - some were using atol which could lead to problems
+
 ### v2.6.5
 April 16, 2022<br />
 Tom Austin

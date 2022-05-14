@@ -1039,13 +1039,13 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
 
             unsigned long tempEnergyUsedLifetime;
 
-            tempEnergyUsedLifetime = atol( parameters[2] );
+            tempEnergyUsedLifetime = strtoul( parameters[2], NULL, 10 );
 
             if ( tempEnergyUsedLifetime < energyUsed_global.lifetime )
             {
 
                 char temp[12];
-                ltoa( temp, energyUsed_global.lifetime, 10 );
+                ultoa( temp, energyUsed_global.lifetime, 10 );
                 command_builder3( send_buffer, "Set", "EnUsed", temp );
 
             }
@@ -1344,8 +1344,8 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
             char energyUsedLifetimeBuf[BUF_SIZE_LONG];
             char energyUsedPreviousDayBuf[BUF_SIZE_LONG];
 
-            ltoa( energyUsedLifetimeBuf, energyUsed_global.lifetime, 10 );
-            ltoa( energyUsedPreviousDayBuf, energyUsed_global.previousCycleUsed, 10 );
+            ultoa( energyUsedLifetimeBuf, energyUsed_global.lifetime, 10 );
+            ultoa( energyUsedPreviousDayBuf, energyUsed_global.previousCycleUsed, 10 );
 
             command_builder4( send_buffer, "Set", "Stat", energyUsedLifetimeBuf, energyUsedPreviousDayBuf );
 
@@ -1465,9 +1465,9 @@ bool process_data_parameters( char parameters[][PARAMETER_MAX_LENGTH], struct bu
             char energyUsedBuf[BUF_SIZE_LONG];
             char powerWattsBuf[BUF_SIZE_LONG];
 
-            ltoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
+            ultoa( energyCycleAllocationBuf, energyCycleAllocation_global, 10 );
             ltoa( energyUsedBuf, energyUsedTemp, 10 );
-            ltoa( powerWattsBuf, powerWatts_global, 10 );
+            ultoa( powerWattsBuf, powerWatts_global, 10 );
 
             command_builder5( send_buffer, "Set", "PwrData", energyCycleAllocationBuf, energyUsedBuf, powerWattsBuf );
         }

@@ -81,11 +81,15 @@ int __attribute__( ( space( eedata ) ) ) EEenergyUsedLifetime8L = 0;
 int __attribute__( ( space( eedata ) ) ) EErelayMode = 2;
 int __attribute__( ( space( eedata ) ) ) EErtccIsSet = 0;
 
-int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1H = 0;         // default high byte is 0
-int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1L = 22124;     // default value
-int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2H = 0;         // default high byte is 0
-int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2L = 1382;      // default is cal1 / 16
-//  the default values for calibration factor are likely wrong - but they give a starting place
+// Calibration factors below have been determined by experiment on 1 EMMS meter.
+// Calibration1 = 207094 = HEX 0003 28F6
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1H = 0x0003;
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor1L = 0x28F6;
+
+// Calibration 2 = 1000000 = HEX 000F 4240
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2H = 0x000F;
+int __attribute__( ( space( eedata ) ) ) EEcalibrationFactor2L = 0x4240;
+
 
 
 /****************
