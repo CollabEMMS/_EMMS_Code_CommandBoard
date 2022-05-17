@@ -10,6 +10,10 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+### v2.7.2
+May 16, 2022<br />
+Tom Austin
+#### Changes
 - UART2 now works
   - fixed bug in UART2 interrupt routine (type reference to UART1)
   - fixed BAUD rate for UART2

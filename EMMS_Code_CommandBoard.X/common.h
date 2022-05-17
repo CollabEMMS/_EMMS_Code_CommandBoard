@@ -69,7 +69,7 @@
 
 //							"          "  10 character spacing reference - do not exceed or the system will crash
 #    define MODULE_INFO_THIS_0	"Comand Brd"			// 10 chars max name
-#    define MODULE_INFO_THIS_1	"v2.7.1"			// 10 chars max version
+#    define MODULE_INFO_THIS_1	"v2.7.2"			// 10 chars max version
 #    define MODULE_INFO_THIS_2	""					// 10 chars max info
 #    define MODULE_INFO_THIS_3	""					// 10 chars max info
 #    define MODULE_INFO_THIS_4	""					// 20 chars max info (only 18 will show on UI)
