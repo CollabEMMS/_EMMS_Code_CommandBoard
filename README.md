@@ -16,6 +16,9 @@ Tom Austin
 #### Changes
 - turn UART2 back on
   - remove several debug print function calls
+  - fixed bug in UART2 interrupt routine (type reference to UART1)
+  - fixed BAUD rate for UART2
+  - enabled UART2 interrupt
 - cleaned up some lingering //TODO comments
 
 ### v2.7.0
