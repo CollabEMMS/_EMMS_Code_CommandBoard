@@ -10,15 +10,17 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+- UART2 now works
+  - fixed bug in UART2 interrupt routine (type reference to UART1)
+  - fixed BAUD rate for UART2
+  - enabled UART2 interrupt
+
 ### v2.7.1
 May 14, 2022<br />
 Tom Austin
 #### Changes
 - turn UART2 back on
   - remove several debug print function calls
-  - fixed bug in UART2 interrupt routine (type reference to UART1)
-  - fixed BAUD rate for UART2
-  - enabled UART2 interrupt
 - cleaned up some lingering //TODO comments
 
 ### v2.7.0
