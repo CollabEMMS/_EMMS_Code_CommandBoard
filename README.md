@@ -10,6 +10,11 @@ MPLAB X Project
 ### NEXT
 - none yet
 
+### v2.8.0
+May 16, 2022<br />
+Tom Austin
+#### Release
+
 ### v2.7.2
 May 16, 2022<br />
 Tom Austin
